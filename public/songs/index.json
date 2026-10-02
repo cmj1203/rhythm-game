@@ -6,9 +6,9 @@
    "bpm": 93.02,
    "duration": 202.206,
    "notes": {
-    "easy": 132,
-    "normal": 285,
-    "hard": 541
+    "easy": 272,
+    "normal": 364,
+    "hard": 558
    },
    "artist": "Josh Woodward",
    "credit": "Music - \"Circles\" by Josh Woodward. Free download: https://www.joshwoodward.com/"
@@ -19,9 +19,9 @@
    "bpm": 115.0,
    "duration": 214.053,
    "notes": {
-    "easy": 197,
-    "normal": 405,
-    "hard": 788
+    "easy": 386,
+    "normal": 496,
+    "hard": 722
    },
    "artist": "Josh Woodward",
    "credit": "Music - \"Midnight Sun\" by Josh Woodward. Free download: https://www.joshwoodward.com/"
@@ -32,9 +32,9 @@
    "bpm": 77.99,
    "duration": 230.528,
    "notes": {
-    "easy": 139,
-    "normal": 296,
-    "hard": 616
+    "easy": 282,
+    "normal": 446,
+    "hard": 602
    },
    "artist": "Josh Woodward",
    "credit": "Music - \"Release\" by Josh Woodward. Free download: https://www.joshwoodward.com/"
@@ -45,9 +45,9 @@
    "bpm": 85.03,
    "duration": 261.507,
    "notes": {
-    "easy": 176,
-    "normal": 366,
-    "hard": 726
+    "easy": 349,
+    "normal": 444,
+    "hard": 741
    },
    "artist": "Josh Woodward",
    "credit": "Music - \"Swansong\" by Josh Woodward. Free download: https://www.joshwoodward.com/"
@@ -58,9 +58,9 @@
    "bpm": 128.01,
    "duration": 40.0,
    "notes": {
-    "easy": 41,
-    "normal": 86,
-    "hard": 180
+    "easy": 82,
+    "normal": 92,
+    "hard": 164
    },
    "artist": "검증용 합성곡"
   }

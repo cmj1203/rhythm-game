@@ -1,9 +1,9 @@
 import { assertNever } from "./assert";
 import { COLOR, Painter } from "./canvas";
 import { drawResult, type ResultFrame } from "./result-screen";
-import { drawPlaying, type PlayingFrame } from "./stage";
+import { drawPlaying, type PlayingFrame } from "./track";
 
-/** "idle" clears the canvas while the song list covers it. */
+/** "idle" clears the canvas while the title or the song list covers it. */
 export type Frame = { readonly kind: "idle" } | PlayingFrame | ResultFrame;
 
 export class CanvasUnsupportedError extends Error {

@@ -10,6 +10,8 @@ export const COLOR = {
   sky: "#5ee1ff",
   pink: "#ff7ab8",
   violet: "#b79bff",
+  thread: "#efe2c6",
+  needle: "#cfd6e0",
 } as const;
 
 export const JUDGEMENT_COLOR = {

@@ -59,34 +59,6 @@ body {
   color: var(--dim);
 }
 
-#title .keys {
-  display: flex;
-  gap: 12px;
-  margin-top: 16px;
-}
-
-.key {
-  display: grid;
-  place-items: center;
-  width: clamp(48px, 13vw, 64px);
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: var(--surface);
-  box-shadow: inset 0 0 0 4px var(--lane-color);
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--dim);
-}
-
-.key-wide {
-  font-size: 13px;
-}
-
-.key[data-held="true"] {
-  background: color-mix(in srgb, var(--lane-color) 40%, var(--surface));
-  color: var(--text);
-}
-
 #title .start {
   width: min(320px, 100%);
   margin-top: 16px;

@@ -28,28 +28,19 @@ from typing import Final
 import librosa
 import numpy as np
 import typer
-from chart_notes import (
-    CHORD_RATIO_BY_DIFFICULTY,
-    STEPS_PER_BEAT,
-    Candidate,
-    Sound,
-    add_chords,
-    add_holds,
-    assign_lanes,
-    to_json,
-)
 from rich.console import Console
 from rich.table import Table
 from scipy.ndimage import percentile_filter
 
 SAMPLE_RATE: Final = 22050
 HOP: Final = 256
+STEPS_PER_BEAT: Final = 4
 MIN_BEATS: Final = 8
 
-# Tempo is folded into 75-150 BPM so that half / quarter / 8th notes are playable as easy / normal / hard.
+# Tempo is folded into 75-150 BPM so that one beat is a comfortable single-key tap.
 MIN_BEAT_PERIOD_S: Final = 0.4
 MAX_BEAT_PERIOD_S: Final = 0.8
-STEP_DIVISOR_BY_DIFFICULTY: Final = {"easy": 8, "normal": 4, "hard": 2}
+NEVER: Final = float("inf")
 
 STEADY_INLIER_RESIDUAL_S: Final = 0.035
 STEADY_MIN_INLIER_RATIO: Final = 0.9
@@ -66,8 +57,27 @@ ENVELOPE_PEAK_FRAMES: Final = 4
 LOCAL_LEVEL_WINDOW_STEPS: Final = 65
 LOCAL_LEVEL_PERCENTILE: Final = 80
 MIN_STRENGTH: Final = 0.04
-ON_BEAT_THRESHOLD: Final = 0.25
-ON_HALF_BEAT_THRESHOLD: Final = 0.3
+
+
+@dataclass(frozen=True, slots=True)
+class Difficulty:
+    """Minimum accent a grid step needs to become a note, by where it falls in the beat.
+
+    Mixed spacing is what bends the path in the game, so harder charts add off-beat notes
+    only where the music accents them instead of filling every slot.
+    """
+
+    name: str
+    on_beat: float
+    on_half_beat: float = NEVER
+    off_beat: float = NEVER
+
+
+DIFFICULTIES: Final = (
+    Difficulty("easy", on_beat=0.25),
+    Difficulty("normal", on_beat=0.25, on_half_beat=0.8),
+    Difficulty("hard", on_beat=0.25, on_half_beat=0.3, off_beat=0.9),
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -165,10 +175,10 @@ def build_grid(percussive: np.ndarray, envelope: np.ndarray) -> BeatGrid:
     )
 
 
-def rhythm_steps(envelope: np.ndarray, step_frames: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    """Grid steps where the percussive envelope stands out against its surrounding section.
+def step_accents(envelope: np.ndarray, step_frames: np.ndarray) -> np.ndarray:
+    """How strongly the percussive envelope stands out at each grid step, relative to its section.
 
-    Returns the step indices and, for every step, how strongly it stands out (its accent).
+    Around 1 is a typical strong hit of that section; 0 means nothing audible happens there.
     """
     normalized = envelope / (float(np.percentile(envelope, 99)) or 1.0)
     windows = np.lib.stride_tricks.sliding_window_view(
@@ -177,11 +187,17 @@ def rhythm_steps(envelope: np.ndarray, step_frames: np.ndarray) -> tuple[np.ndar
     strength = windows[np.minimum(step_frames, len(windows) - 1)].max(axis=1)
     level = percentile_filter(strength, LOCAL_LEVEL_PERCENTILE, size=LOCAL_LEVEL_WINDOW_STEPS, mode="nearest")
 
-    step = np.arange(len(step_frames))
-    threshold = np.where(step % STEPS_PER_BEAT == 0, ON_BEAT_THRESHOLD, ON_HALF_BEAT_THRESHOLD)
-    is_playable = step % (STEPS_PER_BEAT // 2) == 0
-    steps = np.flatnonzero(is_playable & (strength >= threshold * level) & (strength >= MIN_STRENGTH))
-    return steps, strength / np.maximum(level, MIN_STRENGTH)
+    return np.where(strength >= MIN_STRENGTH, strength / np.maximum(level, MIN_STRENGTH), 0.0)
+
+
+def select_steps(accent: np.ndarray, difficulty: Difficulty) -> np.ndarray:
+    step = np.arange(len(accent))
+    minimum = np.where(
+        step % STEPS_PER_BEAT == 0,
+        difficulty.on_beat,
+        np.where(step % 2 == 0, difficulty.on_half_beat, difficulty.off_beat),
+    )
+    return np.flatnonzero(accent >= minimum)
 
 
 def write_song_index(songs_dir: Path) -> Path:
@@ -218,38 +234,20 @@ def main(
     grid = build_grid(percussive, envelope)
 
     step_frames = librosa.time_to_frames(grid.step_times, sr=SAMPLE_RATE, hop_length=HOP)
-    brightness = librosa.feature.spectral_centroid(y=samples, sr=SAMPLE_RATE, hop_length=HOP)[0]
-    steps, accent = rhythm_steps(envelope, step_frames)
-    candidates = [
-        Candidate(
-            step=int(step),
-            time=float(grid.step_times[step]),
-            brightness=float(brightness[min(step_frames[step] + 1, len(brightness) - 1)]),
-            accent=float(accent[step]),
-        )
-        for step in steps
-    ]
-    sound = Sound(
-        step_times=grid.step_times,
-        loudness=librosa.feature.rms(y=samples, hop_length=HOP)[0],
-        frames_per_second=SAMPLE_RATE / HOP,
-    )
+    accent = step_accents(envelope, step_frames)
     charts = {
-        name: add_chords(
-            add_holds(assign_lanes([c for c in candidates if c.step % divisor == 0]), divisor, sound),
-            CHORD_RATIO_BY_DIFFICULTY[name],
-        )
-        for name, divisor in STEP_DIVISOR_BY_DIFFICULTY.items()
+        difficulty.name: [round(float(grid.step_times[step]), 4) for step in select_steps(accent, difficulty)]
+        for difficulty in DIFFICULTIES
     }
 
     chart = {
-        "version": 2,
+        "version": 3,
         "title": title or audio.parent.name,
         "audio": audio.name,
         "bpm": round(grid.bpm, 2),
         "offset": round(float(grid.step_times[0]), 4),
         "duration": round(duration, 3),
-        "charts": {name: to_json(notes) for name, notes in charts.items()},
+        "charts": charts,
     }
     for key, value in (("artist", artist), ("credit", credit)):
         if value:
@@ -263,12 +261,8 @@ def main(
     table.add_column("difficulty")
     table.add_column("notes", justify="right")
     table.add_column("notes/sec", justify="right")
-    table.add_column("holds", justify="right")
-    table.add_column("chords", justify="right")
     for name, notes in charts.items():
-        holds = sum(note.end is not None for note in notes)
-        chords = len(notes) - len({note.step for note in notes})
-        table.add_row(name, str(len(notes)), f"{len(notes) / duration:.2f}", str(holds), str(chords))
+        table.add_row(name, str(len(notes)), f"{len(notes) / duration:.2f}")
     console = Console()
     console.print(table)
     console.print(f"[green]wrote[/green] {out}")

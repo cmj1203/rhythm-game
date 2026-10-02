@@ -1,4 +1,4 @@
-export const LEAD_IN_S = 2;
+export const LEAD_IN_S = 3;
 
 export class SongPlayer {
   private readonly context = new AudioContext({ latencyHint: "interactive" });

@@ -1,23 +1,13 @@
 import { z } from "zod";
-import { LANE_COUNT } from "./lanes";
 
 export const DIFFICULTIES = ["easy", "normal", "hard"] as const;
 export type Difficulty = (typeof DIFFICULTIES)[number];
 
 const songIdSchema = z.string().regex(/^[a-z0-9-]+$/);
-
-const noteSchema = z.object({
-  t: z.number().nonnegative(),
-  lane: z
-    .number()
-    .int()
-    .min(0)
-    .max(LANE_COUNT - 1),
-  end: z.number().positive().optional(),
-});
+const noteTimes = z.array(z.number().nonnegative());
 
 const chartSchema = z.object({
-  version: z.literal(2),
+  version: z.literal(3),
   title: z.string(),
   audio: z.string(),
   artist: z.string().optional(),
@@ -25,11 +15,7 @@ const chartSchema = z.object({
   bpm: z.number().positive(),
   offset: z.number(),
   duration: z.number().positive(),
-  charts: z.object({
-    easy: z.array(noteSchema),
-    normal: z.array(noteSchema),
-    hard: z.array(noteSchema),
-  }),
+  charts: z.object({ easy: noteTimes, normal: noteTimes, hard: noteTimes }),
 });
 
 const noteCount = z.number().int().nonnegative();
@@ -44,7 +30,6 @@ const songSummarySchema = z.object({
 });
 const songIndexSchema = z.object({ songs: z.array(songSummarySchema) });
 
-export type ChartNote = Readonly<z.infer<typeof noteSchema>>;
 export type SongChart = Readonly<z.infer<typeof chartSchema>>;
 export type SongSummary = Readonly<z.infer<typeof songSummarySchema>>;
 export type LoadedSong = { readonly chart: SongChart; readonly audio: ArrayBuffer };

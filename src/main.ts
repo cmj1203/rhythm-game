@@ -1,28 +1,41 @@
 import { assertNever } from "./assert";
-import { SongPlayer } from "./audio";
+import { LEAD_IN_S, SongPlayer } from "./audio";
 import { type Difficulty, loadSong, loadSongIndex, SongLoadError, type SongSummary } from "./chart";
+import { DrawingLoadError } from "./drawing";
 import { PlayState } from "./judge";
-import { LANE_BY_CODE } from "./lanes";
 import { type MenuChoice, SongMenu } from "./menu";
+import type { Path } from "./path";
+import { sewingFor } from "./pictures";
 import { type Frame, Renderer } from "./render";
-import type { Feedback } from "./stage";
-import { BURST_S } from "./stage-effects";
+import { dyePath, planSections, type Section } from "./sections";
 import { TitleScreen } from "./title";
+import { BURST_S, type Feedback, finaleProgress } from "./track";
 
-const RESULT_DELAY_S = 1;
+const RESULT_FADE_MS = 600;
 
-type Session = { readonly song: SongSummary; readonly difficulty: Difficulty; readonly play: PlayState };
+type Session = {
+  readonly song: SongSummary;
+  readonly difficulty: Difficulty;
+  readonly pictureName: string;
+  readonly sections: readonly Section[];
+  readonly play: PlayState;
+};
 type Screen =
   | { readonly kind: "title" }
   | { readonly kind: "menu" }
   | { readonly kind: "loading" }
+  | (Session & { readonly kind: "ready"; readonly path: Path; readonly buffer: AudioBuffer })
   | (Session & {
       readonly kind: "playing";
+      readonly path: Path;
       readonly duration: number;
       readonly bursts: Feedback[];
       feedback: Feedback | null;
     })
-  | (Session & { readonly kind: "result" });
+  | (Session & { readonly kind: "result"; readonly path: Path; readonly shownAt: number });
+
+type ReadyScreen = Extract<Screen, { kind: "ready" }>;
+type PlayingScreen = Extract<Screen, { kind: "playing" }>;
 
 class MissingElementError extends Error {
   constructor(readonly selector: string) {
@@ -37,17 +50,15 @@ function requireElement<T extends Element>(selector: string): T {
   return found;
 }
 
-type PlayingScreen = Extract<Screen, { kind: "playing" }>;
-
 function record(screen: PlayingScreen, feedback: Feedback): void {
   screen.feedback = feedback;
-  if (feedback.lane !== null) screen.bursts.push(feedback);
+  if (feedback.judgement !== "miss") screen.bursts.push(feedback);
 }
 
 async function boot(): Promise<void> {
   const renderer = new Renderer(requireElement<HTMLCanvasElement>("#game"));
   const player = new SongPlayer();
-  const heldLanes = new Set<number>();
+  const songs = await loadSongIndex();
   let screen: Screen = { kind: "title" };
 
   const begin = async ({ song, difficulty }: MenuChoice): Promise<void> => {
@@ -59,21 +70,28 @@ async function boot(): Promise<void> {
       const { chart, audio } = await loadSong(song.id);
       const buffer = await player.decode(audio);
       await unlocked;
+      const times = chart.charts[difficulty];
+      const { pictureName, path } = await sewingFor(
+        times,
+        songs.findIndex(({ id }) => id === song.id),
+        songs.length,
+        difficulty,
+      );
+      const sections = planSections(times, chart.bpm, chart.offset);
       menu.hide();
-      heldLanes.clear();
-      player.start(buffer);
       screen = {
-        kind: "playing",
+        kind: "ready",
         song,
         difficulty,
-        play: new PlayState(chart.charts[difficulty]),
-        duration: buffer.duration,
-        bursts: [],
-        feedback: null,
+        pictureName,
+        sections,
+        play: new PlayState(times),
+        path: dyePath(path, sections),
+        buffer,
       };
     } catch (error) {
       screen = { kind: "menu" };
-      if (error instanceof SongLoadError || error instanceof DOMException) {
+      if (error instanceof SongLoadError || error instanceof DrawingLoadError || error instanceof DOMException) {
         menu.setStatus(`불러오기 실패: ${error.message}`);
         return;
       }
@@ -84,7 +102,7 @@ async function boot(): Promise<void> {
 
   const menu = new SongMenu({
     root: requireElement<HTMLElement>("#menu"),
-    songs: await loadSongIndex(),
+    songs,
     initialSongId: new URLSearchParams(window.location.search).get("song"),
     onStart: (choice) => void begin(choice),
   });
@@ -104,11 +122,33 @@ async function boot(): Promise<void> {
     menu.show();
   };
 
+  const startPlaying = (ready: ReadyScreen): void => {
+    player.start(ready.buffer);
+    screen = {
+      kind: "playing",
+      song: ready.song,
+      difficulty: ready.difficulty,
+      pictureName: ready.pictureName,
+      sections: ready.sections,
+      play: ready.play,
+      path: ready.path,
+      duration: ready.buffer.duration,
+      bursts: [],
+      feedback: null,
+    };
+  };
+
+  const press = (playing: PlayingScreen, performanceMs: number): void => {
+    const songTime = player.songTime(performanceMs);
+    const hit = playing.play.press(songTime);
+    if (hit !== null) record(playing, { ...hit, at: songTime });
+  };
+
   window.addEventListener("keydown", (event) => {
     if (event.repeat) return;
     switch (screen.kind) {
       case "title":
-        title.handleKeyDown(event);
+        if (event.code === "Enter" && !(event.target instanceof HTMLButtonElement)) title.start();
         return;
       case "menu":
         if (event.code === "Escape") {
@@ -121,20 +161,24 @@ async function boot(): Promise<void> {
         return;
       case "loading":
         return;
-      case "playing": {
+      case "ready":
         if (event.code === "Escape") {
           backToMenu();
           return;
         }
-        const lane = LANE_BY_CODE.get(event.code);
-        if (lane === undefined) return;
+        if (event.metaKey || event.ctrlKey || event.altKey) return;
         event.preventDefault();
-        heldLanes.add(lane);
-        const songTime = player.songTime(event.timeStamp);
-        const hit = screen.play.hit(lane, songTime);
-        if (hit !== null) record(screen, { ...hit, at: songTime });
+        startPlaying(screen);
         return;
-      }
+      case "playing":
+        if (event.code === "Escape") {
+          backToMenu();
+          return;
+        }
+        if (event.metaKey || event.ctrlKey || event.altKey) return;
+        event.preventDefault();
+        press(screen, event.timeStamp);
+        return;
       case "result":
         if (event.code === "Enter" || event.code === "Escape") backToMenu();
         return;
@@ -143,18 +187,9 @@ async function boot(): Promise<void> {
     }
   });
 
-  window.addEventListener("keyup", (event) => {
-    if (screen.kind === "title") {
-      title.handleKeyUp(event);
-      return;
-    }
-    const lane = LANE_BY_CODE.get(event.code);
-    if (lane === undefined) return;
-    heldLanes.delete(lane);
-    if (screen.kind !== "playing") return;
-    const songTime = player.songTime(event.timeStamp);
-    const released = screen.play.release(lane, songTime);
-    if (released !== null) record(screen, { ...released, at: songTime });
+  window.addEventListener("pointerdown", (event) => {
+    if (screen.kind === "ready") startPlaying(screen);
+    else if (screen.kind === "playing") press(screen, event.timeStamp);
   });
 
   window.addEventListener("click", () => {
@@ -167,27 +202,58 @@ async function boot(): Promise<void> {
       case "menu":
       case "loading":
         return { kind: "idle" };
+      case "ready":
+        return {
+          kind: "playing",
+          phase: "ready",
+          play: screen.play,
+          path: screen.path,
+          sections: screen.sections,
+          songTime: -LEAD_IN_S,
+          duration: screen.buffer.duration,
+          feedback: null,
+          bursts: [],
+        };
       case "playing": {
         const songTime = player.songTime(performance.now());
         for (const event of screen.play.advance(songTime)) record(screen, { ...event, at: songTime });
         while (screen.bursts[0] !== undefined && songTime - screen.bursts[0].at > BURST_S) screen.bursts.shift();
-        if (songTime > screen.duration + RESULT_DELAY_S) {
-          player.stop();
-          screen = { kind: "result", song: screen.song, difficulty: screen.difficulty, play: screen.play };
-          return { kind: "result", play: screen.play, title: screen.song.title, difficulty: screen.difficulty };
+        // The song may still be playing its outro here; it keeps going under the result screen.
+        if (finaleProgress(screen.path, songTime) >= 1) {
+          screen = {
+            kind: "result",
+            song: screen.song,
+            difficulty: screen.difficulty,
+            pictureName: screen.pictureName,
+            sections: screen.sections,
+            play: screen.play,
+            path: screen.path,
+            shownAt: performance.now(),
+          };
+          return nextFrame();
         }
         return {
           kind: "playing",
+          phase: "playing",
           play: screen.play,
+          path: screen.path,
+          sections: screen.sections,
           songTime,
           duration: screen.duration,
-          heldLanes,
           feedback: screen.feedback,
           bursts: screen.bursts,
         };
       }
       case "result":
-        return { kind: "result", play: screen.play, title: screen.song.title, difficulty: screen.difficulty };
+        return {
+          kind: "result",
+          play: screen.play,
+          path: screen.path,
+          pictureName: screen.pictureName,
+          title: screen.song.title,
+          difficulty: screen.difficulty,
+          fade: Math.min(1, (performance.now() - screen.shownAt) / RESULT_FADE_MS),
+        };
       default:
         return assertNever(screen);
     }

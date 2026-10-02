@@ -49,9 +49,12 @@ pnpm dev       # 터미널에 나오는 http://localhost:5173 주소를 브라�
 | 종류 | 그림 |
 |---|---|
 | 공룡 | 티라노사우루스, 스테고사우루스, 트리케라톱스, 브라키오사우루스, 프테라노돈 |
-| 동물 | 고양이, 말, 코끼리, 사슴, 토끼, 악어, 달팽이, 수탉 |
-| 하늘과 바다 | 고래, 백조, 독수리, 문어, 나비 |
-| 물건과 풍경 | 기타, 자전거, 돛단배, 주전자, 로켓, 새장, 백야 |
+| 동물 | 고양이, 말, 코끼리, 사슴, 토끼, 악어, 달팽이, 수탉, 여우, 기린, 곰, 낙타, 개구리 |
+| 하늘과 바다 | 고래, 백조, 독수리, 문어, 나비, 부엉이, 펭귄, 홍학, 공작, 거북이, 해마, 해파리 |
+| 악기 | 기타, 바이올린, 축음기, 피아노 |
+| 물건과 풍경 | 자전거, 돛단배, 주전자, 로켓, 새장, 백야, 재봉틀, 등대, 풍차, 기관차, 관람차 |
+
+그림은 모두 45장이다. 곡 하나에 난이도가 3개라 그림이 3장씩 들기 때문에, 곡 15개까지는 채보마다 다른 그림이 나온다.
 
 리듬은 그림에 두 가지로 남는다. 오래 기다린 노트의 땀은 굵고 빠른 노트의 땀은 가늘며, 곡의 구간이 바뀌면 실 색이 바뀐다. 그래서 같은 그림이라도 곡마다 다르게 완성된다.
 
@@ -101,12 +104,21 @@ pnpm dev       # 터미널에 나오는 http://localhost:5173 주소를 브라�
 | 곡 id | 곡 | 출처 / 라이선스 |
 |---|---|---|
 | `circles` | Circles | Josh Woodward, CC BY 4.0 |
+| `disco-con-tutti` | Disco con Tutti | Kevin MacLeod (incompetech.com), CC BY 4.0 |
+| `funkorama` | Funkorama | Kevin MacLeod (incompetech.com), CC BY 4.0 |
+| `hyperfun` | Hyperfun | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `midnight-sun` | Midnight Sun | Josh Woodward, CC BY 4.0 |
+| `pixel-peeker-polka` | Pixel Peeker Polka - faster | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `release` | Release | Josh Woodward, CC BY 4.0 |
+| `rhinoceros` | Rhinoceros | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `swansong` | Swansong | Josh Woodward, CC BY 4.0 |
 | `test-beat` | Test Beat 128 | 검증용으로 직접 합성한 곡 |
 
 Josh Woodward의 곡은 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)으로 공개되어 있다. Free download: https://www.joshwoodward.com/
+
+Kevin MacLeod의 곡(Disco con Tutti, Funkorama, Hyperfun, Pixel Peeker Polka - faster, Rhinoceros)은 Kevin MacLeod (incompetech.com)의 작품이다. Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/ 음원은 고치지 않고 그대로 쓴다.
+
+두 사람의 곡 모두 출처를 밝혀야 쓸 수 있어서, 곡 목록에서 곡을 고르면 화면 아래에 출처 문구가 나온다.
 
 ## 구조
 

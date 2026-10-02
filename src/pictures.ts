@@ -49,6 +49,23 @@ export const PICTURES = [
   "peacock",
   "ferris-wheel",
   "frog",
+  "emperor-penguin",
+  "dog",
+  "cupcake",
+  "lion",
+  "dolphin",
+  "sheep",
+  "ice-cream",
+  "squirrel",
+  "crab",
+  "pig",
+  "pineapple",
+  "hedgehog",
+  "goldfish",
+  "duck",
+  "ramen",
+  "panda",
+  "bee",
 ] as const;
 
 export type Sewing = { readonly pictureName: string; readonly path: Path };

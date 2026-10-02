@@ -1,0 +1,240 @@
+/* Tokens mirror DESIGN.md section 2. */
+:root {
+  --background: #0b0d12;
+  --surface: #141826;
+  --wash: rgb(242 244 248 / 6%);
+  --wash-selected: rgb(242 244 248 / 13%);
+  --separator: #232838;
+  --text: #f2f4f8;
+  --dim: #8a93a6;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--background);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Apple SD Gothic Neo", sans-serif;
+}
+
+#game {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+}
+
+#title {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  box-sizing: border-box;
+  padding: 24px;
+  background: var(--background);
+}
+
+#title[hidden] {
+  display: none;
+}
+
+#title > * {
+  margin: 0;
+}
+
+.title-name {
+  font-size: clamp(40px, 8vw, 72px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-align: center;
+}
+
+#title .title-tagline {
+  margin-top: -12px;
+  font-size: 16px;
+  color: var(--dim);
+}
+
+#title .keys {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.key {
+  display: grid;
+  place-items: center;
+  width: clamp(48px, 13vw, 64px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 4px var(--lane-color);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--dim);
+}
+
+.key-wide {
+  font-size: 13px;
+}
+
+.key[data-held="true"] {
+  background: color-mix(in srgb, var(--lane-color) 40%, var(--surface));
+  color: var(--text);
+}
+
+#title .start {
+  width: min(320px, 100%);
+  margin-top: 16px;
+}
+
+#menu {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  box-sizing: border-box;
+  padding: 48px 20px 24px;
+  background: var(--background);
+}
+
+#menu[hidden] {
+  display: none;
+}
+
+#menu > * {
+  width: min(560px, 100%);
+  box-sizing: border-box;
+  margin: 0;
+}
+
+.menu-title {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.songs {
+  flex: 0 1 auto;
+  min-height: 0;
+  padding: 6px;
+  overflow-y: auto;
+  list-style: none;
+  background: var(--surface);
+  border-radius: 14px;
+}
+
+.song {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 16px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.song:hover {
+  background: var(--wash);
+}
+
+.song[aria-selected="true"] {
+  background: var(--wash-selected);
+}
+
+.song-title {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.song-artist {
+  grid-column: 1;
+  font-size: 13px;
+  color: var(--dim);
+}
+
+.song-meta {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--dim);
+}
+
+.difficulties {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.difficulty,
+.start {
+  font: inherit;
+  color: var(--text);
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.difficulty {
+  display: grid;
+  gap: 2px;
+  padding: 10px 8px;
+  background: var(--surface);
+}
+
+.difficulty:hover {
+  background: var(--separator);
+}
+
+.difficulty[aria-checked="true"] {
+  background: var(--text);
+  color: var(--background);
+}
+
+.difficulty-name {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.difficulty-count {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+}
+
+.start {
+  padding: 14px;
+  font-size: 17px;
+  font-weight: 700;
+  background: var(--text);
+  color: var(--background);
+}
+
+.start:hover {
+  opacity: 0.9;
+}
+
+.difficulty:focus-visible,
+.start:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 3px;
+}
+
+.status,
+.hint,
+.credit,
+.empty {
+  font-size: 13px;
+  text-align: center;
+  color: var(--dim);
+}
+
+.status {
+  min-height: 18px;
+}

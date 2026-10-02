@@ -14,6 +14,45 @@
    "credit": "Music - \"Circles\" by Josh Woodward. Free download: https://www.joshwoodward.com/"
   },
   {
+   "id": "disco-con-tutti",
+   "title": "Disco con Tutti",
+   "bpm": 115.0,
+   "duration": 236.352,
+   "notes": {
+    "easy": 450,
+    "normal": 595,
+    "hard": 878
+   },
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Disco con Tutti\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "funkorama",
+   "title": "Funkorama",
+   "bpm": 100.97,
+   "duration": 201.456,
+   "notes": {
+    "easy": 279,
+    "normal": 426,
+    "hard": 580
+   },
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Funkorama\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "hyperfun",
+   "title": "Hyperfun",
+   "bpm": 100.03,
+   "duration": 233.326,
+   "notes": {
+    "easy": 378,
+    "normal": 560,
+    "hard": 760
+   },
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Hyperfun\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
    "id": "midnight-sun",
    "title": "Midnight Sun",
    "bpm": 115.0,
@@ -27,6 +66,19 @@
    "credit": "Music - \"Midnight Sun\" by Josh Woodward. Free download: https://www.joshwoodward.com/"
   },
   {
+   "id": "pixel-peeker-polka",
+   "title": "Pixel Peeker Polka - faster",
+   "bpm": 144.96,
+   "duration": 202.005,
+   "notes": {
+    "easy": 474,
+    "normal": 662,
+    "hard": 916
+   },
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Pixel Peeker Polka - faster\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
    "id": "release",
    "title": "Release",
    "bpm": 77.99,
@@ -38,6 +90,19 @@
    },
    "artist": "Josh Woodward",
    "credit": "Music - \"Release\" by Josh Woodward. Free download: https://www.joshwoodward.com/"
+  },
+  {
+   "id": "rhinoceros",
+   "title": "Rhinoceros",
+   "bpm": 126.0,
+   "duration": 203.886,
+   "notes": {
+    "easy": 411,
+    "normal": 600,
+    "hard": 816
+   },
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Rhinoceros\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "swansong",

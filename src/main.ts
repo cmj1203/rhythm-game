@@ -1,5 +1,5 @@
 import { assertNever } from "./assert";
-import { decodingShift, LEAD_IN_S, SongPlayer } from "./audio";
+import { decodingShift, LEAD_IN_S, SongPlayer, volumeFor } from "./audio";
 import { type Difficulty, loadSong, loadSongIndex, SongLoadError, type SongSummary } from "./chart";
 import { DrawingLoadError } from "./drawing";
 import { loadIntro } from "./intro";
@@ -32,6 +32,7 @@ type Screen =
       readonly path: Path;
       readonly buffer: AudioBuffer;
       readonly audioShift: number;
+      readonly volume: number;
     })
   | (Session & {
       readonly kind: "playing";
@@ -102,6 +103,7 @@ async function boot(): Promise<void> {
         path: dyePath(path, sections),
         buffer,
         audioShift: decodingShift(buffer, chart.anchors),
+        volume: volumeFor(buffer),
       };
     } catch (error) {
       screen = { kind: "menu" };
@@ -147,7 +149,7 @@ async function boot(): Promise<void> {
   };
 
   const startPlaying = (ready: ReadyScreen): void => {
-    player.start(ready.buffer, ready.audioShift, query.has("tick") ? ready.play.times : []);
+    player.start(ready.buffer, ready.audioShift, ready.volume, query.has("tick") ? ready.play.times : []);
     screen = {
       kind: "playing",
       song: ready.song,

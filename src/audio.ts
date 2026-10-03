@@ -3,7 +3,13 @@ const ANCHOR_LEVEL_S = 0.005;
 const ANCHOR_SEARCH_S = 0.06;
 const TICK_S = 0.03;
 const TICK_PITCH = 1800;
-const TICK_LOUDNESS = 0.4;
+const TICK_LOUDNESS = 0.15;
+/**
+ * Songs are mastered at very different levels. A song whose root mean square (1 being full scale) is above
+ * this plays turned down to it, so that no song is much louder than the rest or than other sound on the same
+ * device; a quieter song plays as it is.
+ */
+const LOUDEST_RMS = 0.1;
 
 /**
  * How many seconds later (negative: earlier) this browser's decoded audio plays each sound than the chart
@@ -47,6 +53,19 @@ export function decodingShift(buffer: AudioBuffer, anchors: readonly number[]): 
   return shifts[shifts.length >> 1] ?? 0;
 }
 
+/**
+ * What to multiply `buffer` by as it plays, so that it is no louder than `LOUDEST_RMS`: 1 for a quiet song,
+ * less for a loud one.
+ */
+export function volumeFor(buffer: AudioBuffer): number {
+  let squares = 0;
+  for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+    const samples = buffer.getChannelData(channel);
+    for (let i = 0; i < samples.length; i++) squares += (samples[i] ?? 0) ** 2;
+  }
+  return Math.min(1, LOUDEST_RMS / Math.sqrt(squares / (buffer.length * buffer.numberOfChannels)));
+}
+
 export class SongPlayer {
   private readonly context = new AudioContext({ latencyHint: "interactive" });
   private source: AudioBufferSourceNode | null = null;
@@ -63,14 +82,17 @@ export class SongPlayer {
   }
 
   /**
-   * Plays `buffer` after the lead-in. `shift` is what `decodingShift` found for it, so song time follows the chart.
-   * A short click sounds at each of the song times in `ticks`, for hearing whether a chart keeps time with its song.
+   * Plays `buffer` after the lead-in, at `volume` of its own level. `shift` is what `decodingShift` found for it,
+   * so song time follows the chart. A short click sounds at each of the song times in `ticks`, for hearing
+   * whether a chart keeps time with its song.
    */
-  start(buffer: AudioBuffer, shift: number, ticks: readonly number[]): void {
+  start(buffer: AudioBuffer, shift: number, volume: number, ticks: readonly number[]): void {
     this.stop();
     const source = this.context.createBufferSource();
+    const level = this.context.createGain();
+    level.gain.value = volume;
     source.buffer = buffer;
-    source.connect(this.context.destination);
+    source.connect(level).connect(this.context.destination);
     const playAt = this.context.currentTime + LEAD_IN_S;
     source.start(playAt);
     this.startAt = playAt + shift;

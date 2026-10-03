@@ -6,6 +6,9 @@ export type MenuOptions = {
   readonly songs: readonly SongSummary[];
   readonly initialSongId: string | null;
   readonly onStart: (song: SongSummary) => void;
+  /** The volume chosen so far, as a share of full volume, and what to do when the player changes it. */
+  readonly volume: number;
+  readonly onVolume: (share: number) => void;
 };
 
 const DIFFICULTY_LABEL = { easy: "Easy", normal: "Normal", hard: "Hard" } as const satisfies Record<Difficulty, string>;
@@ -74,11 +77,26 @@ export class SongMenu {
     startButton.addEventListener("click", () => this.start());
     this.status.setAttribute("aria-live", "polite");
 
+    const volume = element("label", "volume");
+    const slider = element("input", "volume-slider");
+    slider.type = "range";
+    slider.min = "0";
+    slider.max = "100";
+    slider.step = "5";
+    slider.value = String(Math.round(options.volume * 100));
+    const percent = element("span", "volume-value", `${slider.value}%`);
+    slider.addEventListener("input", () => {
+      percent.textContent = `${slider.value}%`;
+      options.onVolume(Number(slider.value) / 100);
+    });
+    volume.append(element("span", "volume-name", "음량"), slider, percent);
+
     root.append(
       element("h1", "menu-title", "곡 선택"),
       tabs,
       songs.length === 0 ? element("p", "empty", "곡이 없습니다. README의 곡 추가 방법을 따라 넣어 주세요.") : list,
       startButton,
+      volume,
       this.status,
       element("p", "hint", "↑↓ 곡 선택 · ←→ 난이도 · Enter 시작 · Esc 처음 화면"),
       this.credit,
@@ -100,6 +118,8 @@ export class SongMenu {
   }
 
   handleKey(event: KeyboardEvent): void {
+    // The volume slider takes the arrow keys for itself while it has the focus.
+    if (event.target instanceof HTMLInputElement) return;
     switch (event.code) {
       case "ArrowUp":
         this.step(-1);

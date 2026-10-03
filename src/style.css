@@ -227,6 +227,25 @@ body {
   min-height: 18px;
 }
 
+.volume {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--dim);
+}
+
+.volume-slider {
+  flex: 1;
+  accent-color: var(--text);
+}
+
+.volume-value {
+  min-width: 40px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
 #tutorial {
   position: fixed;
   inset: 0;

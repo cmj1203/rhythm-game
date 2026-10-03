@@ -64,9 +64,19 @@ function record(screen: PlayingScreen, feedback: Feedback): void {
   if (feedback.judgement !== "miss") screen.bursts.push(feedback);
 }
 
+const VOLUME_KEY = "livecanvas.volume";
+
+/** The volume the player chose last time, as a share of full volume; full volume if none was saved. */
+function savedVolume(): number {
+  const saved = Number(localStorage.getItem(VOLUME_KEY) ?? "1");
+  return Number.isFinite(saved) ? Math.min(1, Math.max(0, saved)) : 1;
+}
+
 async function boot(): Promise<void> {
   const renderer = new Renderer(requireElement<HTMLCanvasElement>("#game"));
   const player = new SongPlayer();
+  const volume = savedVolume();
+  player.setVolume(volume);
   const songs = await loadSongIndex();
   const query = new URLSearchParams(window.location.search);
   const intro = await loadIntro({
@@ -121,6 +131,11 @@ async function boot(): Promise<void> {
     songs,
     initialSongId: query.get("song"),
     onStart: (song) => void begin(song),
+    volume,
+    onVolume: (share) => {
+      player.setVolume(share);
+      localStorage.setItem(VOLUME_KEY, String(share));
+    },
   });
 
   const tutorial = new TutorialScreen({

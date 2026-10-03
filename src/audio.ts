@@ -3,13 +3,13 @@ const ANCHOR_LEVEL_S = 0.005;
 const ANCHOR_SEARCH_S = 0.06;
 const TICK_S = 0.03;
 const TICK_PITCH = 1800;
-const TICK_LOUDNESS = 0.15;
+const TICK_LOUDNESS = 0.075;
 /**
  * Songs are mastered at very different levels. A song whose root mean square (1 being full scale) is above
  * this plays turned down to it, so that no song is much louder than the rest or than other sound on the same
  * device; a quieter song plays as it is.
  */
-const LOUDEST_RMS = 0.1;
+const LOUDEST_RMS = 0.05;
 
 /**
  * How many seconds later (negative: earlier) this browser's decoded audio plays each sound than the chart
@@ -70,7 +70,13 @@ export class SongPlayer {
   private readonly context = new AudioContext({ latencyHint: "interactive" });
   private source: AudioBufferSourceNode | null = null;
   private ticks: GainNode | null = null;
+  /** Everything the player plays goes through this, at the share of full volume the player has chosen. */
+  private readonly output = this.context.createGain();
   private startAt = 0;
+
+  setVolume(share: number): void {
+    this.output.gain.value = share;
+  }
 
   /** Must be called from a user gesture: browsers keep audio suspended until one happens. */
   unlock(): Promise<void> {
@@ -92,7 +98,8 @@ export class SongPlayer {
     const level = this.context.createGain();
     level.gain.value = volume;
     source.buffer = buffer;
-    source.connect(level).connect(this.context.destination);
+    this.output.connect(this.context.destination);
+    source.connect(level).connect(this.output);
     const playAt = this.context.currentTime + LEAD_IN_S;
     source.start(playAt);
     this.startAt = playAt + shift;
@@ -106,7 +113,7 @@ export class SongPlayer {
       samples[i] = TICK_LOUDNESS * Math.sin((2 * Math.PI * TICK_PITCH * i) / rate) * (1 - i / samples.length) ** 2;
     }
     const bus = this.context.createGain();
-    bus.connect(this.context.destination);
+    bus.connect(this.output);
     for (const time of ticks) {
       const tick = this.context.createBufferSource();
       tick.buffer = click;

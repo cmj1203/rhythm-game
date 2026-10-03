@@ -1,4 +1,5 @@
-import { COLOR, JUDGEMENT_COLOR, type Painter, type Size } from "./canvas";
+import { COLOR, JUDGEMENT_COLOR, type Painter, type Point, type Size } from "./canvas";
+import { drawCrayon } from "./crayon";
 import {
   blendViews,
   clothRect,
@@ -48,10 +49,20 @@ const COMBO_TIERS = [10, 30, 60] as const;
 const COMBO_COLOR = [COLOR.text, COLOR.sky, COLOR.pink, JUDGEMENT_COLOR.perfect] as const;
 /** The radius of the ring on the tile to hit next, in tiles. */
 const TARGET_RADIUS = 0.27;
-/** How long the needle is from eye to point and how wide it is at the eye, in tiles. */
-const NEEDLE_LENGTH = 0.42;
-const NEEDLE_WIDTH = 0.1;
-/** The glow around the stitch the needle circles, per combo tier, as the two hex digits of its opacity. */
+/** How long the crayon is, in tiles. */
+const CRAYON_LENGTH = 0.4;
+/** How much of the crayon lies ahead of the place where it rides its circle; the rest trails behind. */
+const CRAYON_LEAD = 0.55;
+const TIP_AHEAD = CRAYON_LENGTH * CRAYON_LEAD;
+const TIP_REACH = Math.hypot(1, TIP_AHEAD);
+/**
+ * How far the crayon rides behind the beat, in radians, so that on the beat its point is just touching the ring
+ * on the tile to hit next. The point is `TIP_REACH` tiles from the stitch and atan(`TIP_AHEAD`) ahead of the
+ * crayon's place on the circle. It meets a ring of radius r around a tile one unit away when the angle a between
+ * the two, seen from the stitch, satisfies r² = reach² + 1 - 2·reach·cos(a).
+ */
+const CRAYON_LAG = Math.atan(TIP_AHEAD) + Math.acos((TIP_REACH ** 2 + 1 - TARGET_RADIUS ** 2) / (2 * TIP_REACH));
+/** The glow around the stitch the crayon circles, per combo tier, as the two hex digits of its opacity. */
 const GLOW_OPACITY = ["1a", "2b", "3d", "52"] as const;
 const GLOW_REACH = 2.2;
 const GLOW_REACH_PER_TIER = 0.5;
@@ -137,11 +148,10 @@ function drawAhead(painter: Painter, { path, play }: PlayingFrame, view: View): 
 }
 
 /**
- * The needle circles the last stitch on the end of its thread, in line with the thread and pointing away from
- * the stitch. Its point is always exactly one tile out, so the moment to press is when the point reaches the
- * middle of the ring on the tile to hit next.
+ * The crayon circles the last stitch, point first, in the colour of the line it is drawing. It rides `CRAYON_LAG`
+ * behind the beat, so the moment to press is when its point touches the ring on the tile to hit next.
  */
-function drawNeedle(painter: Painter, frame: PlayingFrame, view: View): void {
+function drawCircling(painter: Painter, frame: PlayingFrame, view: View): void {
   const { ctx } = painter;
   const { path, play, songTime } = frame;
   const standing = play.resolvedCount;
@@ -151,7 +161,8 @@ function drawNeedle(painter: Painter, frame: PlayingFrame, view: View): void {
   const thread = threadAt(path, standing);
 
   const size = view.tileSize;
-  const angle = orbiterAngle(sweep, songTime);
+  const spin = sweep.angle < 0 ? -1 : 1;
+  const angle = orbiterAngle(sweep, songTime) - spin * CRAYON_LAG;
   const center = toScreen(view, pivot);
 
   const tier = comboTier(play.combo);
@@ -167,43 +178,15 @@ function drawNeedle(painter: Painter, frame: PlayingFrame, view: View): void {
   ctx.lineWidth = 1;
   ctx.stroke();
 
-  const point = toScreen(view, { x: pivot.x + Math.cos(angle), y: pivot.y + Math.sin(angle) });
-  const heading = Math.atan2(point.y - center.y, point.x - center.x);
-  const along = { x: Math.cos(heading), y: Math.sin(heading) };
-  const halfWidth = (size * NEEDLE_WIDTH) / 2;
-  const eye = { x: point.x - along.x * size * NEEDLE_LENGTH, y: point.y - along.y * size * NEEDLE_LENGTH };
-
-  ctx.beginPath();
-  ctx.moveTo(center.x, center.y);
-  ctx.lineTo(eye.x, eye.y);
-  ctx.strokeStyle = thread;
-  ctx.lineWidth = Math.max(1, size * 0.045);
-  ctx.lineCap = "round";
-  ctx.stroke();
   painter.circle(center, size * 0.08);
   ctx.fillStyle = thread;
   ctx.fill();
 
-  ctx.beginPath();
-  ctx.moveTo(point.x, point.y);
-  ctx.lineTo(eye.x - along.y * halfWidth, eye.y + along.x * halfWidth);
-  ctx.arc(eye.x, eye.y, halfWidth, heading + Math.PI / 2, heading + (Math.PI * 3) / 2);
-  ctx.closePath();
-  ctx.fillStyle = COLOR.needle;
-  ctx.fill();
-
-  ctx.beginPath();
-  ctx.ellipse(
-    eye.x + along.x * halfWidth * 1.2,
-    eye.y + along.y * halfWidth * 1.2,
-    halfWidth * 1.1,
-    halfWidth * 0.35,
-    heading,
-    0,
-    Math.PI * 2,
-  );
-  ctx.fillStyle = COLOR.background;
-  ctx.fill();
+  const heading = angle + (spin * Math.PI) / 2 + view.angle;
+  const at = toScreen(view, { x: pivot.x + Math.cos(angle), y: pivot.y + Math.sin(angle) });
+  const length = size * CRAYON_LENGTH;
+  const lead = length * CRAYON_LEAD;
+  drawCrayon(painter, { x: at.x + Math.cos(heading) * lead, y: at.y + Math.sin(heading) * lead }, heading, length, thread);
 }
 
 /** The hit effect: a ring and sparkles spreading from the tile that was just stitched into. */
@@ -246,6 +229,25 @@ function drawBursts(painter: Painter, { bursts, path, play, songTime }: PlayingF
   }
 }
 
+/** The judgement of the last press at `at`, fading out, with how early or late the press was under it. */
+function drawFeedback(painter: Painter, feedback: Feedback | null, songTime: number, at: Point): void {
+  if (feedback === null) return;
+  const age = songTime - feedback.at;
+  if (age < 0 || age > FEEDBACK_FADE_S) return;
+  const { ctx } = painter;
+  ctx.save();
+  ctx.globalAlpha *= 1 - age / FEEDBACK_FADE_S;
+  painter.text(feedback.judgement.toUpperCase(), at, { size: 32, weight: 800, color: JUDGEMENT_COLOR[feedback.judgement] });
+  if (feedback.judgement !== "miss" && Math.abs(feedback.offsetMs) >= EARLY_LATE_MIN_MS) {
+    const label = feedback.offsetMs < 0 ? "빠름" : "느림";
+    painter.text(`${label} ${Math.abs(feedback.offsetMs).toFixed(0)}ms`, { x: at.x, y: at.y + 30 }, {
+      size: 14,
+      color: COLOR.dim,
+    });
+  }
+  ctx.restore();
+}
+
 function drawHud(painter: Painter, frame: PlayingFrame, { width, height }: Size): void {
   const { ctx } = painter;
   const { play, feedback, songTime } = frame;
@@ -272,27 +274,9 @@ function drawHud(painter: Painter, frame: PlayingFrame, { width, height }: Size)
     painter.text(String(Math.ceil(-songTime)), { x, y: height * 0.2 }, { size: 64, weight: 800 });
   }
   if (play.resolvedCount === 0) {
-    painter.text("바늘 끝이 흰 고리 한가운데에 닿는 순간 아무 키나 누르세요", { x, y: height * 0.84 }, { size: 16, color: COLOR.dim });
+    painter.text("크레파스 끝이 흰 고리에 닿는 순간 아무 키나 누르세요", { x, y: height * 0.84 }, { size: 16, color: COLOR.dim });
   }
-
-  if (feedback === null) return;
-  const age = songTime - feedback.at;
-  if (age < 0 || age > FEEDBACK_FADE_S) return;
-  ctx.save();
-  ctx.globalAlpha *= 1 - age / FEEDBACK_FADE_S;
-  painter.text(feedback.judgement.toUpperCase(), { x, y: height * 0.76 }, {
-    size: 32,
-    weight: 800,
-    color: JUDGEMENT_COLOR[feedback.judgement],
-  });
-  if (feedback.judgement !== "miss" && Math.abs(feedback.offsetMs) >= EARLY_LATE_MIN_MS) {
-    const label = feedback.offsetMs < 0 ? "빠름" : "느림";
-    painter.text(`${label} ${Math.abs(feedback.offsetMs).toFixed(0)}ms`, { x, y: height * 0.76 + 30 }, {
-      size: 14,
-      color: COLOR.dim,
-    });
-  }
-  ctx.restore();
+  drawFeedback(painter, feedback, songTime, { x, y: height * 0.76 });
 }
 
 export function drawPlaying(painter: Painter, frame: PlayingFrame, size: Size): void {
@@ -313,7 +297,7 @@ export function drawPlaying(painter: Painter, frame: PlayingFrame, size: Size): 
   drawBursts(painter, frame, view);
   ctx.save();
   ctx.globalAlpha = 1 - finale;
-  drawNeedle(painter, frame, view);
+  drawCircling(painter, frame, view);
   drawHud(painter, frame, size);
   ctx.restore();
 }

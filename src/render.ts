@@ -1,10 +1,11 @@
 import { assertNever } from "./assert";
 import { COLOR, Painter } from "./canvas";
+import { drawIntro, type IntroFrame } from "./intro";
 import { drawResult, type ResultFrame } from "./result-screen";
 import { drawPlaying, type PlayingFrame } from "./track";
 
-/** "idle" clears the canvas while the title or the song list covers it. */
-export type Frame = { readonly kind: "idle" } | PlayingFrame | ResultFrame;
+/** "idle" clears the canvas while the how-to-play screen or the song list covers it. */
+export type Frame = { readonly kind: "idle" } | IntroFrame | PlayingFrame | ResultFrame;
 
 export class CanvasUnsupportedError extends Error {
   constructor() {
@@ -30,6 +31,9 @@ export class Renderer {
 
     switch (frame.kind) {
       case "idle":
+        return;
+      case "intro":
+        drawIntro(this.painter, frame, size);
         return;
       case "playing":
         drawPlaying(this.painter, frame, size);

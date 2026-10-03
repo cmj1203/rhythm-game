@@ -1,5 +1,6 @@
-import { COLOR, JUDGEMENT_COLOR, type Painter, type Point, type Size } from "./canvas";
-import { GUIDE_STEP, type Guide } from "./guide";
+import { COLOR, JUDGEMENT_COLOR, mixColors, type Painter, type Point, type Size } from "./canvas";
+import { drawGrain } from "./crayon";
+import type { Guide } from "./guide";
 import type { Judgement } from "./judge";
 import type { Path } from "./path";
 
@@ -17,7 +18,7 @@ export type Rect = { readonly x: number; readonly y: number; readonly width: num
 
 const FIT_PADDING = 1.5;
 const WEAVE_CELL = 6;
-const STITCH_WIDTH = 0.15;
+const STITCH_WIDTH = 0.17;
 const MIN_STITCH_PX = 1.5;
 /** The finished picture is sewn at least this thick, as a share of its size, so a long song's picture is not faint. */
 const FINISHED_WIDTH_SHARE = 0.008;
@@ -28,12 +29,11 @@ const WIDE_LAYOUT_RATIO = 1.15;
 /** How visible the thread is where it only passes behind the cloth, while the piece is still being sewn. */
 const BEHIND_ALPHA = 0.3;
 
-/** How far each stitch stops short of the holes, and how crooked it lies. A clean hit sews a clean stitch. */
-const STITCH_SHAPE = {
-  perfect: { inset: 0.12, tilt: 0, shift: 0 },
-  great: { inset: 0.16, tilt: 0, shift: 0.05 },
-  good: { inset: 0.22, tilt: 0.12, shift: 0 },
-} as const satisfies Record<Exclude<Judgement, "miss">, { inset: number; tilt: number; shift: number }>;
+/** How hard each hit presses the crayon, 0 to 1: a clean hit draws a bold line, a loose one a faint, thinner one. */
+const PRESSURE = { perfect: 1, great: 0.78, good: 0.55 } as const satisfies Record<Exclude<Judgement, "miss">, number>;
+/** How thick a line pressed with no force at all would be, as a share of one pressed in full. */
+const LIGHT_WIDTH = 0.7;
+const SCRIBBLE_TURNS = 5;
 
 export function toScreen(view: View, spot: Point): Point {
   const dx = (spot.x - view.camera.x) * view.tileSize;
@@ -151,16 +151,22 @@ export function drawGuide(
   ctx.restore();
 }
 
-/** A missed note leaves no stitch, only a tangled knot of loose thread. */
-function drawKnot(painter: Painter, at: Point, size: number, seed: number): void {
+/** A missed note draws no line, only a quick zigzag scribble across the place. The caller sets its colour. */
+function drawScribble(painter: Painter, at: Point, size: number, seed: number): void {
   const { ctx } = painter;
-  ctx.strokeStyle = JUDGEMENT_COLOR.miss;
+  const turn = seed * 1.7;
+  const along = { x: Math.cos(turn), y: Math.sin(turn) };
   ctx.lineWidth = Math.max(1, size * 0.05);
-  for (let k = 0; k < 3; k++) {
-    const angle = seed * 1.7 + k * 2.1;
-    painter.circle({ x: at.x + Math.cos(angle) * size * 0.07, y: at.y + Math.sin(angle) * size * 0.07 }, size * 0.09);
-    ctx.stroke();
+  ctx.beginPath();
+  for (let k = 0; k <= SCRIBBLE_TURNS; k++) {
+    const forward = (k / SCRIBBLE_TURNS - 0.5) * size * 0.32;
+    const side = (k % 2 === 0 ? 1 : -1) * size * 0.1;
+    const x = at.x + along.x * forward - along.y * side;
+    const y = at.y + along.y * forward + along.x * side;
+    if (k === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
   }
+  ctx.stroke();
 }
 
 function guidePoint({ points }: Guide, index: number): Point {
@@ -182,7 +188,8 @@ function strokeLine(ctx: CanvasRenderingContext2D, line: readonly Point[]): void
 }
 
 /**
- * One stitch per judged note. `taut` 0 draws every stitch where it was sewn, straight between its two tiles.
+ * One crayon stroke per judged note, each running on from the last so the strokes make one unbroken line, with
+ * the paper's grain over them. `taut` 0 draws every stroke where it was drawn, straight between its two tiles.
  * `taut` 1 pulls the thread tight onto the picture's own lines: the detours made for rhythm straighten out,
  * and the thread that only passed behind the cloth between two strokes no longer shows.
  * `past` is how clearly the stitches sewn a while ago show, 0 to 1; the latest few always show in full.
@@ -222,55 +229,51 @@ export function drawStitches(
     };
     const threadOf = (along: number): string | null =>
       guide.colors[Math.min(end, Math.floor(lerp(start, end, along)))] ?? null;
-    const freshness = Math.max(0, 1 - (history.length - 1 - note) / FRESH_STITCHES);
-    const shown = opacity * lerp(past, 1, freshness);
-    const alphaOf = (thread: string | null): number => shown * (thread === null ? behind : 1);
+    const fade = lerp(past, 1, Math.max(0, 1 - (history.length - 1 - note) / FRESH_STITCHES));
+    // A faint or faded stroke is mixed toward the background rather than made see-through, so where two strokes
+    // meet end to end nothing shows through twice.
+    const inkOf = (thread: string, strength: number): string =>
+      mixColors(thread, COLOR.background, 1 - fade * strength);
 
     if (judgement === "miss") {
-      const alpha = alphaOf(threadOf(0.5));
-      if (alpha <= 0) return;
-      ctx.globalAlpha = alpha;
-      drawKnot(painter, spot(0.5), size, note);
+      const thread = threadOf(0.5);
+      if (thread === null && behind <= 0) return;
+      ctx.globalAlpha = thread === null ? opacity * behind * fade : opacity;
+      ctx.strokeStyle = thread === null ? COLOR.dim : inkOf(JUDGEMENT_COLOR.miss, 1);
+      drawScribble(painter, spot(0.5), size, note);
       return;
     }
 
-    const { inset, tilt, shift } = STITCH_SHAPE[judgement];
-    const head = spot(0);
-    const tail = spot(1);
-    const chord = Math.hypot(tail.x - head.x, tail.y - head.y) || 1;
-    const across = { x: -(tail.y - head.y) / chord, y: (tail.x - head.x) / chord };
-    const side = note % 2 === 0 ? 1 : -1;
+    const pressure = PRESSURE[judgement];
     const pieces = Math.max(1, end - start);
-    // Pulled tight, a stitch that covers a long piece of the picture leaves no wider a gap than a short one.
-    const gap = inset * lerp(1, Math.min(1, 1 / (pieces * GUIDE_STEP)), taut);
-    const corner = (piece: number): Point => {
-      const along = Math.min(1 - gap, Math.max(gap, piece / pieces));
-      const at = spot(along);
-      const offset = (shift + tilt * (1 - 2 * along)) * side * size;
-      return { x: at.x + across.x * offset, y: at.y + across.y * offset };
-    };
-
-    // Pieces of the same thread are drawn as one line; the thread may change where one stroke ends.
-    ctx.lineWidth = width * (weights[note] ?? 1);
+    // Pieces of the same colour are drawn as one line; the colour may change where one stroke of the picture ends.
+    ctx.lineWidth = width * (weights[note] ?? 1) * (LIGHT_WIDTH + (1 - LIGHT_WIDTH) * pressure);
     let line: Point[] = [];
     let lineThread: string | null = null;
     const finishLine = (): void => {
-      const alpha = alphaOf(lineThread);
-      if (line.length < 2 || alpha <= 0) return;
-      ctx.globalAlpha = alpha;
-      ctx.strokeStyle = lineThread ?? COLOR.dim;
+      if (line.length < 2) return;
+      if (lineThread === null) {
+        if (behind <= 0) return;
+        ctx.globalAlpha = opacity * behind * fade;
+        ctx.strokeStyle = COLOR.dim;
+      } else {
+        ctx.globalAlpha = opacity;
+        ctx.strokeStyle = inkOf(lineThread, pressure);
+      }
       strokeLine(ctx, line);
     };
     for (let piece = 0; piece < pieces; piece++) {
       const thread = threadOf((piece + 0.5) / pieces);
       if (piece === 0 || thread !== lineThread) {
         finishLine();
-        line = [corner(piece)];
+        line = [spot(piece / pieces)];
         lineThread = thread;
       }
-      line.push(corner(piece + 1));
+      line.push(spot((piece + 1) / pieces));
     }
     finishLine();
   });
+  ctx.globalAlpha = opacity;
+  drawGrain(painter, toScreen(view, { x: 0, y: 0 }), view.angle);
   ctx.restore();
 }

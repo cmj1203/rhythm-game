@@ -2,6 +2,7 @@ import { assertNever } from "./assert";
 import { LEAD_IN_S, SongPlayer } from "./audio";
 import { type Difficulty, loadSong, loadSongIndex, SongLoadError, type SongSummary } from "./chart";
 import { DrawingLoadError } from "./drawing";
+import { loadIntro } from "./intro";
 import { PlayState } from "./judge";
 import { type MenuChoice, SongMenu } from "./menu";
 import type { Path } from "./path";
@@ -10,6 +11,7 @@ import { type Frame, Renderer } from "./render";
 import { dyePath, planSections, type Section } from "./sections";
 import { TitleScreen } from "./title";
 import { BURST_S, type Feedback, finaleProgress } from "./track";
+import { TutorialScreen } from "./tutorial";
 
 const RESULT_FADE_MS = 600;
 
@@ -22,6 +24,7 @@ type Session = {
 };
 type Screen =
   | { readonly kind: "title" }
+  | { readonly kind: "tutorial" }
   | { readonly kind: "menu" }
   | { readonly kind: "loading" }
   | (Session & { readonly kind: "ready"; readonly path: Path; readonly buffer: AudioBuffer })
@@ -59,6 +62,10 @@ async function boot(): Promise<void> {
   const renderer = new Renderer(requireElement<HTMLCanvasElement>("#game"));
   const player = new SongPlayer();
   const songs = await loadSongIndex();
+  const intro = await loadIntro({
+    isCalm: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    onReady: () => title.setReady(true),
+  });
   let screen: Screen = { kind: "title" };
 
   const begin = async ({ song, difficulty }: MenuChoice): Promise<void> => {
@@ -107,14 +114,24 @@ async function boot(): Promise<void> {
     onStart: (choice) => void begin(choice),
   });
 
-  const title = new TitleScreen({
-    root: requireElement<HTMLElement>("#title"),
-    onStart: () => {
-      title.hide();
+  const tutorial = new TutorialScreen({
+    root: requireElement<HTMLElement>("#tutorial"),
+    onDone: () => {
+      tutorial.hide();
       menu.show();
       screen = { kind: "menu" };
     },
   });
+
+  const title = new TitleScreen({
+    root: requireElement<HTMLElement>("#title"),
+    onStart: () => {
+      title.hide();
+      tutorial.show();
+      screen = { kind: "tutorial" };
+    },
+  });
+  title.setReady(intro.isOver);
 
   const backToMenu = (): void => {
     player.stop();
@@ -148,7 +165,21 @@ async function boot(): Promise<void> {
     if (event.repeat) return;
     switch (screen.kind) {
       case "title":
-        if (event.code === "Enter" && !(event.target instanceof HTMLButtonElement)) title.start();
+        if (intro.isOver) {
+          if (event.code === "Enter" && !(event.target instanceof HTMLButtonElement)) title.start();
+          return;
+        }
+        if (event.metaKey || event.ctrlKey || event.altKey) return;
+        intro.skip();
+        return;
+      case "tutorial":
+        if (event.code === "Escape") {
+          tutorial.hide();
+          title.show();
+          screen = { kind: "title" };
+          return;
+        }
+        if (event.code === "Enter" && !(event.target instanceof HTMLButtonElement)) tutorial.finish();
         return;
       case "menu":
         if (event.code === "Escape") {
@@ -188,7 +219,8 @@ async function boot(): Promise<void> {
   });
 
   window.addEventListener("pointerdown", (event) => {
-    if (screen.kind === "ready") startPlaying(screen);
+    if (screen.kind === "title") intro.skip();
+    else if (screen.kind === "ready") startPlaying(screen);
     else if (screen.kind === "playing") press(screen, event.timeStamp);
   });
 
@@ -199,6 +231,8 @@ async function boot(): Promise<void> {
   const nextFrame = (): Frame => {
     switch (screen.kind) {
       case "title":
+        return intro.advance(performance.now());
+      case "tutorial":
       case "menu":
       case "loading":
         return { kind: "idle" };

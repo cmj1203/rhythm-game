@@ -1,7 +1,7 @@
 import { COLOR, type Point } from "./canvas";
 
-/** One line of a picture, in the picture's own units. */
-export type Stroke = { readonly points: readonly Point[]; readonly color: string };
+/** One line of a picture, in the picture's own units. `part` counts the shapes of the file: which one the line is from. */
+export type Stroke = { readonly points: readonly Point[]; readonly color: string; readonly part: number };
 /** `name` is what the result screen calls the picture. */
 export type Drawing = { readonly name: string; readonly strokes: readonly Stroke[] };
 
@@ -89,7 +89,7 @@ function trace(bench: SVGSVGElement, outline: string): Point[] {
   return points;
 }
 
-function strokesOf(shape: Element, bench: SVGSVGElement): Stroke[] {
+function strokesOf(shape: Element, part: number, bench: SVGSVGElement): Stroke[] {
   const stroke = shape.closest("[stroke]")?.getAttribute("stroke") ?? "";
   const color = HEX_COLOR.test(stroke) ? stroke : COLOR.thread;
   // A path that lifts the pen (a second "M") is several strokes, not one.
@@ -106,7 +106,7 @@ function strokesOf(shape: Element, bench: SVGSVGElement): Stroke[] {
             }),
           ),
         ];
-  return lines.filter((points) => points.length > 1).map((points) => ({ points, color }));
+  return lines.filter((points) => points.length > 1).map((points) => ({ points, color, part }));
 }
 
 /**
@@ -125,7 +125,7 @@ export async function loadDrawing(id: string): Promise<Drawing> {
   bench.setAttribute("style", "position:absolute;width:0;height:0;overflow:hidden");
   document.body.append(bench);
   try {
-    const strokes = [...source.querySelectorAll(SHAPES)].flatMap((shape) => strokesOf(shape, bench));
+    const strokes = [...source.querySelectorAll(SHAPES)].flatMap((shape, part) => strokesOf(shape, part, bench));
     if (strokes.length === 0) throw new DrawingLoadError(url, "no lines in it");
     return { name: source.querySelector("title")?.textContent?.trim() || id, strokes };
   } finally {

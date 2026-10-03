@@ -7,6 +7,11 @@
   --separator: #232838;
   --text: #f2f4f8;
   --dim: #8a93a6;
+  --thread: #efe2c6;
+  --sky: #5ee1ff;
+  --pink: #ff7ab8;
+  --violet: #b79bff;
+  --perfect: #ffe066;
 }
 
 html,
@@ -25,36 +30,43 @@ body {
   height: 100vh;
 }
 
+/* The logo is drawn on the canvas, in the upper part of the screen; these words sit under it. */
 #title {
   position: fixed;
   inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   gap: 24px;
   box-sizing: border-box;
-  padding: 24px;
-  background: var(--background);
+  padding: 47vh 24px 24px;
+  transition: opacity 0.4s;
 }
 
 #title[hidden] {
   display: none;
 }
 
+#title.waiting {
+  visibility: hidden;
+  opacity: 0;
+}
+
 #title > * {
   margin: 0;
 }
 
+/* The name is read out by a screen reader; on the screen the logo stands for it. */
 .title-name {
-  font-size: clamp(40px, 8vw, 72px);
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  text-align: center;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 #title .title-tagline {
-  margin-top: -12px;
   font-size: 16px;
   color: var(--dim);
 }
@@ -209,4 +221,224 @@ body {
 
 .status {
   min-height: 18px;
+}
+
+#tutorial {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  box-sizing: border-box;
+  padding: 24px 20px;
+  overflow-y: auto;
+  background: var(--background);
+}
+
+#tutorial[hidden] {
+  display: none;
+}
+
+#tutorial > * {
+  flex: none;
+  width: min(420px, 100%);
+  box-sizing: border-box;
+  margin: 0;
+}
+
+/* Auto margins centre the column when it fits and let it scroll from the top when it does not. */
+#tutorial > :first-child {
+  margin-top: auto;
+}
+
+#tutorial > :last-child {
+  margin-bottom: auto;
+}
+
+#tutorial .menu-title,
+.tutorial-rule {
+  text-align: center;
+}
+
+.tutorial-rule {
+  font-size: 17px;
+  line-height: 1.5;
+  word-break: keep-all;
+}
+
+/* The crayon travels on a circle of 60px radius, lying along its way; the ring sits on that circle, straight to the right. */
+#tutorial > .demo {
+  position: relative;
+  width: 176px;
+  height: 176px;
+}
+
+.demo > *,
+.demo-hand > * {
+  position: absolute;
+}
+
+.demo-orbit {
+  inset: 28px;
+  border: 1px solid var(--separator);
+  border-radius: 50%;
+}
+
+.demo-road {
+  left: 50%;
+  top: calc(50% - 1px);
+  width: 60px;
+  border-top: 2px dotted var(--text);
+  opacity: 0.6;
+}
+
+.demo-stitch {
+  left: calc(50% - 5px);
+  top: calc(50% - 5px);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--thread);
+}
+
+.demo-target {
+  left: calc(50% + 44px);
+  top: calc(50% - 16px);
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--text);
+  border-radius: 50%;
+  animation: demo-hit 2.4s linear infinite;
+}
+
+/* The hand runs 26.4deg behind the clock, so that as each turn begins the crayon's point is just touching the ring. */
+.demo-hand {
+  left: 50%;
+  top: 50%;
+  width: 60px;
+  height: 0;
+  transform-origin: 0 0;
+  transform: rotate(-26.4deg);
+  animation: demo-turn 2.4s linear infinite;
+}
+
+/* The crayon stands across the end of the hand, point toward the way it turns; the darker band is its wrapper. */
+.demo-crayon {
+  left: 56px;
+  top: -11px;
+  width: 8px;
+  height: 24px;
+  background: linear-gradient(
+    var(--thread) 14%,
+    color-mix(in srgb, var(--thread) 65%, var(--background)) 14% 54%,
+    var(--thread) 54%
+  );
+  clip-path: polygon(50% 100%, 0 68%, 0 0, 100% 0, 100% 68%);
+}
+
+.demo-now {
+  left: calc(50% + 60px);
+  top: calc(50% + 24px);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--perfect);
+  transform: translateX(-50%);
+  animation: demo-now 2.4s linear infinite;
+}
+
+/* The three animations share one clock: the ring lights up as the crayon's point comes round to touch it. */
+@keyframes demo-turn {
+  from {
+    transform: rotate(-26.4deg);
+  }
+  to {
+    transform: rotate(333.6deg);
+  }
+}
+
+@keyframes demo-hit {
+  0%,
+  100% {
+    border-color: var(--perfect);
+    transform: scale(1);
+  }
+  4% {
+    border-color: var(--perfect);
+    transform: scale(1.3);
+  }
+  12%,
+  94% {
+    border-color: var(--text);
+    transform: scale(1);
+  }
+}
+
+@keyframes demo-now {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  12%,
+  94% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .demo-hand,
+  .demo-target,
+  .demo-now {
+    animation: none;
+  }
+}
+
+.marks {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  list-style: none;
+  background: var(--surface);
+  border-radius: 14px;
+}
+
+.mark {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  column-gap: 12px;
+  align-items: center;
+}
+
+.mark-icon {
+  grid-row: 1 / span 2;
+  justify-self: center;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.mark-fast {
+  background: var(--pink);
+}
+
+.mark-slow {
+  background: var(--sky);
+}
+
+.mark-twirl {
+  background: var(--text);
+  box-shadow:
+    0 0 0 3px var(--surface),
+    0 0 0 5px var(--violet);
+}
+
+.mark-name {
+  grid-column: 2;
+  font-size: 16px;
+}
+
+.mark-meaning {
+  grid-column: 2;
+  font-size: 14px;
+  color: var(--dim);
 }

@@ -1,6 +1,6 @@
 export const JUDGEMENTS = ["perfect", "great", "good", "miss"] as const;
 export type Judgement = (typeof JUDGEMENTS)[number];
-type HitJudgement = Exclude<Judgement, "miss">;
+export type HitJudgement = Exclude<Judgement, "miss">;
 
 const HIT_WINDOWS = [
   { judgement: "perfect", withinS: 0.04 },
@@ -12,6 +12,11 @@ const BASE_SCORE = { perfect: 1000, great: 600, good: 300 } as const satisfies R
 const ACCURACY_WEIGHT = { perfect: 1, great: 0.7, good: 0.4, miss: 0 } as const satisfies Record<Judgement, number>;
 const COMBO_BONUS = 10;
 const COMBO_BONUS_CAP = 100;
+
+/** The judgement of a press `offsetS` seconds off the beat, or null if that is too far off to count. */
+function judgementOf(offsetS: number): HitJudgement | null {
+  return HIT_WINDOWS.find((window) => Math.abs(offsetS) <= window.withinS)?.judgement ?? null;
+}
 
 /** `index` is the note the judgement belongs to. */
 export type JudgeEvent = { readonly judgement: Judgement; readonly index: number; readonly offsetMs: number };
@@ -41,18 +46,18 @@ export class PlayState {
     const time = this.times[this.nextIndex];
     if (time === undefined) return null;
     const offsetS = songTime - time;
-    const window = HIT_WINDOWS.find((w) => Math.abs(offsetS) <= w.withinS);
-    if (window === undefined) return null;
+    const judgement = judgementOf(offsetS);
+    if (judgement === null) return null;
 
-    this.counts[window.judgement] += 1;
+    this.counts[judgement] += 1;
     this.combo += 1;
     this.maxCombo = Math.max(this.maxCombo, this.combo);
-    this.score += BASE_SCORE[window.judgement] + Math.min(this.combo, COMBO_BONUS_CAP) * COMBO_BONUS;
+    this.score += BASE_SCORE[judgement] + Math.min(this.combo, COMBO_BONUS_CAP) * COMBO_BONUS;
     this.offsetSumMs += offsetS * 1000;
     const index = this.nextIndex;
-    this.history.push(window.judgement);
+    this.history.push(judgement);
     this.nextIndex += 1;
-    return { judgement: window.judgement, index, offsetMs: offsetS * 1000 };
+    return { judgement, index, offsetMs: offsetS * 1000 };
   }
 
   /** Misses every note that went past the hit window. */

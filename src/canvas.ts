@@ -11,7 +11,6 @@ export const COLOR = {
   pink: "#ff7ab8",
   violet: "#b79bff",
   thread: "#efe2c6",
-  needle: "#cfd6e0",
 } as const;
 
 export const JUDGEMENT_COLOR = {
@@ -20,6 +19,13 @@ export const JUDGEMENT_COLOR = {
   good: "#5ee1ff",
   miss: "#ff5c6c",
 } as const satisfies Record<Judgement, string>;
+
+/** The colour `share` of the way from `from` to `to`, both written "#rrggbb". */
+export function mixColors(from: string, to: string, share: number): string {
+  const channel = (hex: string, at: number): number => Number.parseInt(hex.slice(at, at + 2), 16);
+  const mixed = [1, 3, 5].map((at) => Math.round(channel(from, at) + (channel(to, at) - channel(from, at)) * share));
+  return `rgb(${mixed.join(" ")})`;
+}
 
 const FONT_FAMILY = 'system-ui, -apple-system, "Apple SD Gothic Neo", sans-serif';
 

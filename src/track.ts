@@ -53,7 +53,7 @@ const COMBO_COLOR = [COLOR.text, COLOR.sky, COLOR.pink, JUDGEMENT_COLOR.perfect]
 /** The radius of the ring on the tile to hit next, in tiles. */
 const TARGET_RADIUS = 0.27;
 /** How long the crayon is, in tiles. */
-const CRAYON_LENGTH = 0.4;
+const CRAYON_LENGTH = 0.56;
 /** How much of the crayon lies ahead of the place where it rides its circle; the rest trails behind. */
 const CRAYON_LEAD = 0.55;
 const TIP_AHEAD = CRAYON_LENGTH * CRAYON_LEAD;
@@ -66,7 +66,9 @@ const TIP_REACH = Math.hypot(1, TIP_AHEAD);
  */
 const CRAYON_LAG = Math.atan(TIP_AHEAD) + Math.acos((TIP_REACH ** 2 + 1 - TARGET_RADIUS ** 2) / (2 * TIP_REACH));
 /** The glow around the stitch the crayon circles, per combo tier, as the two hex digits of its opacity. */
-const GLOW_OPACITY = ["1a", "2b", "3d", "52"] as const;
+const GLOW_OPACITY = ["14", "1f", "29", "33"] as const;
+/** The hit effects are drawn this faint at their strongest, so the crayon riding through them stays in sight. */
+const BURST_OPACITY = 0.7;
 const GLOW_REACH = 2.2;
 const GLOW_REACH_PER_TIER = 0.5;
 const PACE_COLOR = { normal: COLOR.text, slow: COLOR.sky } as const satisfies Record<Pace, string>;
@@ -213,7 +215,7 @@ function drawBursts(painter: Painter, { bursts, path, play, songTime }: PlayingF
     const color = JUDGEMENT_COLOR[burst.judgement];
     const radius = view.tileSize * 0.4;
     ctx.save();
-    ctx.globalAlpha = 1 - age;
+    ctx.globalAlpha = BURST_OPACITY * (1 - age);
     painter.circle(center, radius * (1 + 0.9 * easeOut(age)));
     ctx.strokeStyle = color;
     ctx.lineWidth = radius * 0.16 * (1 - age);

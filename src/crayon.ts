@@ -3,6 +3,9 @@ import { COLOR, type Painter, type Point } from "./canvas";
 /** Half the thickness of a crayon and how much of it is the bare point, as shares of its length. */
 const HALF_WIDTH = 0.17;
 const POINT = 0.32;
+/** The dark edge round the crayon and the haze beyond it, as shares of its length. */
+const EDGE = 0.1;
+const HAZE = 0.35;
 /** The paper wrapper covers this stretch of the crayon, measured from the point, as shares of its length. */
 const WRAPPER_FROM = 0.46;
 const WRAPPER_TO = 0.86;
@@ -29,11 +32,15 @@ export function drawCrayon(painter: Painter, tip: Point, heading: number, length
   ctx.lineTo(length, halfWidth);
   ctx.lineTo(length * POINT, halfWidth);
   ctx.closePath();
-  // A dark edge keeps the crayon apart from the line of its own colour that it lies on.
+  // A dark edge and a dark haze around it keep the crayon apart from the line of its own colour that it lies
+  // on, and from the sparkles of a hit around it.
   ctx.lineJoin = "round";
-  ctx.lineWidth = 3;
+  ctx.lineWidth = Math.max(3, length * EDGE);
   ctx.strokeStyle = COLOR.background;
+  ctx.shadowColor = COLOR.background;
+  ctx.shadowBlur = length * HAZE;
   ctx.stroke();
+  ctx.shadowBlur = 0;
   ctx.fillStyle = color;
   ctx.fill();
 

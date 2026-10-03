@@ -67,6 +67,7 @@ async function boot(): Promise<void> {
   const renderer = new Renderer(requireElement<HTMLCanvasElement>("#game"));
   const player = new SongPlayer();
   const songs = await loadSongIndex();
+  const query = new URLSearchParams(window.location.search);
   const intro = await loadIntro({
     isCalm: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
     onReady: () => title.setReady(true),
@@ -146,7 +147,7 @@ async function boot(): Promise<void> {
   };
 
   const startPlaying = (ready: ReadyScreen): void => {
-    player.start(ready.buffer, ready.audioShift);
+    player.start(ready.buffer, ready.audioShift, query.has("tick") ? ready.play.times : []);
     screen = {
       kind: "playing",
       song: ready.song,

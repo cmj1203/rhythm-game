@@ -1,6 +1,9 @@
 export const LEAD_IN_S = 3;
 const ANCHOR_LEVEL_S = 0.005;
 const ANCHOR_SEARCH_S = 0.06;
+const TICK_S = 0.03;
+const TICK_PITCH = 1800;
+const TICK_LOUDNESS = 0.4;
 
 /**
  * How many seconds later (negative: earlier) this browser's decoded audio plays each sound than the chart
@@ -47,6 +50,7 @@ export function decodingShift(buffer: AudioBuffer, anchors: readonly number[]): 
 export class SongPlayer {
   private readonly context = new AudioContext({ latencyHint: "interactive" });
   private source: AudioBufferSourceNode | null = null;
+  private ticks: GainNode | null = null;
   private startAt = 0;
 
   /** Must be called from a user gesture: browsers keep audio suspended until one happens. */
@@ -58,8 +62,11 @@ export class SongPlayer {
     return this.context.decodeAudioData(audio);
   }
 
-  /** Plays `buffer` after the lead-in. `shift` is what `decodingShift` found for it, so song time follows the chart. */
-  start(buffer: AudioBuffer, shift: number): void {
+  /**
+   * Plays `buffer` after the lead-in. `shift` is what `decodingShift` found for it, so song time follows the chart.
+   * A short click sounds at each of the song times in `ticks`, for hearing whether a chart keeps time with its song.
+   */
+  start(buffer: AudioBuffer, shift: number, ticks: readonly number[]): void {
     this.stop();
     const source = this.context.createBufferSource();
     source.buffer = buffer;
@@ -68,12 +75,31 @@ export class SongPlayer {
     source.start(playAt);
     this.startAt = playAt + shift;
     this.source = source;
+    if (ticks.length === 0) return;
+
+    const rate = this.context.sampleRate;
+    const click = this.context.createBuffer(1, Math.round(TICK_S * rate), rate);
+    const samples = click.getChannelData(0);
+    for (let i = 0; i < samples.length; i++) {
+      samples[i] = TICK_LOUDNESS * Math.sin((2 * Math.PI * TICK_PITCH * i) / rate) * (1 - i / samples.length) ** 2;
+    }
+    const bus = this.context.createGain();
+    bus.connect(this.context.destination);
+    for (const time of ticks) {
+      const tick = this.context.createBufferSource();
+      tick.buffer = click;
+      tick.connect(bus);
+      tick.start(this.startAt + time);
+    }
+    this.ticks = bus;
   }
 
   stop(): void {
     this.source?.stop();
     this.source?.disconnect();
     this.source = null;
+    this.ticks?.disconnect();
+    this.ticks = null;
   }
 
   /** Song position (seconds) heard at `performanceMs`; negative during the lead-in. */

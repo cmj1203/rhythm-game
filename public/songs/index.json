@@ -111,16 +111,6 @@
    "credit": "Music - \"Release\" by Josh Woodward. Free download: https://www.joshwoodward.com/"
   },
   {
-   "id": "sergios-magic-dustbin",
-   "title": "Sergio's Magic Dustbin",
-   "bpm": 93.1,
-   "duration": 151.458,
-   "difficulty": "easy",
-   "notes": 278,
-   "artist": "Kevin MacLeod",
-   "credit": "Music - \"Sergio's Magic Dustbin\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
    "id": "sunday-dub",
    "title": "Sunday Dub",
    "bpm": 102.0,
@@ -129,16 +119,6 @@
    "notes": 400,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Sunday Dub\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
-   "id": "surpass-your-limits",
-   "title": "surpass your limits!",
-   "bpm": 99.74,
-   "duration": 165.744,
-   "difficulty": "easy",
-   "notes": 379,
-   "artist": "Preston Peak",
-   "credit": "\"surpass your limits!\" by Preston Peak (https://opengameart.org/content/free-action-chiptune-music-pack), licensed under CC BY 4.0 https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "swansong",

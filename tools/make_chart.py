@@ -70,6 +70,10 @@ LOCAL_LEVEL_WINDOW_STEPS: Final = 65
 LOCAL_LEVEL_PERCENTILE: Final = 80
 MIN_STRENGTH: Final = 0.04
 
+# The music has ended once it stays this far below its loudest; the faint hits of a fade-out after that are no notes.
+END_LEVEL_DB: Final = -30.0
+END_FRAME: Final = 2048
+
 ANCHOR_COUNT: Final = 8
 ANCHOR_LEVEL_S: Final = 0.005
 # A stretch whose sharpest attack is weaker than this share of the song's sharpest gives no anchor.
@@ -288,6 +292,16 @@ def select_steps(accent: np.ndarray, difficulty: Difficulty) -> np.ndarray:
     return np.union1d(chosen, np.asarray(fill, dtype=int)).astype(int)
 
 
+def music_end(samples: np.ndarray) -> float:
+    """The time after which the song never again comes within END_LEVEL_DB of its loudest moment."""
+    rms = librosa.feature.rms(y=samples, frame_length=END_FRAME, hop_length=HOP)[0]
+    level = 20 * np.log10(np.maximum(rms, 1e-9) / max(float(rms.max()), 1e-9))
+    loud = np.flatnonzero(level > END_LEVEL_DB)
+    if len(loud) == 0:
+        return len(samples) / SAMPLE_RATE
+    return float((loud[-1] * HOP + END_FRAME / 2) / SAMPLE_RATE)
+
+
 def attack_anchors(samples: np.ndarray) -> list[float]:
     """Times of the sharpest attack in each stretch of the song.
 
@@ -347,7 +361,12 @@ def main(
     step_frames = librosa.time_to_frames(grid.step_times, sr=SAMPLE_RATE, hop_length=HOP)
     accent = step_accents(envelope, step_frames)
     level = difficulty or level_for(grid.bpm)
-    notes = [round(float(grid.step_times[step]), 4) for step in select_steps(accent, DIFFICULTIES[level])]
+    end = music_end(samples)
+    notes = [
+        round(float(grid.step_times[step]), 4)
+        for step in select_steps(accent, DIFFICULTIES[level])
+        if grid.step_times[step] <= end
+    ]
 
     chart = {
         "version": 4,

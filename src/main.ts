@@ -27,23 +27,26 @@ type Screen =
   | { readonly kind: "tutorial" }
   | { readonly kind: "menu" }
   | { readonly kind: "loading" }
-  | (Session & {
-      readonly kind: "ready";
-      readonly path: Path;
-      readonly buffer: AudioBuffer;
-      readonly audioShift: number;
-      readonly volume: number;
-    })
+  | ReadyScreen
   | (Session & {
       readonly kind: "playing";
       readonly path: Path;
       readonly duration: number;
       readonly bursts: Feedback[];
+      /** The screen the play began from, for starting the song again after a game over. */
+      readonly source: ReadyScreen;
       feedback: Feedback | null;
     })
-  | (Session & { readonly kind: "result"; readonly path: Path; readonly shownAt: number });
+  | (Session & { readonly kind: "result"; readonly path: Path; readonly shownAt: number })
+  | (Session & { readonly kind: "over"; readonly path: Path; readonly at: number; readonly source: ReadyScreen });
 
-type ReadyScreen = Extract<Screen, { kind: "ready" }>;
+type ReadyScreen = Session & {
+  readonly kind: "ready";
+  readonly path: Path;
+  readonly buffer: AudioBuffer;
+  readonly audioShift: number;
+  readonly volume: number;
+};
 type PlayingScreen = Extract<Screen, { kind: "playing" }>;
 
 class MissingElementError extends Error {
@@ -175,8 +178,14 @@ async function boot(): Promise<void> {
       path: ready.path,
       duration: ready.buffer.duration,
       bursts: [],
+      source: ready,
       feedback: null,
     };
+  };
+
+  /** The same song from the start, waiting for the start key, with nothing played yet. */
+  const playAgain = (over: Extract<Screen, { kind: "over" }>): void => {
+    screen = { ...over.source, play: new PlayState(over.play.times) };
   };
 
   const press = (playing: PlayingScreen, performanceMs: number): void => {
@@ -237,6 +246,10 @@ async function boot(): Promise<void> {
       case "result":
         if (event.code === "Enter" || event.code === "Escape") backToMenu();
         return;
+      case "over":
+        if (event.code === "Escape") backToMenu();
+        else if (event.code === "Enter") playAgain(screen);
+        return;
       default:
         assertNever(screen);
     }
@@ -246,6 +259,7 @@ async function boot(): Promise<void> {
     if (screen.kind === "title") intro.skip();
     else if (screen.kind === "ready") startPlaying(screen);
     else if (screen.kind === "playing") press(screen, event.timeStamp);
+    else if (screen.kind === "over") playAgain(screen);
   });
 
   window.addEventListener("click", () => {
@@ -276,6 +290,21 @@ async function boot(): Promise<void> {
         const songTime = player.songTime(performance.now());
         for (const event of screen.play.advance(songTime)) record(screen, { ...event, at: songTime });
         while (screen.bursts[0] !== undefined && songTime - screen.bursts[0].at > BURST_S) screen.bursts.shift();
+        if (screen.play.overAt !== null) {
+          player.stop();
+          screen = {
+            kind: "over",
+            song: screen.song,
+            difficulty: screen.difficulty,
+            pictureName: screen.pictureName,
+            sections: screen.sections,
+            play: screen.play,
+            path: screen.path,
+            at: screen.play.overAt,
+            source: screen.source,
+          };
+          return nextFrame();
+        }
         // The song may still be playing its outro here; it keeps going under the result screen.
         if (finaleProgress(screen.path, songTime) >= 1) {
           screen = {
@@ -302,6 +331,18 @@ async function boot(): Promise<void> {
           bursts: screen.bursts,
         };
       }
+      case "over":
+        return {
+          kind: "playing",
+          phase: "over",
+          play: screen.play,
+          path: screen.path,
+          sections: screen.sections,
+          songTime: screen.at,
+          duration: screen.source.buffer.duration,
+          feedback: null,
+          bursts: [],
+        };
       case "result":
         return {
           kind: "result",

@@ -12,6 +12,8 @@ const BASE_SCORE = { perfect: 1000, great: 600, good: 300 } as const satisfies R
 const ACCURACY_WEIGHT = { perfect: 1, great: 0.7, good: 0.4, miss: 0 } as const satisfies Record<Judgement, number>;
 const COMBO_BONUS = 10;
 const COMBO_BONUS_CAP = 100;
+/** A note that goes by with no press at all for it waits this long after its beat for a late one; if none comes, the game is over. */
+const LATE_GRACE_S = 0.3;
 
 /** The judgement of a press `offsetS` seconds off the beat, or null if that is too far off to count. */
 function judgementOf(offsetS: number): HitJudgement | null {
@@ -23,7 +25,8 @@ export type JudgeEvent = { readonly judgement: Judgement; readonly index: number
 
 /**
  * Mutable by design: accumulates score and combo for one play of one chart.
- * Notes are judged strictly in order; a missed note is skipped so the song keeps going.
+ * Notes are judged strictly in order. A note pressed for but missed (too early or too late) is skipped so the
+ * song keeps going; a note let go by without a single press ends the game.
  */
 export class PlayState {
   readonly counts: Record<Judgement, number> = { perfect: 0, great: 0, good: 0, miss: 0 };
@@ -32,8 +35,19 @@ export class PlayState {
   maxCombo = 0;
   /** The judgement of each note so far, in note order. The finished embroidery is drawn from it. */
   readonly history: Judgement[] = [];
+  /** The song time at which the game ended for a note that was never pressed for, or null while it goes on. */
+  overAt: number | null = null;
+  /** Which note, counting from 1, went by without a press and ended the game; null while it goes on. */
+  overNote: number | null = null;
   private nextIndex = 0;
   private offsetSumMs = 0;
+  /** The song time of the last press, counted or not; null before the first. */
+  private lastPressAt: number | null = null;
+  /** When the note now due became due: when the note before it was hit or missed. */
+  private turnStart = Number.NEGATIVE_INFINITY;
+  /** Until when a note that went by without a press waits for a late one; null when none is waiting. */
+  private lateDeadline: number | null = null;
+  private lateNote = 0;
 
   constructor(readonly times: readonly number[]) {}
 
@@ -43,12 +57,18 @@ export class PlayState {
   }
 
   press(songTime: number): JudgeEvent | null {
+    if (this.overAt !== null) return null;
+    // Any press, even one too far off to count, shows the player is still playing: a note that went by
+    // unpressed just before stays a miss, but the game goes on. The press is judged against the next note as usual.
+    this.lastPressAt = songTime;
+    this.lateDeadline = null;
     const time = this.times[this.nextIndex];
     if (time === undefined) return null;
     const offsetS = songTime - time;
     const judgement = judgementOf(offsetS);
     if (judgement === null) return null;
 
+    this.turnStart = songTime;
     this.counts[judgement] += 1;
     this.combo += 1;
     this.maxCombo = Math.max(this.maxCombo, this.combo);
@@ -60,9 +80,13 @@ export class PlayState {
     return { judgement, index, offsetMs: offsetS * 1000 };
   }
 
-  /** Misses every note that went past the hit window. */
+  /**
+   * Misses every note that went past the hit window, and ends the game once a note let go by without a press
+   * has waited out its late press.
+   */
   advance(songTime: number): readonly JudgeEvent[] {
     const events: JudgeEvent[] = [];
+    if (this.overAt !== null) return events;
     for (;;) {
       const time = this.times[this.nextIndex];
       if (time === undefined || songTime - time <= MAX_WINDOW_S) break;
@@ -71,6 +95,17 @@ export class PlayState {
       events.push({ judgement: "miss", index: this.nextIndex, offsetMs: 0 });
       this.history.push("miss");
       this.nextIndex += 1;
+      // Strictly after: the press that hit the note before belongs to that note, not to this one.
+      const wasPressedFor = this.lastPressAt !== null && this.lastPressAt > this.turnStart;
+      if (!wasPressedFor && this.lateDeadline === null) {
+        this.lateDeadline = time + LATE_GRACE_S;
+        this.lateNote = this.nextIndex;
+      }
+      this.turnStart = time + MAX_WINDOW_S;
+    }
+    if (this.lateDeadline !== null && songTime > this.lateDeadline) {
+      this.overAt = this.lateDeadline;
+      this.overNote = this.lateNote;
     }
     return events;
   }

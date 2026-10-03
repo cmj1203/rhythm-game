@@ -47,7 +47,7 @@ export class TutorialScreen {
     options.root.append(
       element("h1", "menu-title", "하는 법"),
       demo(),
-      element("p", "tutorial-rule", "크레파스 끝이 흰 고리에 닿는 순간 아무 키나 누르세요. 화면을 눌러도 됩니다."),
+      element("p", "tutorial-rule", "크레파스 끝이 흰 고리에 닿는 순간 아무 키나 누르세요. 화면을 눌러도 됩니다. 늦거나 이르면 빨간 낙서가 남고, 한 번도 누르지 않고 지나가면 게임 오버입니다."),
       marks,
       done,
       element("p", "hint", "Enter 곡 고르기 · Esc 처음 화면"),

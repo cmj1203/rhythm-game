@@ -17,10 +17,13 @@ import { poseAt, type Section } from "./sections";
 
 export type Feedback = JudgeEvent & { readonly at: number };
 
-/** "ready" shows the road frozen at its first position until the player presses the start key. */
+/**
+ * "ready" shows the road frozen at its first position until the player presses the start key; "over" shows it
+ * frozen where a note went by unpressed, under the game over notice.
+ */
 export type PlayingFrame = {
   readonly kind: "playing";
-  readonly phase: "ready" | "playing";
+  readonly phase: "ready" | "playing" | "over";
   readonly play: PlayState;
   readonly path: Path;
   readonly sections: readonly Section[];
@@ -31,6 +34,8 @@ export type PlayingFrame = {
 };
 
 export const BURST_S = 0.45;
+/** How far the frozen road is darkened behind the game over notice. */
+const GAME_OVER_SHADE = 0.6;
 /** How far apart tiles are on the screen at the usual camera distance: this share of its shorter side, within limits. */
 const TILE_SHARE = 0.11;
 const MIN_TILE_PX = 48;
@@ -313,4 +318,23 @@ export function drawPlaying(painter: Painter, frame: PlayingFrame, size: Size): 
   drawCircling(painter, frame, view);
   drawHud(painter, frame, size);
   ctx.restore();
+  if (frame.phase === "over") drawGameOver(painter, frame, size);
+}
+
+/** The road dimmed behind a notice of where the play stopped and how to go on. */
+function drawGameOver(painter: Painter, { play }: PlayingFrame, { width, height }: Size): void {
+  const { ctx } = painter;
+  ctx.save();
+  ctx.globalAlpha = GAME_OVER_SHADE;
+  ctx.fillStyle = COLOR.background;
+  ctx.fillRect(0, 0, width, height);
+  ctx.restore();
+  const x = width / 2;
+  const y = height * 0.42;
+  painter.text("게임 오버", { x, y }, { size: 48, weight: 800, color: JUDGEMENT_COLOR.miss });
+  painter.text(`${play.overNote ?? play.resolvedCount}번째 노트를 누르지 않고 지나갔습니다 (모두 ${play.times.length}개)`, { x, y: y + 48 }, {
+    size: 16,
+    color: COLOR.text,
+  });
+  painter.text("Enter 또는 화면을 누르면 다시 하기 · Esc 곡 목록", { x, y: y + 84 }, { size: 14, color: COLOR.dim });
 }

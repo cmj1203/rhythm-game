@@ -77,13 +77,13 @@ pnpm dev       # 터미널에 나오는 http://localhost:5173 주소를 브라�
 | 종류 | 그림 |
 |---|---|
 | 공룡 | 티라노사우루스, 스테고사우루스, 트리케라톱스, 브라키오사우루스, 프테라노돈 |
-| 동물 | 고양이, 말, 코끼리, 사슴, 토끼, 악어, 달팽이, 수탉, 여우, 기린, 곰, 낙타, 개구리, 강아지, 양, 돼지, 사자, 다람쥐, 고슴도치, 판다 |
-| 하늘과 바다 | 고래, 백조, 독수리, 문어, 나비, 부엉이, 펭귄, 황제펭귄, 홍학, 공작, 거북이, 해마, 해파리, 오리, 돌고래, 게, 금붕어, 꿀벌 |
-| 음식 | 컵케이크, 아이스크림, 파인애플, 라면 |
+| 동물 | 고양이, 말, 코끼리, 사슴, 토끼, 악어, 달팽이, 수탉, 여우, 기린, 곰, 낙타, 개구리, 강아지, 양, 돼지, 사자, 다람쥐, 고슴도치, 판다, 코알라, 캥거루, 얼룩말, 하마, 햄스터, 너구리 |
+| 하늘과 바다 | 고래, 백조, 독수리, 문어, 나비, 부엉이, 펭귄, 황제펭귄, 홍학, 공작, 거북이, 해마, 해파리, 오리, 돌고래, 게, 금붕어, 꿀벌, 수달 |
+| 음식 | 컵케이크, 아이스크림, 파인애플, 라면, 햄버거, 도넛, 수박 |
 | 악기 | 기타, 바이올린, 축음기, 피아노 |
 | 물건과 풍경 | 자전거, 돛단배, 주전자, 로켓, 새장, 백야, 재봉틀, 등대, 풍차, 기관차, 관람차 |
 
-그림은 모두 62장이다. 곡마다 그림이 하나 나온다. 그림을 나눌 때 곡마다 난이도 세 자리(Easy, Normal, Hard)를 잡아 두고 그 곡의 난이도 자리 것을 쓰기 때문에, 곡 20개까지는 곡마다 다른 그림이 나온다. 새 그림은 동물을 먼저, 다음으로 음식을 고른다.
+그림은 모두 72장이다. 곡마다 그림이 하나 나온다. 그림을 나눌 때 곡마다 난이도 세 자리(Easy, Normal, Hard)를 잡아 두고 그 곡의 난이도 자리 것을 쓰기 때문에, 곡 24개까지는 곡마다 다른 그림이 나온다. 2026-10-04에 더한 10장(코알라, 캥거루, 얼룩말, 하마, 햄스터, 수달, 너구리, 햄버거, 도넛, 수박)은 지금 곡들의 난이도 자리에는 아직 걸리지 않아서, 곡이 더 들어오면 나온다. 새 그림은 동물을 먼저, 다음으로 음식을 고른다.
 
 황제펭귄은 사용자가 준 연속선 그림(`docs/reference/emperor-penguin.png`, 게임에는 실리지 않는 원본)을 한 줄 선으로 옮긴 것이다.
 
@@ -99,7 +99,7 @@ pnpm dev       # 터미널에 나오는 http://localhost:5173 주소를 브라�
 
 경로에 `S`, `T`, 소문자 `m` 명령이 들어 있으면 그림을 읽는 데 1초 가까이 걸린다. `M L C Q A`만 쓰면 0.02초 안에 읽는다.
 
-놓쳐도 게임은 끝나지 않는다. Miss가 찍히고 크레파스가 다음 칸으로 넘어간다. 마지막 노트가 지나면 화면이 멀어지며 그림 전체가 보이고, 결과 화면으로 이어진다. 노래의 남은 부분은 결과 화면에서도 계속 나온다.
+늦게 또는 일찍 누르면 Miss가 찍히고(빨간 낙서) 크레파스가 다음 칸으로 넘어간다. 그런데 한 번도 누르지 않고 노트를 지나보내면(박자 뒤 0.3초까지 아무것도 누르지 않으면) 게임 오버다. 노래가 멈추고, Enter나 화면을 누르면 그 곡을 처음부터 다시 하고, Esc는 곡 목록으로 간다. 마지막 노트가 지나면 화면이 멀어지며 그림 전체가 보이고, 결과 화면으로 이어진다. 노래의 남은 부분은 결과 화면에서도 계속 나온다.
 
 결과 화면의 큰 숫자는 100점 만점 점수다. 노트마다 Perfect 1, Great 0.7, Good 0.4, Miss 0으로 쳐서 평균을 낸 것이고, 소수점은 버리므로 전부 Perfect일 때만 100점이 나온다.
 
@@ -130,7 +130,7 @@ pnpm dev       # 터미널에 나오는 http://localhost:5173 주소를 브라�
 | Normal | 세게 치는 박자와 반 박자 + 아주 세게 치는 잔박 |
 | Hard | 치는 소리가 뚜렷한 박자와 반 박자 + 세게 치는 잔박 |
 
-노래에서 치는 소리가 약한 박에는 노트를 두지 않는다. 그래서 노트가 박마다 똑같이 오지 않고, 엇박을 포함해 노래의 리듬을 따라간다. 노트 없이 2박 넘게 비는 곳은 조금이라도 치는 소리가 있는 박을 노트로 채운다.
+노래에서 치는 소리가 약한 박에는 노트를 두지 않는다. 그래서 노트가 박마다 똑같이 오지 않고, 엇박을 포함해 노래의 리듬을 따라간다. 노트 없이 2박 넘게 비는 곳은 조금이라도 치는 소리가 있는 박을 노트로 채운다. 곡이 끝나며 소리가 꺼져 가는 부분(가장 큰 소리보다 30 dB 아래로 내려가 다시 올라오지 않는 뒤)에는 노트를 두지 않는다.
 
 박자는 박자 분석 모델 [Beat This!](https://github.com/CPJKU/beat_this)(MIT 라이선스)로 찾고, 찾은 박마다 가장 가까운 타격 소리에 맞춰 다듬는다. 템포가 75~150 BPM 범위 밖이면 절반이나 두 배로 바꿔서 계산한다(예: 170 BPM 곡은 85로 표시). 절반으로 줄일 때는 마디 첫 박이 놓이는 쪽 박을 남긴다. 3박자 곡(왈츠)은 박을 하나씩 건너뛰면 마디와 어긋나므로 줄이지 않는다. 곡 중간에 쉬었다가 반 박 어긋나게 다시 들어오는 곡, 메트로놈 없이 연주해 템포가 흔들리는 곡도 따라간다. 노트는 드럼 등 타격 소리 기준이다.
 
@@ -140,28 +140,32 @@ pnpm dev       # 터미널에 나오는 http://localhost:5173 주소를 브라�
 |---|---|---|---|---|
 | `swansong` | Swansong | Easy | 85 BPM | Josh Woodward, CC BY 4.0 |
 | `circles` | Circles | Easy | 93 BPM | Josh Woodward, CC BY 4.0 |
+| `sergios-magic-dustbin` | Sergio's Magic Dustbin (점점 커지는 곡) | Easy | 93 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `carnivale-intrigue` | Carnivale Intrigue (삼바, 엇박 많음) | Easy | 95 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
+| `surpass-your-limits` | surpass your limits! (보스전 칩튠) | Easy | 100 BPM | Preston Peak (OpenGameArt), CC BY 4.0 |
 | `funkorama` | Funkorama | Easy | 101 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `sunday-dub` | Sunday Dub (더브, 엇박 많음) | Easy | 102 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
-| `test-beat` | Test Beat 128 | Easy (직접 정함) | 128 BPM | 검증용으로 직접 합성한 곡 |
-| `hyperfun` | Hyperfun | Normal (직접 정함) | 100 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
-| `disco-con-tutti` | Disco con Tutti | Normal | 115 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
+| `cloud-dancer` | Cloud Dancer (EDM, 구간 변화 많음) | Normal | 107 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `midnight-sun` | Midnight Sun | Normal | 115 BPM | Josh Woodward, CC BY 4.0 |
 | `no-frills-comparsa` | No Frills Comparsa (라틴, 엇박 많음) | Normal | 115 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `dubakupado` | Dubakupado (아프리카 타악기, 엇박 많음) | Normal | 115 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
-| `rhinoceros` | Rhinoceros | Hard | 126 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
+| `voxel-revolution` | Voxel Revolution (전자음악, 엇박 많음) | Normal | 122 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `lagoa-v2` | Lagoa v2 (브라질 카니발) | Hard | 130 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `tafi-maradi-no-voice` | Tafi Maradi no voice (젬베, 엇박 많음) | Hard | 133 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `freddys-menagerie` | Freddy's Menagerie (타악기와 록) | Hard | 134 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `raving-energy-faster` | Raving Energy (faster) (빠른 전자음악, 가장 촘촘함) | Hard | 134 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
-| `pixel-peeker-polka` | Pixel Peeker Polka - faster | Hard | 145 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
+| `unholy-knight` | Unholy Knight (오케스트라, 셈여림 큼) | Hard | 140 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `release` | Release | Hard | 156 BPM | Josh Woodward, CC BY 4.0 |
 
 Josh Woodward의 곡은 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)으로 공개되어 있다. Free download: https://www.joshwoodward.com/
 
-Kevin MacLeod의 곡(Carnivale Intrigue, Disco con Tutti, Dubakupado, Freddy's Menagerie, Funkorama, Hyperfun, Lagoa v2, No Frills Comparsa, Pixel Peeker Polka - faster, Raving Energy (faster), Rhinoceros, Sunday Dub, Tafi Maradi no voice)은 Kevin MacLeod (incompetech.com)의 작품이다. Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/ 음원은 고치지 않고 그대로 쓴다.
+Kevin MacLeod의 곡(Carnivale Intrigue, Cloud Dancer, Dubakupado, Freddy's Menagerie, Funkorama, Lagoa v2, No Frills Comparsa, Raving Energy (faster), Sergio's Magic Dustbin, Sunday Dub, Tafi Maradi no voice, Unholy Knight, Voxel Revolution)은 Kevin MacLeod (incompetech.com)의 작품이다. Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/ 음원은 고치지 않고 그대로 쓴다.
 
-두 사람의 곡 모두 출처를 밝혀야 쓸 수 있어서, 곡 목록에서 곡을 고르면 화면 아래에 출처 문구가 나온다.
+"surpass your limits!"는 Preston Peak의 곡이다(https://opengameart.org/content/free-action-chiptune-music-pack). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/
+
+세 사람의 곡 모두 출처를 밝혀야 쓸 수 있어서, 곡 목록에서 곡을 고르면 화면 아래에 출처 문구가 나온다.
+
+2026-10-04에 지루한 곡 5개(Test Beat 128, Hyperfun, Rhinoceros, Pixel Peeker Polka - faster, Disco con Tutti)를 뺐다. 채보를 재 보니 같은 간격이 44~82번 이어지거나(마디가 거의 똑같이 반복) 곡 내내 음량 변화가 거의 없었다. 스윙 느낌이라 박자가 어긋나게 잡힌 후보 3곡(Dentaneosuchus Hunt, Jet Fueled Vixen, Mega Hyper Ultrastorm)은 넣지 않았다.
 
 ## 구조
 

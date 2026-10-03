@@ -47,6 +47,8 @@ const FALLBACK_UNIT_S = 0.5;
 const COMMON_SHARE = 0.25;
 const MAX_UNITS_PER_SWEEP = 1.5;
 /** Steps of the usual length head in one of the eight compass directions, as on a board game. */
+/** Gaps up to this ratio longer than the average of a group still count as the same interval. */
+const SAME_INTERVAL = 1.06;
 const COMPASS_STEP = Math.PI / 4;
 /** How many steps in a row may go straight on before the road has to turn a corner. */
 const MAX_STRAIGHT_STEPS = 2;
@@ -103,10 +105,20 @@ function positive(angle: number): number {
 /** The spacing drawn as a straight step: the longest interval that is still common in this chart. */
 function straightInterval(times: readonly number[]): number {
   const gaps = times.slice(1).map((time, i) => time - (times[i] ?? time));
-  const median = [...gaps].sort((a, b) => a - b)[gaps.length >> 1];
-  if (median === undefined) return FALLBACK_UNIT_S;
-  const doubles = gaps.filter((gap) => Math.abs(gap / median - 2) < 0.25).length;
-  return doubles / gaps.length >= COMMON_SHARE ? median * 2 : median;
+  const groups: { total: number; count: number }[] = [];
+  for (const gap of [...gaps].sort((a, b) => a - b)) {
+    const last = groups[groups.length - 1];
+    if (last !== undefined && gap <= (last.total / last.count) * SAME_INTERVAL) {
+      last.total += gap;
+      last.count += 1;
+    } else {
+      groups.push({ total: gap, count: 1 });
+    }
+  }
+  const common = groups.filter(({ count }) => count / gaps.length >= COMMON_SHARE);
+  const chosen = common.length > 0 ? common : [...groups].sort((a, b) => b.count - a.count).slice(0, 1);
+  const lengths = chosen.map(({ total, count }) => total / count);
+  return lengths.length > 0 ? Math.max(...lengths) : FALLBACK_UNIT_S;
 }
 
 /** A road laid along one guide. `shortfall` is how much of the guide was left over; negative = tiles left over. */

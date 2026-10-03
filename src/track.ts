@@ -90,11 +90,12 @@ function comboTier(combo: number): number {
 
 function followView({ width, height }: Size, frame: PlayingFrame): View {
   const pose = poseAt(frame.sections, frame.songTime);
-  const tileSize = Math.min(72, Math.max(36, Math.min(width, height) * 0.085));
+  const shorter = Math.min(width, height);
+  const tileSize = Math.min(72, Math.max(36, shorter * 0.085));
   return {
     tileSize: tileSize * pose.zoom * (1 + PULSE_ZOOM * hitPulse(frame)),
     camera: cameraAt(frame.path, frame.songTime),
-    anchor: { x: width / 2, y: height * 0.52 },
+    anchor: { x: width / 2 + pose.slide * shorter, y: height * 0.52 },
     angle: pose.tilt,
   };
 }

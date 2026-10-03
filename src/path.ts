@@ -305,6 +305,26 @@ export function buildPath(times: readonly number[], route: Route): Path {
   return best.path;
 }
 
+/**
+ * When the road reaches the end of its picture a few notes early, those notes would draw nothing. The last
+ * stretch of the picture is shared out among them instead, so every note draws a piece and the last note
+ * finishes the picture.
+ */
+export function shareEnding(path: Path): Path {
+  const { anchors, guide } = path;
+  let first = anchors.length - 1;
+  while (first > 0 && anchors[first - 1] === guide.endIndex) first--;
+  const from = anchors[first - 1];
+  const count = anchors.length - first;
+  if (from === undefined || count <= 1) return path;
+  return {
+    ...path,
+    anchors: anchors.map((anchor, i) =>
+      i < first ? anchor : Math.round(from + ((guide.endIndex - from) * (i - first + 1)) / count),
+    ),
+  };
+}
+
 /** Before `startTime` and after `endTime` the ball simply keeps turning at the same speed. */
 export function orbiterAngle(sweep: Sweep, time: number): number {
   return sweep.startAngle + (sweep.angle * (time - sweep.startTime)) / (sweep.endTime - sweep.startTime);

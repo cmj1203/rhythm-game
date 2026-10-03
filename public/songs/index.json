@@ -6,7 +6,7 @@
    "bpm": 93.0,
    "duration": 202.206,
    "difficulty": "easy",
-   "notes": 285,
+   "notes": 329,
    "artist": "Josh Woodward",
    "credit": "Music - \"Circles\" by Josh Woodward. Free download: https://www.joshwoodward.com/"
   },
@@ -16,7 +16,7 @@
    "bpm": 115.0,
    "duration": 236.352,
    "difficulty": "normal",
-   "notes": 595,
+   "notes": 684,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Disco con Tutti\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -26,7 +26,7 @@
    "bpm": 101.0,
    "duration": 201.456,
    "difficulty": "easy",
-   "notes": 288,
+   "notes": 379,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Funkorama\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -36,7 +36,7 @@
    "bpm": 100.0,
    "duration": 233.326,
    "difficulty": "normal",
-   "notes": 692,
+   "notes": 717,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Hyperfun\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -46,7 +46,7 @@
    "bpm": 114.99,
    "duration": 214.053,
    "difficulty": "normal",
-   "notes": 496,
+   "notes": 529,
    "artist": "Josh Woodward",
    "credit": "Music - \"Midnight Sun\" by Josh Woodward. Free download: https://www.joshwoodward.com/"
   },
@@ -56,7 +56,7 @@
    "bpm": 145.16,
    "duration": 202.005,
    "difficulty": "hard",
-   "notes": 970,
+   "notes": 903,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Pixel Peeker Polka - faster\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -66,7 +66,7 @@
    "bpm": 156.0,
    "duration": 230.528,
    "difficulty": "hard",
-   "notes": 821,
+   "notes": 740,
    "artist": "Josh Woodward",
    "credit": "Music - \"Release\" by Josh Woodward. Free download: https://www.joshwoodward.com/"
   },
@@ -76,7 +76,7 @@
    "bpm": 126.0,
    "duration": 203.886,
    "difficulty": "hard",
-   "notes": 817,
+   "notes": 756,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Rhinoceros\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -86,7 +86,7 @@
    "bpm": 85.0,
    "duration": 261.507,
    "difficulty": "easy",
-   "notes": 323,
+   "notes": 419,
    "artist": "Josh Woodward",
    "credit": "Music - \"Swansong\" by Josh Woodward. Free download: https://www.joshwoodward.com/"
   },
@@ -96,8 +96,7 @@
    "bpm": 127.99,
    "duration": 40.0,
    "difficulty": "easy",
-   "notes": 82,
-   "artist": "검증용 합성곡"
+   "notes": 85
   }
  ]
 }

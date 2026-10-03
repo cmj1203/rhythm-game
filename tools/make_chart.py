@@ -91,8 +91,10 @@ class Level(StrEnum):
 class Difficulty:
     """Minimum accent a grid step needs to become a note, by where it falls in the beat.
 
-    Mixed spacing is what bends the path in the game, so harder charts add off-beat notes
-    only where the music accents them instead of filling every slot.
+    The music's own accents decide where the notes go, on the beat or off it, so a chart plays the song's
+    rhythm instead of ticking every beat: a beat with no clear hit is left out, an off-beat hit hard is kept.
+    Mixed spacing is also what bends the path in the game. Harder charts take weaker hits, and the quarter
+    steps between the beat and the half beat.
     """
 
     on_beat: float
@@ -101,10 +103,15 @@ class Difficulty:
 
 
 DIFFICULTIES: Final = {
-    Level.EASY: Difficulty(on_beat=0.25),
-    Level.NORMAL: Difficulty(on_beat=0.25, on_half_beat=0.8),
-    Level.HARD: Difficulty(on_beat=0.25, on_half_beat=0.3, off_beat=0.9),
+    Level.EASY: Difficulty(on_beat=0.6, on_half_beat=0.95),
+    Level.NORMAL: Difficulty(on_beat=0.55, on_half_beat=0.6, off_beat=1.3),
+    Level.HARD: Difficulty(on_beat=0.5, on_half_beat=0.4, off_beat=0.75),
 }
+
+# Where the accents leave more than this many beats without a note, the beats in between that have any hit at
+# all become notes too, so a quieter passage is not one long wait.
+FILL_AFTER_BEATS: Final = 2
+FILL_MIN_ACCENT: Final = 0.25
 
 
 def level_for(bpm: float) -> Level:
@@ -269,7 +276,16 @@ def select_steps(accent: np.ndarray, difficulty: Difficulty) -> np.ndarray:
         difficulty.on_beat,
         np.where(step % 2 == 0, difficulty.on_half_beat, difficulty.off_beat),
     )
-    return np.flatnonzero(accent >= minimum)
+    chosen = np.flatnonzero(accent >= minimum)
+    bounds = np.concatenate([[-STEPS_PER_BEAT], chosen, [len(accent)]])
+    fill = [
+        beat
+        for before, after in zip(bounds[:-1], bounds[1:])
+        if after - before > FILL_AFTER_BEATS * STEPS_PER_BEAT
+        for beat in range((before // STEPS_PER_BEAT + 1) * STEPS_PER_BEAT, after, STEPS_PER_BEAT)
+        if beat - before >= STEPS_PER_BEAT and after - beat >= STEPS_PER_BEAT and accent[beat] >= FILL_MIN_ACCENT
+    ]
+    return np.union1d(chosen, np.asarray(fill, dtype=int)).astype(int)
 
 
 def attack_anchors(samples: np.ndarray) -> list[float]:

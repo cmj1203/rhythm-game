@@ -1,5 +1,5 @@
 import { assertNever } from "./assert";
-import { LEAD_IN_S, SongPlayer } from "./audio";
+import { decodingShift, LEAD_IN_S, SongPlayer } from "./audio";
 import { type Difficulty, loadSong, loadSongIndex, SongLoadError, type SongSummary } from "./chart";
 import { DrawingLoadError } from "./drawing";
 import { loadIntro } from "./intro";
@@ -27,7 +27,12 @@ type Screen =
   | { readonly kind: "tutorial" }
   | { readonly kind: "menu" }
   | { readonly kind: "loading" }
-  | (Session & { readonly kind: "ready"; readonly path: Path; readonly buffer: AudioBuffer })
+  | (Session & {
+      readonly kind: "ready";
+      readonly path: Path;
+      readonly buffer: AudioBuffer;
+      readonly audioShift: number;
+    })
   | (Session & {
       readonly kind: "playing";
       readonly path: Path;
@@ -95,6 +100,7 @@ async function boot(): Promise<void> {
         play: new PlayState(times),
         path: dyePath(path, sections),
         buffer,
+        audioShift: decodingShift(buffer, chart.anchors),
       };
     } catch (error) {
       screen = { kind: "menu" };
@@ -140,7 +146,7 @@ async function boot(): Promise<void> {
   };
 
   const startPlaying = (ready: ReadyScreen): void => {
-    player.start(ready.buffer);
+    player.start(ready.buffer, ready.audioShift);
     screen = {
       kind: "playing",
       song: ready.song,

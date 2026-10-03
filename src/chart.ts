@@ -15,6 +15,8 @@ const chartSchema = z.object({
   bpm: z.number().positive(),
   offset: z.number(),
   duration: z.number().positive(),
+  /** Times of a few sharp attacks, for `decodingShift` to find again. A chart made before they existed has none. */
+  anchors: noteTimes.default([]),
   charts: z.object({ easy: noteTimes, normal: noteTimes, hard: noteTimes }),
 });
 

@@ -57,15 +57,15 @@ pnpm dev       # 터미널에 나오는 http://localhost:5173 주소를 브라�
 |---|---|
 | 크레파스가 도는 빠르기 | 노래의 빠르기다. 길이 어떻게 꺾이든 한 박에 정확히 반 바퀴 돈다 |
 | 반 바퀴보다 덜 돌아서 닿는 칸 | 한 박보다 짧게 기다린다 (반 박이면 4분의 1바퀴) |
-| 하늘색 점이 있는 칸 | 오래 기다리는 칸. 여기서는 크레파스가 절반 이하 빠르기로 천천히 돈다 |
-| 보라색 고리가 있는 칸 | 여기서 크레파스가 도는 방향이 바뀐다 |
+| 큰 하늘색 점이 있는 칸 | 오래 기다리는 칸. 여기서는 크레파스가 절반 이하 빠르기로 천천히 돌고, 그동안 도는 원이 하늘색이 된다 |
+| 보라색 화살표가 둘러싼 칸 | 여기서 크레파스가 도는 방향이 바뀐다. 화살표가 새로 도는 쪽이다 |
 | 흰 고리 | 다음에 그릴 칸. 크레파스 끝이 이 고리에 닿을 때 누른다 |
 | 밝은 점선 | 아직 그리지 않은 길. 크레파스에서 가까울수록 밝고, 20칸 앞까지만 보인다 |
 | 색 크레파스 선 / 빨간 낙서 | 이미 그린 곳. 맞췄으면 선, 놓쳤으면 낙서. 잘 맞출수록 진하고 굵다. 오래 기다린 노트의 선일수록 굵다. 방금 그은 몇 칸만 또렷하고 그 전의 선은 흐려진다 |
 | 선과 크레파스 색이 바뀜 | 곡의 구간(16박)이 두 번 지났다 |
-| 화면이 다가가거나 물러남, 천천히 돎, 옆으로 미끄러짐, 좌우로 흔들림 | 구간마다 카메라가 한 가지씩 움직인다. 노트가 많은 구간일수록 화면이 가깝고 많이 기운다 |
+| 화면이 다가가거나 물러남, 천천히 돎, 옆으로 미끄러짐 | 구간마다 카메라가 한 가지씩 천천히 움직인다. 노트가 많은 구간일수록 화면이 가깝고 많이 기운다. 화면은 길의 모퉁이마다 꺾이지 않고 부드럽게 돈다 |
 
-길은 그림의 선을 큰 흐름만 따라간다. 그림 속의 작은 고리와 물결은 길이 일일이 돌지 않고, 그 자리를 지나는 선이 맡는다. 그림의 선이 곧게 뻗는 곳에서는 길이 좌우로 물결치며 간다. 리듬에 따라 길이 꺾이기도 하기 때문에 길 자체는 그림과 조금 다르게 생겼지만, 마지막 노트가 지나면 선이 당겨지면서 그림의 선 위로 모인다. 그림 크기는 마지막 노트에서 그림이 끝나도록 곡마다 맞춰진다.
+길은 그림의 선을 큰 흐름만 따라간다. 그림 속의 작은 고리와 물결은 길이 일일이 돌지 않고, 그 자리를 지나는 선이 맡는다. 그림의 선이 곧게 뻗는 곳에서는 길이 좌우로 물결치며 간다. 길은 얼불춤처럼 8방향으로만 가고, 두 번 넘게 곧게 이어 가지 않고 45도나 90도로 꺾인다. 리듬에 따라 길이 꺾이기도 하기 때문에 길 자체는 그림과 조금 다르게 생겼지만, 마지막 노트가 지나면 선이 당겨지면서 그림의 선 위로 모인다. 그림 크기는 마지막 노트에서 그림이 끝나도록 곡마다 맞춰진다.
 
 크레파스는 한 박에 반 바퀴를 지킨다. 그래서 길이 꺾인 칸에서는 지나온 칸 바로 위가 아니라, 꺾인 만큼 떨어진 곳에서 돌기 시작한다.
 
@@ -125,9 +125,11 @@ pnpm dev       # 터미널에 나오는 http://localhost:5173 주소를 브라�
 
 | 난이도 | 노트가 놓이는 자리 |
 |---|---|
-| Easy | 박자마다 |
-| Normal | 박자마다 + 세게 치는 반 박자 |
-| Hard | 반 박자마다 + 세게 치는 잔박 |
+| Easy | 세게 치는 박자 + 아주 세게 치는 반 박자(엇박) |
+| Normal | 세게 치는 박자와 반 박자 + 아주 세게 치는 잔박 |
+| Hard | 치는 소리가 뚜렷한 박자와 반 박자 + 세게 치는 잔박 |
+
+노래에서 치는 소리가 약한 박에는 노트를 두지 않는다. 그래서 노트가 박마다 똑같이 오지 않고, 엇박을 포함해 노래의 리듬을 따라간다. 노트 없이 2박 넘게 비는 곳은 조금이라도 치는 소리가 있는 박을 노트로 채운다.
 
 박자는 박자 분석 모델 [Beat This!](https://github.com/CPJKU/beat_this)(MIT 라이선스)로 찾고, 찾은 박마다 가장 가까운 타격 소리에 맞춰 다듬는다. 템포가 75~150 BPM 범위 밖이면 절반이나 두 배로 바꿔서 계산한다(예: 170 BPM 곡은 85로 표시). 절반으로 줄일 때는 마디 첫 박이 놓이는 쪽 박을 남긴다. 3박자 곡(왈츠)은 박을 하나씩 건너뛰면 마디와 어긋나므로 줄이지 않는다. 곡 중간에 쉬었다가 반 박 어긋나게 다시 들어오는 곡, 메트로놈 없이 연주해 템포가 흔들리는 곡도 따라간다. 노트는 드럼 등 타격 소리 기준이다.
 
@@ -137,18 +139,22 @@ pnpm dev       # 터미널에 나오는 http://localhost:5173 주소를 브라�
 |---|---|---|---|---|
 | `swansong` | Swansong | Easy | 85 BPM | Josh Woodward, CC BY 4.0 |
 | `circles` | Circles | Easy | 93 BPM | Josh Woodward, CC BY 4.0 |
+| `carnivale-intrigue` | Carnivale Intrigue (삼바, 엇박 많음) | Easy | 95 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `funkorama` | Funkorama | Easy | 101 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
+| `sunday-dub` | Sunday Dub (더브, 엇박 많음) | Easy | 102 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `test-beat` | Test Beat 128 | Easy (직접 정함) | 128 BPM | 검증용으로 직접 합성한 곡 |
 | `hyperfun` | Hyperfun | Normal (직접 정함) | 100 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `disco-con-tutti` | Disco con Tutti | Normal | 115 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `midnight-sun` | Midnight Sun | Normal | 115 BPM | Josh Woodward, CC BY 4.0 |
+| `no-frills-comparsa` | No Frills Comparsa (라틴, 엇박 많음) | Normal | 115 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
+| `dubakupado` | Dubakupado (아프리카 타악기, 엇박 많음) | Normal | 115 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `rhinoceros` | Rhinoceros | Hard | 126 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `pixel-peeker-polka` | Pixel Peeker Polka - faster | Hard | 145 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `release` | Release | Hard | 156 BPM | Josh Woodward, CC BY 4.0 |
 
 Josh Woodward의 곡은 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)으로 공개되어 있다. Free download: https://www.joshwoodward.com/
 
-Kevin MacLeod의 곡(Disco con Tutti, Funkorama, Hyperfun, Pixel Peeker Polka - faster, Rhinoceros)은 Kevin MacLeod (incompetech.com)의 작품이다. Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/ 음원은 고치지 않고 그대로 쓴다.
+Kevin MacLeod의 곡(Carnivale Intrigue, Disco con Tutti, Dubakupado, Funkorama, Hyperfun, No Frills Comparsa, Pixel Peeker Polka - faster, Rhinoceros, Sunday Dub)은 Kevin MacLeod (incompetech.com)의 작품이다. Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/ 음원은 고치지 않고 그대로 쓴다.
 
 두 사람의 곡 모두 출처를 밝혀야 쓸 수 있어서, 곡 목록에서 곡을 고르면 화면 아래에 출처 문구가 나온다.
 
@@ -167,7 +173,7 @@ Kevin MacLeod의 곡(Disco con Tutti, Funkorama, Hyperfun, Pixel Peeker Polka - 
 | `src/guide.ts` | 그림을 길 크기에 맞춰 일정한 간격의 점으로 놓고, 길이 따라갈 수 있게 작은 고리를 편 줄을 따로 만든다 |
 | `src/sections.ts` | 곡을 16박 구간으로 나눠 구간마다 선 색과 카메라 움직임(거리, 기울기, 옆으로 미끄러짐)을 정한다 |
 | `src/judge.ts` | 판정, 점수, 콤보, 노트별 판정 기록 |
-| `src/audio.ts` | 재생과 곡 시간 계산, 브라우저마다 다른 mp3 디코딩 차이 맞추기, `?tick`의 톡 소리 |
+| `src/audio.ts` | 재생과 곡 시간 계산, 브라우저마다 다른 mp3 디코딩 차이 맞추기, 곡마다 다른 녹음 크기 맞추기(큰 곡은 줄여서 틂), `?tick`의 톡 소리 |
 | `src/track.ts` | 플레이 화면 그리기 (앞길, 도는 크레파스, 타격 효과, 콤보 효과, 점수, 끝날 때 멀어지는 장면) |
 | `src/crayon.ts` | 크레파스 모양과 종이 결 그리기 (플레이 화면, 결과 화면, 인트로가 함께 쓴다) |
 | `src/intro.ts` | 인트로: 크레파스가 제목을 한 글자씩 쓰기, LIVE 표시등 |
@@ -176,7 +182,7 @@ Kevin MacLeod의 곡(Disco con Tutti, Funkorama, Hyperfun, Pixel Peeker Polka - 
 | `src/canvas.ts` | 색과 그리기 도우미 |
 | `src/render.ts` | 캔버스 크기 맞춤과 화면 선택 |
 | `src/title.ts` | 처음 화면의 글자와 시작 버튼. 제목 로고는 그 뒤의 캔버스에 `src/intro.ts`가 그린다 (글자로 된 이름은 이 파일의 `GAME_NAME`) |
-| `src/tutorial.ts` | 하는 법 화면 (누르는 순간을 보여 주는 그림과 하늘 점, 보라 고리 설명) |
+| `src/tutorial.ts` | 하는 법 화면 (누르는 순간을 보여 주는 그림과 큰 하늘 점, 보라 화살표 설명) |
 | `src/menu.ts` | 곡 목록 화면 (난이도 탭과 그 난이도의 곡들) |
 | `src/main.ts` | 입력과 화면 전환 |
 

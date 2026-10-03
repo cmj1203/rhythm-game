@@ -20,6 +20,7 @@ pnpm dev       # 터미널에 나오는 http://localhost:5173 주소를 브라�
 | 하는 법 | Enter 또는 곡 고르기 버튼 | 곡 목록으로 |
 | 하는 법 | Esc | 처음 화면으로 |
 | 곡 목록 | ← → 또는 1 2 3 또는 난이도 탭 클릭 | Easy / Normal / Hard 탭 바꾸기. 그 난이도의 곡만 보인다 |
+| 곡 목록 | 시작 버튼 아래 음량 막대 끌기 | 게임 소리 크기 바꾸기(0~100%). 다음에 열어도 그대로다 |
 | 곡 목록 | ↑ ↓ 또는 곡 클릭 | 보이는 난이도 안에서 곡 고르기 |
 | 곡 목록 | Enter 또는 시작 버튼 (곡 더블클릭도 가능) | 플레이 시작 |
 | 곡 목록 | Esc | 처음 화면으로 |
@@ -58,7 +59,7 @@ pnpm dev       # 터미널에 나오는 http://localhost:5173 주소를 브라�
 | 크레파스가 도는 빠르기 | 노래의 빠르기다. 길이 어떻게 꺾이든 한 박에 정확히 반 바퀴 돈다 |
 | 반 바퀴보다 덜 돌아서 닿는 칸 | 한 박보다 짧게 기다린다 (반 박이면 4분의 1바퀴) |
 | 큰 하늘색 점이 있는 칸 | 오래 기다리는 칸. 여기서는 크레파스가 절반 이하 빠르기로 천천히 돌고, 그동안 도는 원이 하늘색이 된다 |
-| 보라색 화살표가 둘러싼 칸 | 여기서 크레파스가 도는 방향이 바뀐다. 화살표가 새로 도는 쪽이다 |
+| 보라색 고리가 둘러싼 칸 | 여기서 크레파스가 도는 방향이 바뀐다 |
 | 흰 고리 | 다음에 그릴 칸. 크레파스 끝이 이 고리에 닿을 때 누른다 |
 | 밝은 점선 | 아직 그리지 않은 길. 크레파스에서 가까울수록 밝고, 20칸 앞까지만 보인다 |
 | 색 크레파스 선 / 빨간 낙서 | 이미 그린 곳. 맞췄으면 선, 놓쳤으면 낙서. 잘 맞출수록 진하고 굵다. 오래 기다린 노트의 선일수록 굵다. 방금 그은 몇 칸만 또렷하고 그 전의 선은 흐려진다 |
@@ -149,12 +150,16 @@ pnpm dev       # 터미널에 나오는 http://localhost:5173 주소를 브라�
 | `no-frills-comparsa` | No Frills Comparsa (라틴, 엇박 많음) | Normal | 115 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `dubakupado` | Dubakupado (아프리카 타악기, 엇박 많음) | Normal | 115 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `rhinoceros` | Rhinoceros | Hard | 126 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
+| `lagoa-v2` | Lagoa v2 (브라질 카니발) | Hard | 130 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
+| `tafi-maradi-no-voice` | Tafi Maradi no voice (젬베, 엇박 많음) | Hard | 133 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
+| `freddys-menagerie` | Freddy's Menagerie (타악기와 록) | Hard | 134 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
+| `raving-energy-faster` | Raving Energy (faster) (빠른 전자음악, 가장 촘촘함) | Hard | 134 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `pixel-peeker-polka` | Pixel Peeker Polka - faster | Hard | 145 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `release` | Release | Hard | 156 BPM | Josh Woodward, CC BY 4.0 |
 
 Josh Woodward의 곡은 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)으로 공개되어 있다. Free download: https://www.joshwoodward.com/
 
-Kevin MacLeod의 곡(Carnivale Intrigue, Disco con Tutti, Dubakupado, Funkorama, Hyperfun, No Frills Comparsa, Pixel Peeker Polka - faster, Rhinoceros, Sunday Dub)은 Kevin MacLeod (incompetech.com)의 작품이다. Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/ 음원은 고치지 않고 그대로 쓴다.
+Kevin MacLeod의 곡(Carnivale Intrigue, Disco con Tutti, Dubakupado, Freddy's Menagerie, Funkorama, Hyperfun, Lagoa v2, No Frills Comparsa, Pixel Peeker Polka - faster, Raving Energy (faster), Rhinoceros, Sunday Dub, Tafi Maradi no voice)은 Kevin MacLeod (incompetech.com)의 작품이다. Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/ 음원은 고치지 않고 그대로 쓴다.
 
 두 사람의 곡 모두 출처를 밝혀야 쓸 수 있어서, 곡 목록에서 곡을 고르면 화면 아래에 출처 문구가 나온다.
 
@@ -182,8 +187,8 @@ Kevin MacLeod의 곡(Carnivale Intrigue, Disco con Tutti, Dubakupado, Funkorama,
 | `src/canvas.ts` | 색과 그리기 도우미 |
 | `src/render.ts` | 캔버스 크기 맞춤과 화면 선택 |
 | `src/title.ts` | 처음 화면의 글자와 시작 버튼. 제목 로고는 그 뒤의 캔버스에 `src/intro.ts`가 그린다 (글자로 된 이름은 이 파일의 `GAME_NAME`) |
-| `src/tutorial.ts` | 하는 법 화면 (누르는 순간을 보여 주는 그림과 큰 하늘 점, 보라 화살표 설명) |
-| `src/menu.ts` | 곡 목록 화면 (난이도 탭과 그 난이도의 곡들) |
+| `src/tutorial.ts` | 하는 법 화면 (누르는 순간을 보여 주는 그림과 큰 하늘 점, 보라 고리 설명) |
+| `src/menu.ts` | 곡 목록 화면 (난이도 탭과 그 난이도의 곡들, 음량 막대) |
 | `src/main.ts` | 입력과 화면 전환 |
 
 ## 이전 버전

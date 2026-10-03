@@ -2,7 +2,7 @@ import type { Point } from "./canvas";
 import type { Route } from "./drawing";
 import { type Course, GUIDE_STEP, type Guide, layCourse, layGuide } from "./guide";
 
-export type Pace = "normal" | "slow";
+export type Pace = "normal" | "fast" | "slow";
 
 /** A stepping stone, in units of the distance between neighbours. `time` is when the ball must land on it. */
 export type Tile = { readonly x: number; readonly y: number; readonly time: number };
@@ -13,7 +13,9 @@ export type Tile = { readonly x: number; readonly y: number; readonly time: numb
  * The ball turns half a circle a beat whichever way the road bends, so its turning keeps time with the music.
  * It ends each sweep on tile i + 1, and so begins it wherever half a circle a beat puts it: near the tile it
  * came from, but not on it where the road bends. Only a wait of more than `MAX_UNITS_PER_SWEEP` beats is
- * turned through at half that speed or less; that sweep is "slow".
+ * turned through at half that speed or less; that sweep is "slow". Through a busy stretch, a run of notes at
+ * most half a beat apart, the ball turns exactly twice as fast, half a circle every half beat; those sweeps are
+ * "fast". Either way its turning stays locked to the beat.
  */
 export type Sweep = {
   readonly startAngle: number;
@@ -45,10 +47,17 @@ const TAU = Math.PI * 2;
 const EPSILON = 0.01;
 const FALLBACK_UNIT_S = 0.5;
 const COMMON_SHARE = 0.25;
-const MAX_UNITS_PER_SWEEP = 1.5;
-/** Steps of the usual length head in one of the eight compass directions, as on a board game. */
 /** Gaps up to this ratio longer than the average of a group still count as the same interval. */
 const SAME_INTERVAL = 1.06;
+const MAX_UNITS_PER_SWEEP = 1.5;
+/**
+ * At least this many gaps in a row of at most `FAST_MAX_UNITS` beats make a busy stretch the ball turns twice as
+ * fast through, unless half a beat is shorter than `MIN_FAST_HALF_TURN_S`, when twice as fast would be a blur.
+ */
+const FAST_RUN_MIN = 6;
+const FAST_MAX_UNITS = 0.5;
+const MIN_FAST_HALF_TURN_S = 0.2;
+/** Steps of the usual length head in one of the eight compass directions, as on a board game. */
 const COMPASS_STEP = Math.PI / 4;
 /** How many steps in a row may go straight on before the road has to turn a corner. */
 const MAX_STRAIGHT_STEPS = 2;
@@ -102,7 +111,12 @@ function positive(angle: number): number {
   return turned < EPSILON ? TAU : turned;
 }
 
-/** The spacing drawn as a straight step: the longest interval that is still common in this chart. */
+/**
+ * The spacing drawn as a straight step: the longest interval that is still common in this chart. The gaps
+ * between notes are grouped into intervals that are about the same length, and the longest group holding at
+ * least `COMMON_SHARE` of them wins. (A median would fall between two common intervals when a chart has about
+ * as many of each, and then fit neither.)
+ */
 function straightInterval(times: readonly number[]): number {
   const gaps = times.slice(1).map((time, i) => time - (times[i] ?? time));
   const groups: { total: number; count: number }[] = [];
@@ -126,6 +140,19 @@ type Attempt = { readonly path: Path; readonly shortfall: number };
 
 function lay(times: readonly number[], unit: number, guide: Guide, course: Course): Attempt {
   const first = times[0] ?? 0;
+  const unitsOf = (gap: number): number => Math.max(0.25, Math.round((gap / unit) * 4) / 4);
+  // fast[i]: the gap after note i lies in a busy stretch, which the ball turns through twice as fast.
+  const fast = times.slice(1).map(() => false);
+  if (unit / 2 >= MIN_FAST_HALF_TURN_S) {
+    let runStart = 0;
+    for (let i = 0; i <= fast.length; i++) {
+      const to = times[i + 1];
+      const from = times[i];
+      if (to !== undefined && from !== undefined && unitsOf(to - from) <= FAST_MAX_UNITS) continue;
+      if (i - runStart >= FAST_RUN_MIN) fast.fill(true, runStart, i);
+      runStart = i + 1;
+    }
+  }
   const courseAt = (index: number): Point =>
     course.points[Math.min(index, course.points.length - 1)] ?? { x: 0, y: 0 };
   const markAt = (index: number): number => course.marks[Math.min(index, course.endIndex)] ?? guide.endIndex;
@@ -202,11 +229,12 @@ function lay(times: readonly number[], unit: number, guide: Guide, course: Cours
     const aim = aimAt(nearest);
     const target = Math.atan2(aim.y - pivot.y, aim.x - pivot.x);
 
-    const units = Math.max(0.25, Math.round(((to - from) / unit) * 4) / 4);
+    const units = unitsOf(to - from);
     weights.push(Math.min(MAX_WEIGHT, Math.max(MIN_WEIGHT, Math.sqrt(units))));
     let divisor = 1;
     while (units / divisor > MAX_UNITS_PER_SWEEP) divisor *= 2;
-    const rhythmAngle = (Math.PI * units) / divisor;
+    const isFast = fast[i] === true;
+    const rhythmAngle = (Math.PI * units * (isFast ? 2 : 1)) / divisor;
 
     let nextHeading = heading;
     let isTwirl = false;
@@ -254,7 +282,7 @@ function lay(times: readonly number[], unit: number, guide: Guide, course: Cours
       angle: direction * rhythmAngle,
       startTime: from,
       endTime: to,
-      pace: divisor > 1 ? "slow" : "normal",
+      pace: divisor > 1 ? "slow" : isFast ? "fast" : "normal",
       isTwirl,
     });
     straightSteps = Math.abs(wrap(nextHeading - heading)) < EPSILON ? straightSteps + 1 : 0;

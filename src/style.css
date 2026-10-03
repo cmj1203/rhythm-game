@@ -440,10 +440,15 @@ body {
   border-radius: 50%;
 }
 
-.mark-slow {
+.mark-slow,
+.mark-fast {
   width: 20px;
   height: 20px;
   background: var(--sky);
+}
+
+.mark-fast {
+  background: var(--pink);
 }
 
 .mark-twirl {

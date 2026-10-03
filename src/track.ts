@@ -76,9 +76,9 @@ const GLOW_OPACITY = ["14", "1f", "29", "33"] as const;
 const BURST_OPACITY = 0.7;
 const GLOW_REACH = 2.2;
 const GLOW_REACH_PER_TIER = 0.5;
-const PACE_COLOR = { normal: COLOR.text, slow: COLOR.sky } as const satisfies Record<Pace, string>;
-/** The dot on each tile ahead, in tiles. A tile the crayon leaves slowly gets a disc large enough to stand out. */
-const DOT_RADIUS = { normal: 0.11, slow: 0.2 } as const satisfies Record<Pace, number>;
+const PACE_COLOR = { normal: COLOR.text, fast: COLOR.pink, slow: COLOR.sky } as const satisfies Record<Pace, string>;
+/** The dot on each tile ahead, in tiles. A tile the crayon leaves fast or slowly gets a disc large enough to stand out. */
+const DOT_RADIUS = { normal: 0.11, fast: 0.2, slow: 0.2 } as const satisfies Record<Pace, number>;
 /** Where the crayon changes its way round, a plain violet ring of this radius and stroke width (tiles) circles the tile. */
 const TWIRL_RADIUS = 0.36;
 const TWIRL_WIDTH = 0.05;
@@ -189,11 +189,11 @@ function drawCircling(painter: Painter, frame: PlayingFrame, view: View): void {
   ctx.fillStyle = glow;
   ctx.fillRect(center.x - reach, center.y - reach, reach * 2, reach * 2);
 
-  // While the crayon turns slowly, its circle is drawn in the colour of the slow tile it set out from.
-  const isSlow = sweep.pace === "slow";
+  // While the crayon turns fast or slowly, its circle is drawn in the colour of the tile it set out from.
+  const isPaced = sweep.pace !== "normal";
   painter.circle(center, size);
-  ctx.strokeStyle = isSlow ? COLOR.sky : COLOR.separator;
-  ctx.lineWidth = isSlow ? 2 : 1;
+  ctx.strokeStyle = isPaced ? PACE_COLOR[sweep.pace] : COLOR.separator;
+  ctx.lineWidth = isPaced ? 2 : 1;
   ctx.stroke();
 
   painter.circle(center, size * 0.08);

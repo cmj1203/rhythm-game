@@ -67,6 +67,16 @@ export const PICTURES = [
   "panda",
   "bee",
 ] as const;
+  "koala",
+  "hamburger",
+  "kangaroo",
+  "otter",
+  "donut",
+  "zebra",
+  "hamster",
+  "watermelon",
+  "hippo",
+  "raccoon",
 
 export type Sewing = { readonly pictureName: string; readonly path: Path };
 

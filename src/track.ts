@@ -72,14 +72,9 @@ const GLOW_REACH_PER_TIER = 0.5;
 const PACE_COLOR = { normal: COLOR.text, slow: COLOR.sky } as const satisfies Record<Pace, string>;
 /** The dot on each tile ahead, in tiles. A tile the crayon leaves slowly gets a disc large enough to stand out. */
 const DOT_RADIUS = { normal: 0.11, slow: 0.2 } as const satisfies Record<Pace, number>;
-/**
- * Where the crayon changes its way round, a violet arrow circles the tile the way it turns from there: this
- * radius and stroke width in tiles, open for the last sixth of the circle, where the arrowhead sits.
- */
-const TWIRL_RADIUS = 0.4;
-const TWIRL_WIDTH = 0.07;
-const TWIRL_ARC = (5 * Math.PI) / 3;
-const TWIRL_HEAD = 0.13;
+/** Where the crayon changes its way round, a plain violet ring of this radius and stroke width (tiles) circles the tile. */
+const TWIRL_RADIUS = 0.36;
+const TWIRL_WIDTH = 0.05;
 
 /**
  * After the last note the camera pulls back until the whole embroidery fits where the result screen shows it.
@@ -126,36 +121,6 @@ function nearness(steps: number): number {
   return Math.max(0, 1 - (steps / TILES_AHEAD) ** 2);
 }
 
-/**
- * A violet arrow round `center`, beginning at screen angle `from` and pointing the way the crayon turns from
- * there (`spin` 1 is clockwise on the screen).
- */
-function drawTwirl(painter: Painter, center: Point, from: number, spin: number, tileSize: number): void {
-  const { ctx } = painter;
-  const radius = tileSize * TWIRL_RADIUS;
-  const end = from + spin * TWIRL_ARC;
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(center.x, center.y, radius, from, end, spin < 0);
-  ctx.strokeStyle = COLOR.violet;
-  ctx.lineWidth = Math.max(2.5, tileSize * TWIRL_WIDTH);
-  ctx.lineCap = "round";
-  ctx.stroke();
-
-  const head = tileSize * TWIRL_HEAD;
-  const out = { x: Math.cos(end), y: Math.sin(end) };
-  const along = { x: -out.y * spin, y: out.x * spin };
-  const at = { x: center.x + out.x * radius, y: center.y + out.y * radius };
-  ctx.beginPath();
-  ctx.moveTo(at.x + along.x * head * 1.2, at.y + along.y * head * 1.2);
-  ctx.lineTo(at.x + out.x * head, at.y + out.y * head);
-  ctx.lineTo(at.x - out.x * head, at.y - out.y * head);
-  ctx.closePath();
-  ctx.fillStyle = COLOR.violet;
-  ctx.fill();
-  ctx.restore();
-}
-
 /** The road still to sew, with the rhythm markers on its tiles and a ring on the tile to hit next. */
 function drawAhead(painter: Painter, { path, play }: PlayingFrame, view: View): void {
   const { ctx } = painter;
@@ -173,7 +138,12 @@ function drawAhead(painter: Painter, { path, play }: PlayingFrame, view: View): 
     painter.circle(center, view.tileSize * DOT_RADIUS[sweep.pace]);
     ctx.fillStyle = sweep.pace === "normal" && sweep.isTwirl ? COLOR.violet : PACE_COLOR[sweep.pace];
     ctx.fill();
-    if (sweep.isTwirl) drawTwirl(painter, center, sweep.startAngle + view.angle, Math.sign(sweep.angle), view.tileSize);
+    if (sweep.isTwirl) {
+      painter.circle(center, view.tileSize * TWIRL_RADIUS);
+      ctx.strokeStyle = COLOR.violet;
+      ctx.lineWidth = Math.max(2, view.tileSize * TWIRL_WIDTH);
+      ctx.stroke();
+    }
   }
   ctx.globalAlpha = opacity;
 

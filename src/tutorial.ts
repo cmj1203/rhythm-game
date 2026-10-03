@@ -7,7 +7,7 @@ export type TutorialOptions = {
 
 const MARKS = [
   { kind: "slow", name: "큰 하늘 점", meaning: "오래 기다리는 칸입니다. 크레파스가 천천히 돌고, 도는 원이 하늘색이 됩니다" },
-  { kind: "twirl", name: "보라 화살표", meaning: "이 칸에서 크레파스가 도는 방향이 바뀝니다. 화살표가 새로 도는 쪽입니다" },
+  { kind: "twirl", name: "보라 고리", meaning: "이 칸에서 크레파스가 도는 방향이 바뀝니다" },
 ] as const;
 
 /** A looping picture of the one move in the game: the crayon comes round and its point touches the ring. */

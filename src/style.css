@@ -446,13 +446,13 @@ body {
   background: var(--sky);
 }
 
-/* The arrow the game draws round a tile where the turning changes way; its colour is the violet token. */
 .mark-twirl {
-  width: 28px;
-  height: 28px;
-  border-radius: 0;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 4A8 8 0 1 1 5.07 8' fill='none' stroke='%23b79bff' stroke-width='2.6' stroke-linecap='round'/%3E%3Cpath d='M6.87 4.88L2.47 6.5L7.67 9.5Z' fill='%23b79bff'/%3E%3Ccircle cx='12' cy='12' r='2.6' fill='%23b79bff'/%3E%3C/svg%3E")
-    center / contain no-repeat;
+  width: 8px;
+  height: 8px;
+  background: var(--violet);
+  box-shadow:
+    0 0 0 5px var(--surface),
+    0 0 0 8px var(--violet);
 }
 
 .mark-name {

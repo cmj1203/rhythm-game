@@ -58,6 +58,7 @@ pnpm dev       # 터미널에 나오는 http://localhost:5173 주소를 브라�
 |---|---|
 | 크레파스가 도는 빠르기 | 노래의 빠르기다. 길이 어떻게 꺾이든 한 박에 정확히 반 바퀴 돈다 |
 | 반 바퀴보다 덜 돌아서 닿는 칸 | 한 박보다 짧게 기다린다 (반 박이면 4분의 1바퀴) |
+| 큰 분홍색 점이 있는 칸 | 노트가 촘촘한 구간. 크레파스가 박자에 맞춰 정확히 두 배 빠르기(반 박에 반 바퀴)로 돌고, 그동안 도는 원이 분홍색이 된다. 구간이 끝나면 원래 빠르기로 돌아온다 |
 | 큰 하늘색 점이 있는 칸 | 오래 기다리는 칸. 여기서는 크레파스가 절반 이하 빠르기로 천천히 돌고, 그동안 도는 원이 하늘색이 된다 |
 | 보라색 고리가 둘러싼 칸 | 여기서 크레파스가 도는 방향이 바뀐다 |
 | 흰 고리 | 다음에 그릴 칸. 크레파스 끝이 이 고리에 닿을 때 누른다 |
@@ -140,9 +141,7 @@ pnpm dev       # 터미널에 나오는 http://localhost:5173 주소를 브라�
 |---|---|---|---|---|
 | `swansong` | Swansong | Easy | 85 BPM | Josh Woodward, CC BY 4.0 |
 | `circles` | Circles | Easy | 93 BPM | Josh Woodward, CC BY 4.0 |
-| `sergios-magic-dustbin` | Sergio's Magic Dustbin (점점 커지는 곡) | Easy | 93 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `carnivale-intrigue` | Carnivale Intrigue (삼바, 엇박 많음) | Easy | 95 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
-| `surpass-your-limits` | surpass your limits! (보스전 칩튠) | Easy | 100 BPM | Preston Peak (OpenGameArt), CC BY 4.0 |
 | `funkorama` | Funkorama | Easy | 101 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `sunday-dub` | Sunday Dub (더브, 엇박 많음) | Easy | 102 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `cloud-dancer` | Cloud Dancer (EDM, 구간 변화 많음) | Normal | 107 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
@@ -159,13 +158,11 @@ pnpm dev       # 터미널에 나오는 http://localhost:5173 주소를 브라�
 
 Josh Woodward의 곡은 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)으로 공개되어 있다. Free download: https://www.joshwoodward.com/
 
-Kevin MacLeod의 곡(Carnivale Intrigue, Cloud Dancer, Dubakupado, Freddy's Menagerie, Funkorama, Lagoa v2, No Frills Comparsa, Raving Energy (faster), Sergio's Magic Dustbin, Sunday Dub, Tafi Maradi no voice, Unholy Knight, Voxel Revolution)은 Kevin MacLeod (incompetech.com)의 작품이다. Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/ 음원은 고치지 않고 그대로 쓴다.
+Kevin MacLeod의 곡(Carnivale Intrigue, Cloud Dancer, Dubakupado, Freddy's Menagerie, Funkorama, Lagoa v2, No Frills Comparsa, Raving Energy (faster), Sunday Dub, Tafi Maradi no voice, Unholy Knight, Voxel Revolution)은 Kevin MacLeod (incompetech.com)의 작품이다. Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/ 음원은 고치지 않고 그대로 쓴다.
 
-"surpass your limits!"는 Preston Peak의 곡이다(https://opengameart.org/content/free-action-chiptune-music-pack). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/
+두 사람의 곡 모두 출처를 밝혀야 쓸 수 있어서, 곡 목록에서 곡을 고르면 화면 아래에 출처 문구가 나온다.
 
-세 사람의 곡 모두 출처를 밝혀야 쓸 수 있어서, 곡 목록에서 곡을 고르면 화면 아래에 출처 문구가 나온다.
-
-2026-10-04에 지루한 곡 5개(Test Beat 128, Hyperfun, Rhinoceros, Pixel Peeker Polka - faster, Disco con Tutti)를 뺐다. 채보를 재 보니 같은 간격이 44~82번 이어지거나(마디가 거의 똑같이 반복) 곡 내내 음량 변화가 거의 없었다. 스윙 느낌이라 박자가 어긋나게 잡힌 후보 3곡(Dentaneosuchus Hunt, Jet Fueled Vixen, Mega Hyper Ultrastorm)은 넣지 않았다.
+2026-10-04에 지루한 곡 5개(Test Beat 128, Hyperfun, Rhinoceros, Pixel Peeker Polka - faster, Disco con Tutti)를 뺐다. 채보를 재 보니 같은 간격이 44~82번 이어지거나(마디가 거의 똑같이 반복) 곡 내내 음량 변화가 거의 없었다. 스윙 느낌이라 박자가 어긋나게 잡힌 후보 3곡(Dentaneosuchus Hunt, Jet Fueled Vixen, Mega Hyper Ultrastorm)은 넣지 않았다. 함께 넣었던 Sergio's Magic Dustbin(곡이 점점 빨라짐)과 surpass your limits!(노트 간격이 한 박과 반 박에 반씩 나뉨)는 크레파스가 한 박에 반 바퀴를 지키지 못해서(칸의 10%가 9~15% 넘게 어긋남) 다시 뺐다.
 
 ## 구조
 
@@ -191,7 +188,7 @@ Kevin MacLeod의 곡(Carnivale Intrigue, Cloud Dancer, Dubakupado, Freddy's Mena
 | `src/canvas.ts` | 색과 그리기 도우미 |
 | `src/render.ts` | 캔버스 크기 맞춤과 화면 선택 |
 | `src/title.ts` | 처음 화면의 글자와 시작 버튼. 제목 로고는 그 뒤의 캔버스에 `src/intro.ts`가 그린다 (글자로 된 이름은 이 파일의 `GAME_NAME`) |
-| `src/tutorial.ts` | 하는 법 화면 (누르는 순간을 보여 주는 그림과 큰 하늘 점, 보라 고리 설명) |
+| `src/tutorial.ts` | 하는 법 화면 (누르는 순간을 보여 주는 그림과 큰 분홍 점, 큰 하늘 점, 보라 고리 설명) |
 | `src/menu.ts` | 곡 목록 화면 (난이도 탭과 그 난이도의 곡들, 음량 막대) |
 | `src/main.ts` | 입력과 화면 전환 |
 

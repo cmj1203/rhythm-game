@@ -41,6 +41,16 @@
    "credit": "Music - \"Dubakupado\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "freddys-menagerie",
+   "title": "Freddy's Menagerie",
+   "bpm": 134.0,
+   "duration": 204.251,
+   "difficulty": "hard",
+   "notes": 835,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Freddy's Menagerie\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
    "id": "funkorama",
    "title": "Funkorama",
    "bpm": 101.0,
@@ -59,6 +69,16 @@
    "notes": 717,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Hyperfun\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "lagoa-v2",
+   "title": "Lagoa v2",
+   "bpm": 130.0,
+   "duration": 193.907,
+   "difficulty": "hard",
+   "notes": 778,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Lagoa v2\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "midnight-sun",
@@ -89,6 +109,16 @@
    "notes": 903,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Pixel Peeker Polka - faster\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "raving-energy-faster",
+   "title": "Raving Energy (faster)",
+   "bpm": 134.0,
+   "duration": 243.644,
+   "difficulty": "hard",
+   "notes": 1242,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Raving Energy (faster)\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "release",
@@ -129,6 +159,16 @@
    "notes": 419,
    "artist": "Josh Woodward",
    "credit": "Music - \"Swansong\" by Josh Woodward. Free download: https://www.joshwoodward.com/"
+  },
+  {
+   "id": "tafi-maradi-no-voice",
+   "title": "Tafi Maradi no voice",
+   "bpm": 133.0,
+   "duration": 158.856,
+   "difficulty": "hard",
+   "notes": 562,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Tafi Maradi no voice\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "test-beat",

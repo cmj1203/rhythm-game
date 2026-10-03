@@ -417,10 +417,6 @@ body {
   border-radius: 50%;
 }
 
-.mark-fast {
-  background: var(--pink);
-}
-
 .mark-slow {
   background: var(--sky);
 }

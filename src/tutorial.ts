@@ -6,8 +6,7 @@ export type TutorialOptions = {
 };
 
 const MARKS = [
-  { kind: "fast", name: "분홍 점", meaning: "이 칸에서 크레파스가 빨리 돕니다" },
-  { kind: "slow", name: "하늘 점", meaning: "이 칸에서 크레파스가 천천히 돕니다" },
+  { kind: "slow", name: "하늘 점", meaning: "오래 기다리는 칸입니다. 크레파스가 천천히 돕니다" },
   { kind: "twirl", name: "보라 고리", meaning: "이 칸에서 크레파스가 도는 방향이 바뀝니다" },
 ] as const;
 

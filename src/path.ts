@@ -2,7 +2,7 @@ import type { Point } from "./canvas";
 import type { Route } from "./drawing";
 import { type Course, GUIDE_STEP, type Guide, layCourse, layGuide } from "./guide";
 
-export type Pace = "normal" | "slow" | "fast";
+export type Pace = "normal" | "slow";
 
 /** A stepping stone, in units of the distance between neighbours. `time` is when the ball must land on it. */
 export type Tile = { readonly x: number; readonly y: number; readonly time: number };
@@ -10,6 +10,10 @@ export type Tile = { readonly x: number; readonly y: number; readonly time: numb
 /**
  * How the orbiting ball travels around tile i on its way to tile i + 1.
  * Angles are radians in screen space, positive = clockwise. `angle` is signed by rotation direction.
+ * The ball turns half a circle a beat whichever way the road bends, so its turning keeps time with the music.
+ * It ends each sweep on tile i + 1, and so begins it wherever half a circle a beat puts it: near the tile it
+ * came from, but not on it where the road bends. Only a wait of more than `MAX_UNITS_PER_SWEEP` beats is
+ * turned through at half that speed or less; that sweep is "slow".
  */
 export type Sweep = {
   readonly startAngle: number;
@@ -47,8 +51,6 @@ const MAX_CORNER_ANGLE = TAU - Math.PI / 3;
 const OVERLAP_DISTANCE = 0.95;
 /** Only the last few tiles are kept clear of each other; a drawing is free to cross its own earlier lines. */
 const OVERLAP_LOOKBACK = 10;
-const SLOW_BELOW = 0.8;
-const FAST_ABOVE = 1.25;
 const MIN_WEIGHT = 0.6;
 const MAX_WEIGHT = 1.8;
 
@@ -93,12 +95,6 @@ function straightInterval(times: readonly number[]): number {
   if (median === undefined) return FALLBACK_UNIT_S;
   const doubles = gaps.filter((gap) => Math.abs(gap / median - 2) < 0.25).length;
   return doubles / gaps.length >= COMMON_SHARE ? median * 2 : median;
-}
-
-function paceOf(angle: number, units: number): Pace {
-  const relativeSpeed = angle / Math.PI / units;
-  if (relativeSpeed < SLOW_BELOW) return "slow";
-  return relativeSpeed > FAST_ABOVE ? "fast" : "normal";
 }
 
 /** A road laid along one guide. `shortfall` is how much of the guide was left over; negative = tiles left over. */
@@ -187,7 +183,6 @@ function lay(times: readonly number[], unit: number, guide: Guide, course: Cours
     const rhythmAngle = (Math.PI * units) / divisor;
 
     let nextHeading = heading;
-    let angle = rhythmAngle;
     let isTwirl = false;
     if (Math.abs(rhythmAngle - Math.PI) < EPSILON) {
       // A straight step may bend at most a right angle toward the target, so corners never fold back sharply.
@@ -202,10 +197,7 @@ function lay(times: readonly number[], unit: number, guide: Guide, course: Cours
             positive(direction * (candidate - Math.PI)) <= MAX_CORNER_ANGLE &&
             !isCrowded(spotAt(heading + candidate))),
       );
-      if (usable !== undefined && Math.abs(usable) >= EPSILON) {
-        nextHeading = heading + usable;
-        angle = positive(direction * (usable - Math.PI));
-      }
+      if (usable !== undefined && Math.abs(usable) >= EPSILON) nextHeading = heading + usable;
     } else {
       const options = [direction, -direction].map((spin) => {
         const toward = heading + Math.PI + spin * rhythmAngle;
@@ -219,11 +211,11 @@ function lay(times: readonly number[], unit: number, guide: Guide, course: Cours
     }
 
     sweeps.push({
-      startAngle: heading + Math.PI,
-      angle: direction * angle,
+      startAngle: nextHeading - direction * rhythmAngle,
+      angle: direction * rhythmAngle,
       startTime: from,
       endTime: to,
-      pace: paceOf(angle, units),
+      pace: divisor > 1 ? "slow" : "normal",
       isTwirl,
     });
     heading = nextHeading;

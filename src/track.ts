@@ -66,7 +66,7 @@ const CRAYON_LAG = Math.atan(TIP_AHEAD) + Math.acos((TIP_REACH ** 2 + 1 - TARGET
 const GLOW_OPACITY = ["1a", "2b", "3d", "52"] as const;
 const GLOW_REACH = 2.2;
 const GLOW_REACH_PER_TIER = 0.5;
-const PACE_COLOR = { normal: COLOR.text, slow: COLOR.sky, fast: COLOR.pink } as const satisfies Record<Pace, string>;
+const PACE_COLOR = { normal: COLOR.text, slow: COLOR.sky } as const satisfies Record<Pace, string>;
 
 /**
  * After the last note the camera pulls back until the whole embroidery fits where the result screen shows it.

@@ -46,6 +46,15 @@ const EPSILON = 0.01;
 const FALLBACK_UNIT_S = 0.5;
 const COMMON_SHARE = 0.25;
 const MAX_UNITS_PER_SWEEP = 1.5;
+/** Steps of the usual length head in one of the eight compass directions, as on a board game. */
+const COMPASS_STEP = Math.PI / 4;
+/** How many steps in a row may go straight on before the road has to turn a corner. */
+const MAX_STRAIGHT_STEPS = 2;
+/**
+ * Turning the other way round is hard to read, so the road only does it when that heads this much (radians)
+ * nearer the picture, or keeps it off the last few tiles.
+ */
+const TWIRL_COST = Math.PI / 4;
 const MIN_CORNER_ANGLE = Math.PI / 3;
 const MAX_CORNER_ANGLE = TAU - Math.PI / 3;
 const OVERLAP_DISTANCE = 0.95;
@@ -77,6 +86,9 @@ const FIT_ROUNDS = 24;
 const FIT_STRIDE = 0.8;
 /** A picture left unfinished shows more than a few last notes that have nothing left to sew. */
 const UNSEWN_PENALTY = 2;
+/** The camera follows the road as it runs this many seconds to either side of the moment, sampled this often. */
+const CAMERA_REACH_S = 0.6;
+const CAMERA_SAMPLES = 4;
 
 function wrap(angle: number): number {
   const turned = ((angle + Math.PI) % TAU + TAU) % TAU;
@@ -121,7 +133,9 @@ function lay(times: readonly number[], unit: number, guide: Guide, course: Cours
 
   const start = courseAt(0);
   const startAim = courseAt(LOOKAHEAD_POINTS);
-  let heading = Math.atan2(startAim.y - start.y, startAim.x - start.x);
+  let heading =
+    Math.round(Math.atan2(startAim.y - start.y, startAim.x - start.x) / COMPASS_STEP) * COMPASS_STEP;
+  let straightSteps = 0;
   let direction = 1;
   let nearest = 0;
   let finishedAt: number | null = null;
@@ -185,23 +199,36 @@ function lay(times: readonly number[], unit: number, guide: Guide, course: Cours
     let nextHeading = heading;
     let isTwirl = false;
     if (Math.abs(rhythmAngle - Math.PI) < EPSILON) {
-      // A straight step may bend at most a right angle toward the target, so corners never fold back sharply.
-      // If going straight would land on the last few tiles, sidestepping a right angle is tried as well.
-      let turn = wrap(target - heading);
-      if (Math.abs(turn) > Math.PI / 2 + EPSILON) turn = Math.sign(turn) * (Math.PI / 2);
-      const turns = isCrowded(spotAt(heading)) ? [turn, Math.PI / 2, -Math.PI / 2] : [turn];
-      const usable = turns.find(
-        (candidate) =>
-          Math.abs(candidate) < EPSILON ||
-          (positive(direction * (candidate - Math.PI)) >= MIN_CORNER_ANGLE &&
-            positive(direction * (candidate - Math.PI)) <= MAX_CORNER_ANGLE &&
-            !isCrowded(spotAt(heading + candidate))),
-      );
-      if (usable !== undefined && Math.abs(usable) >= EPSILON) nextHeading = heading + usable;
+      // A step of the usual length heads in one of the eight compass directions, at most a right angle off the
+      // last, so the road bends in crisp corners of 45 or 90 degrees, never folding back sharply. It takes the
+      // direction nearest the target, but after `MAX_STRAIGHT_STEPS` straight on it has to turn, and it keeps
+      // off the last few tiles.
+      const nearestCompass = Math.round(heading / COMPASS_STEP) * COMPASS_STEP;
+      const options = [-2, -1, 0, 1, 2]
+        .map((k) => nearestCompass + k * COMPASS_STEP)
+        .filter((toward) => {
+          const turn = wrap(toward - heading);
+          const sweep = positive(direction * (turn - Math.PI));
+          return (
+            Math.abs(turn) < EPSILON ||
+            (Math.abs(turn) <= Math.PI / 2 + EPSILON && sweep >= MIN_CORNER_ANGLE && sweep <= MAX_CORNER_ANGLE)
+          );
+        })
+        .map((toward) => {
+          const isStraight = Math.abs(wrap(toward - heading)) < EPSILON;
+          const cost =
+            Math.abs(wrap(toward - target)) +
+            (isStraight && straightSteps >= MAX_STRAIGHT_STEPS ? Math.PI : 0) +
+            (isCrowded(spotAt(toward)) ? 10 : 0);
+          return { toward, cost };
+        });
+      const best = options.reduce((a, b) => (b.cost < a.cost ? b : a), { toward: heading, cost: Number.POSITIVE_INFINITY });
+      nextHeading = best.toward;
     } else {
       const options = [direction, -direction].map((spin) => {
         const toward = heading + Math.PI + spin * rhythmAngle;
-        const cost = (isCrowded(spotAt(toward)) ? 10 : 0) + Math.abs(wrap(toward - target));
+        const cost =
+          (isCrowded(spotAt(toward)) ? 10 : 0) + Math.abs(wrap(toward - target)) + (spin === direction ? 0 : TWIRL_COST);
         return { spin, toward, cost };
       });
       const best = options.reduce((a, b) => (b.cost < a.cost ? b : a));
@@ -218,6 +245,7 @@ function lay(times: readonly number[], unit: number, guide: Guide, course: Cours
       pace: divisor > 1 ? "slow" : "normal",
       isTwirl,
     });
+    straightSteps = Math.abs(wrap(nextHeading - heading)) < EPSILON ? straightSteps + 1 : 0;
     heading = nextHeading;
     tiles.push({ ...spotAt(heading), time: to });
   }
@@ -282,8 +310,8 @@ export function orbiterAngle(sweep: Sweep, time: number): number {
   return sweep.startAngle + (sweep.angle * (time - sweep.startTime)) / (sweep.endTime - sweep.startTime);
 }
 
-/** The camera glides along the road at the pace of the music, independent of what the player presses. */
-export function cameraAt({ tiles }: Path, time: number): Point {
+/** Where along the road the music has got to at `time`, moving straight from tile to tile. */
+function roadAt(tiles: readonly Tile[], time: number): Point {
   let low = 0;
   let high = tiles.length - 1;
   while (low < high) {
@@ -297,4 +325,23 @@ export function cameraAt({ tiles }: Path, time: number): Point {
   if (to === undefined) return from;
   const progress = Math.min(1, Math.max(0, (time - from.time) / (to.time - from.time)));
   return { x: from.x + (to.x - from.x) * progress, y: from.y + (to.y - from.y) * progress };
+}
+
+/**
+ * The camera glides along the road at the pace of the music, independent of what the player presses. It looks
+ * at the road around `time` rather than at `time` alone, the moments nearest weighing most, so it sweeps through
+ * the corners in one smooth curve instead of jerking at every tile.
+ */
+export function cameraAt({ tiles }: Path, time: number): Point {
+  let x = 0;
+  let y = 0;
+  let total = 0;
+  for (let k = -CAMERA_SAMPLES; k <= CAMERA_SAMPLES; k++) {
+    const weight = CAMERA_SAMPLES + 1 - Math.abs(k);
+    const point = roadAt(tiles, time + (CAMERA_REACH_S * k) / CAMERA_SAMPLES);
+    x += point.x * weight;
+    y += point.y * weight;
+    total += weight;
+  }
+  return { x: x / total, y: y / total };
 }

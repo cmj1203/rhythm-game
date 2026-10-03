@@ -10,18 +10,17 @@ import type { Path } from "./path";
 export type Pose = { readonly zoom: number; readonly tilt: number; readonly slide: number };
 
 /** How the camera moves from the start of a section to its end: see `poseIn`. */
-type Move = "push" | "pull" | "roll" | "slide" | "sway";
+type Move = "push" | "pull" | "roll" | "slide";
 
 /**
  * A few bars of the song that are sewn in one thread and watched in one camera move, so the road does not
  * look the same from the first note to the last. The section begins with note `fromNote`, at `startTime`, and
- * lasts until `endTime`. `zoom` and `tilt` are the pose its move is made around; a beat of it is `beatS` long.
+ * lasts until `endTime`. `zoom` and `tilt` are the pose its move is made around.
  */
 export type Section = {
   readonly fromNote: number;
   readonly startTime: number;
   readonly endTime: number;
-  readonly beatS: number;
   readonly thread: string;
   readonly zoom: number;
   readonly tilt: number;
@@ -43,14 +42,16 @@ const ZOOM_STEPS = [1, 1.1, 0.93] as const;
 const ZOOM_PER_LIFT = 0.12;
 const MIN_TILT = (5 * Math.PI) / 180;
 const MAX_TILT = (12 * Math.PI) / 180;
-/** The moves that sections of usual business take in turn. A busier one sways instead; a quieter one pulls away. */
-const MOVES = ["push", "sway", "slide", "pull", "roll"] as const satisfies readonly Move[];
+/**
+ * The moves that sections of usual business take in turn. A busier one pushes in instead; a quieter one pulls
+ * away. Every move is one slow glide through the whole section: nothing swings back and forth.
+ */
+const MOVES = ["push", "slide", "pull", "roll"] as const satisfies readonly Move[];
 const BUSY_FROM = 0.3;
 const QUIET_BELOW = -0.3;
 /** A push or a pull changes the distance by this share to either side of the section's own. */
 const DOLLY = 0.15;
 const SLIDE = 0.14;
-const SWAY_BEATS = 8;
 const POSE_BLEND_S = 1.6;
 /** Before the song the camera stands this far back; it has come in this long before the song begins. */
 const OPENING_ZOOM = 0.62;
@@ -83,7 +84,6 @@ export function planSections(times: readonly number[], bpm: number, offset: numb
     const section = {
       ...start,
       endTime: starts[k + 1]?.startTime ?? lastTime,
-      beatS,
       thread: THREADS[Math.floor(k / SECTIONS_PER_THREAD) % THREADS.length] ?? COLOR.thread,
     };
     if (k === 0) return { ...section, zoom: 1, tilt: 0, move: "push" };
@@ -93,7 +93,7 @@ export function planSections(times: readonly number[], bpm: number, offset: numb
       ...section,
       zoom: (ZOOM_STEPS[k % ZOOM_STEPS.length] ?? 1) * (1 + ZOOM_PER_LIFT * lift),
       tilt: side * (MIN_TILT + ((MAX_TILT - MIN_TILT) * (lift + 1)) / 2),
-      move: lift > BUSY_FROM ? "sway" : lift < QUIET_BELOW ? "pull" : usualMove,
+      move: lift > BUSY_FROM ? "push" : lift < QUIET_BELOW ? "pull" : usualMove,
     };
   });
 }
@@ -121,8 +121,6 @@ function poseIn(section: Section, songTime: number): Pose {
       return { zoom, tilt: tilt * along, slide: 0 };
     case "slide":
       return { zoom, tilt, slide: Math.sign(tilt) * SLIDE * along };
-    case "sway":
-      return { zoom, tilt: tilt * Math.cos((2 * Math.PI * played) / (SWAY_BEATS * section.beatS)), slide: 0 };
     default:
       return assertNever(section.move);
   }

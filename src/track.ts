@@ -31,6 +31,10 @@ export type PlayingFrame = {
 };
 
 export const BURST_S = 0.45;
+/** How far apart tiles are on the screen at the usual camera distance: this share of its shorter side, within limits. */
+const TILE_SHARE = 0.11;
+const MIN_TILE_PX = 48;
+const MAX_TILE_PX = 96;
 /** The road ahead is shown this many tiles far, fading out toward the end. */
 const TILES_AHEAD = 20;
 /** How clearly the stitches already sewn show while the song plays, so that the road ahead stands out. */
@@ -40,9 +44,8 @@ const EARLY_LATE_MIN_MS = 15;
 const FINALE_DELAY_S = 1;
 const FINALE_S = 2.5;
 const SPARKLES_BY_JUDGEMENT = { perfect: 8, great: 6, good: 4, miss: 0 } as const;
-/** A hit makes the screen jump a little closer and the combo number swell; both settle within this time. */
+/** A hit makes the combo number swell and the glow widen; both settle within this time. The camera keeps still. */
 const PULSE_S = 0.16;
-const PULSE_ZOOM = 0.03;
 const PULSE_COMBO = 0.22;
 /** The longer the combo, the bigger the hit effects. A combo reaches a new tier at each of these counts. */
 const COMBO_TIERS = [10, 30, 60] as const;
@@ -67,6 +70,16 @@ const GLOW_OPACITY = ["1a", "2b", "3d", "52"] as const;
 const GLOW_REACH = 2.2;
 const GLOW_REACH_PER_TIER = 0.5;
 const PACE_COLOR = { normal: COLOR.text, slow: COLOR.sky } as const satisfies Record<Pace, string>;
+/** The dot on each tile ahead, in tiles. A tile the crayon leaves slowly gets a disc large enough to stand out. */
+const DOT_RADIUS = { normal: 0.11, slow: 0.2 } as const satisfies Record<Pace, number>;
+/**
+ * Where the crayon changes its way round, a violet arrow circles the tile the way it turns from there: this
+ * radius and stroke width in tiles, open for the last sixth of the circle, where the arrowhead sits.
+ */
+const TWIRL_RADIUS = 0.4;
+const TWIRL_WIDTH = 0.07;
+const TWIRL_ARC = (5 * Math.PI) / 3;
+const TWIRL_HEAD = 0.13;
 
 /**
  * After the last note the camera pulls back until the whole embroidery fits where the result screen shows it.
@@ -91,9 +104,9 @@ function comboTier(combo: number): number {
 function followView({ width, height }: Size, frame: PlayingFrame): View {
   const pose = poseAt(frame.sections, frame.songTime);
   const shorter = Math.min(width, height);
-  const tileSize = Math.min(72, Math.max(36, shorter * 0.085));
+  const tileSize = Math.min(MAX_TILE_PX, Math.max(MIN_TILE_PX, shorter * TILE_SHARE));
   return {
-    tileSize: tileSize * pose.zoom * (1 + PULSE_ZOOM * hitPulse(frame)),
+    tileSize: tileSize * pose.zoom,
     camera: cameraAt(frame.path, frame.songTime),
     anchor: { x: width / 2 + pose.slide * shorter, y: height * 0.52 },
     angle: pose.tilt,
@@ -113,6 +126,36 @@ function nearness(steps: number): number {
   return Math.max(0, 1 - (steps / TILES_AHEAD) ** 2);
 }
 
+/**
+ * A violet arrow round `center`, beginning at screen angle `from` and pointing the way the crayon turns from
+ * there (`spin` 1 is clockwise on the screen).
+ */
+function drawTwirl(painter: Painter, center: Point, from: number, spin: number, tileSize: number): void {
+  const { ctx } = painter;
+  const radius = tileSize * TWIRL_RADIUS;
+  const end = from + spin * TWIRL_ARC;
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(center.x, center.y, radius, from, end, spin < 0);
+  ctx.strokeStyle = COLOR.violet;
+  ctx.lineWidth = Math.max(2.5, tileSize * TWIRL_WIDTH);
+  ctx.lineCap = "round";
+  ctx.stroke();
+
+  const head = tileSize * TWIRL_HEAD;
+  const out = { x: Math.cos(end), y: Math.sin(end) };
+  const along = { x: -out.y * spin, y: out.x * spin };
+  const at = { x: center.x + out.x * radius, y: center.y + out.y * radius };
+  ctx.beginPath();
+  ctx.moveTo(at.x + along.x * head * 1.2, at.y + along.y * head * 1.2);
+  ctx.lineTo(at.x + out.x * head, at.y + out.y * head);
+  ctx.lineTo(at.x - out.x * head, at.y - out.y * head);
+  ctx.closePath();
+  ctx.fillStyle = COLOR.violet;
+  ctx.fill();
+  ctx.restore();
+}
+
 /** The road still to sew, with the rhythm markers on its tiles and a ring on the tile to hit next. */
 function drawAhead(painter: Painter, { path, play }: PlayingFrame, view: View): void {
   const { ctx } = painter;
@@ -127,15 +170,10 @@ function drawAhead(painter: Painter, { path, play }: PlayingFrame, view: View): 
     if (tile === undefined || sweep === undefined) continue;
     const center = toScreen(view, tile);
     ctx.globalAlpha = opacity * nearness(i - standing);
-    painter.circle(center, view.tileSize * 0.11);
-    ctx.fillStyle = PACE_COLOR[sweep.pace];
+    painter.circle(center, view.tileSize * DOT_RADIUS[sweep.pace]);
+    ctx.fillStyle = sweep.pace === "normal" && sweep.isTwirl ? COLOR.violet : PACE_COLOR[sweep.pace];
     ctx.fill();
-    if (sweep.isTwirl) {
-      painter.circle(center, view.tileSize * 0.19);
-      ctx.strokeStyle = COLOR.violet;
-      ctx.lineWidth = 2;
-      ctx.stroke();
-    }
+    if (sweep.isTwirl) drawTwirl(painter, center, sweep.startAngle + view.angle, Math.sign(sweep.angle), view.tileSize);
   }
   ctx.globalAlpha = opacity;
 
@@ -174,9 +212,11 @@ function drawCircling(painter: Painter, frame: PlayingFrame, view: View): void {
   ctx.fillStyle = glow;
   ctx.fillRect(center.x - reach, center.y - reach, reach * 2, reach * 2);
 
+  // While the crayon turns slowly, its circle is drawn in the colour of the slow tile it set out from.
+  const isSlow = sweep.pace === "slow";
   painter.circle(center, size);
-  ctx.strokeStyle = COLOR.separator;
-  ctx.lineWidth = 1;
+  ctx.strokeStyle = isSlow ? COLOR.sky : COLOR.separator;
+  ctx.lineWidth = isSlow ? 2 : 1;
   ctx.stroke();
 
   painter.circle(center, size * 0.08);

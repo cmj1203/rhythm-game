@@ -21,14 +21,14 @@
    "credit": "Music - \"Circles\" by Josh Woodward. Free download: https://www.joshwoodward.com/"
   },
   {
-   "id": "disco-con-tutti",
-   "title": "Disco con Tutti",
-   "bpm": 115.0,
-   "duration": 236.352,
+   "id": "cloud-dancer",
+   "title": "Cloud Dancer",
+   "bpm": 107.0,
+   "duration": 219.873,
    "difficulty": "normal",
-   "notes": 684,
+   "notes": 535,
    "artist": "Kevin MacLeod",
-   "credit": "Music - \"Disco con Tutti\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+   "credit": "Music - \"Cloud Dancer\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "dubakupado",
@@ -61,16 +61,6 @@
    "credit": "Music - \"Funkorama\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
-   "id": "hyperfun",
-   "title": "Hyperfun",
-   "bpm": 100.0,
-   "duration": 233.326,
-   "difficulty": "normal",
-   "notes": 717,
-   "artist": "Kevin MacLeod",
-   "credit": "Music - \"Hyperfun\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
    "id": "lagoa-v2",
    "title": "Lagoa v2",
    "bpm": 130.0,
@@ -101,16 +91,6 @@
    "credit": "Music - \"No Frills Comparsa\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
-   "id": "pixel-peeker-polka",
-   "title": "Pixel Peeker Polka - faster",
-   "bpm": 145.16,
-   "duration": 202.005,
-   "difficulty": "hard",
-   "notes": 903,
-   "artist": "Kevin MacLeod",
-   "credit": "Music - \"Pixel Peeker Polka - faster\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
    "id": "raving-energy-faster",
    "title": "Raving Energy (faster)",
    "bpm": 134.0,
@@ -131,14 +111,14 @@
    "credit": "Music - \"Release\" by Josh Woodward. Free download: https://www.joshwoodward.com/"
   },
   {
-   "id": "rhinoceros",
-   "title": "Rhinoceros",
-   "bpm": 126.0,
-   "duration": 203.886,
-   "difficulty": "hard",
-   "notes": 756,
+   "id": "sergios-magic-dustbin",
+   "title": "Sergio's Magic Dustbin",
+   "bpm": 93.1,
+   "duration": 151.458,
+   "difficulty": "easy",
+   "notes": 278,
    "artist": "Kevin MacLeod",
-   "credit": "Music - \"Rhinoceros\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+   "credit": "Music - \"Sergio's Magic Dustbin\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "sunday-dub",
@@ -149,6 +129,16 @@
    "notes": 400,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Sunday Dub\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "surpass-your-limits",
+   "title": "surpass your limits!",
+   "bpm": 99.74,
+   "duration": 165.744,
+   "difficulty": "easy",
+   "notes": 379,
+   "artist": "Preston Peak",
+   "credit": "\"surpass your limits!\" by Preston Peak (https://opengameart.org/content/free-action-chiptune-music-pack), licensed under CC BY 4.0 https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "swansong",
@@ -171,12 +161,24 @@
    "credit": "Music - \"Tafi Maradi no voice\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
-   "id": "test-beat",
-   "title": "Test Beat 128",
-   "bpm": 127.99,
-   "duration": 40.0,
-   "difficulty": "easy",
-   "notes": 85
+   "id": "unholy-knight",
+   "title": "Unholy Knight",
+   "bpm": 139.9,
+   "duration": 154.358,
+   "difficulty": "hard",
+   "notes": 520,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Unholy Knight\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "voxel-revolution",
+   "title": "Voxel Revolution",
+   "bpm": 122.13,
+   "duration": 129.907,
+   "difficulty": "normal",
+   "notes": 427,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Voxel Revolution\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   }
  ]
 }

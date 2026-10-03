@@ -1,6 +1,16 @@
 {
  "songs": [
   {
+   "id": "carnivale-intrigue",
+   "title": "Carnivale Intrigue",
+   "bpm": 94.99,
+   "duration": 199.654,
+   "difficulty": "easy",
+   "notes": 337,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Carnivale Intrigue\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
    "id": "circles",
    "title": "Circles",
    "bpm": 93.0,
@@ -19,6 +29,16 @@
    "notes": 684,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Disco con Tutti\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "dubakupado",
+   "title": "Dubakupado",
+   "bpm": 115.0,
+   "duration": 212.924,
+   "difficulty": "normal",
+   "notes": 591,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Dubakupado\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "funkorama",
@@ -51,6 +71,16 @@
    "credit": "Music - \"Midnight Sun\" by Josh Woodward. Free download: https://www.joshwoodward.com/"
   },
   {
+   "id": "no-frills-comparsa",
+   "title": "No Frills Comparsa",
+   "bpm": 115.0,
+   "duration": 159.713,
+   "difficulty": "normal",
+   "notes": 420,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"No Frills Comparsa\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
    "id": "pixel-peeker-polka",
    "title": "Pixel Peeker Polka - faster",
    "bpm": 145.16,
@@ -79,6 +109,16 @@
    "notes": 756,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Rhinoceros\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "sunday-dub",
+   "title": "Sunday Dub",
+   "bpm": 102.0,
+   "duration": 209.476,
+   "difficulty": "easy",
+   "notes": 401,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Sunday Dub\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "swansong",

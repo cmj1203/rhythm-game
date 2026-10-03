@@ -4,7 +4,7 @@ import { type Difficulty, loadSong, loadSongIndex, SongLoadError, type SongSumma
 import { DrawingLoadError } from "./drawing";
 import { loadIntro } from "./intro";
 import { PlayState } from "./judge";
-import { type MenuChoice, SongMenu } from "./menu";
+import { SongMenu } from "./menu";
 import type { Path } from "./path";
 import { sewingFor } from "./pictures";
 import { type Frame, Renderer } from "./render";
@@ -74,7 +74,7 @@ async function boot(): Promise<void> {
   });
   let screen: Screen = { kind: "title" };
 
-  const begin = async ({ song, difficulty }: MenuChoice): Promise<void> => {
+  const begin = async (song: SongSummary): Promise<void> => {
     if (screen.kind !== "menu") return;
     screen = { kind: "loading" };
     menu.setStatus("불러오는 중...");
@@ -83,19 +83,19 @@ async function boot(): Promise<void> {
       const { chart, audio } = await loadSong(song.id);
       const buffer = await player.decode(audio);
       await unlocked;
-      const times = chart.charts[difficulty];
+      const times = chart.notes;
       const { pictureName, path } = await sewingFor(
         times,
         songs.findIndex(({ id }) => id === song.id),
         songs.length,
-        difficulty,
+        song.difficulty,
       );
       const sections = planSections(times, chart.bpm, chart.offset);
       menu.hide();
       screen = {
         kind: "ready",
         song,
-        difficulty,
+        difficulty: song.difficulty,
         pictureName,
         sections,
         play: new PlayState(times),
@@ -117,8 +117,8 @@ async function boot(): Promise<void> {
   const menu = new SongMenu({
     root: requireElement<HTMLElement>("#menu"),
     songs,
-    initialSongId: new URLSearchParams(window.location.search).get("song"),
-    onStart: (choice) => void begin(choice),
+    initialSongId: query.get("song"),
+    onStart: (song) => void begin(song),
   });
 
   const tutorial = new TutorialScreen({

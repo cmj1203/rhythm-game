@@ -7,7 +7,7 @@ const songIdSchema = z.string().regex(/^[a-z0-9-]+$/);
 const noteTimes = z.array(z.number().nonnegative());
 
 const chartSchema = z.object({
-  version: z.literal(3),
+  version: z.literal(4),
   title: z.string(),
   audio: z.string(),
   artist: z.string().optional(),
@@ -15,9 +15,10 @@ const chartSchema = z.object({
   bpm: z.number().positive(),
   offset: z.number(),
   duration: z.number().positive(),
-  /** Times of a few sharp attacks, for `decodingShift` to find again. A chart made before they existed has none. */
-  anchors: noteTimes.default([]),
-  charts: z.object({ easy: noteTimes, normal: noteTimes, hard: noteTimes }),
+  /** Times of a few sharp attacks, for `decodingShift` to find again. */
+  anchors: noteTimes,
+  difficulty: z.enum(DIFFICULTIES),
+  notes: noteTimes,
 });
 
 const noteCount = z.number().int().nonnegative();
@@ -28,7 +29,8 @@ const songSummarySchema = z.object({
   credit: z.string().optional(),
   bpm: z.number().positive(),
   duration: z.number().positive(),
-  notes: z.object({ easy: noteCount, normal: noteCount, hard: noteCount }),
+  difficulty: z.enum(DIFFICULTIES),
+  notes: noteCount,
 });
 const songIndexSchema = z.object({ songs: z.array(songSummarySchema) });
 

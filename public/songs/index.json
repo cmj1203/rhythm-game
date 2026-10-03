@@ -5,11 +5,8 @@
    "title": "Circles",
    "bpm": 93.0,
    "duration": 202.206,
-   "notes": {
-    "easy": 285,
-    "normal": 394,
-    "hard": 589
-   },
+   "difficulty": "easy",
+   "notes": 285,
    "artist": "Josh Woodward",
    "credit": "Music - \"Circles\" by Josh Woodward. Free download: https://www.joshwoodward.com/"
   },
@@ -18,11 +15,8 @@
    "title": "Disco con Tutti",
    "bpm": 115.0,
    "duration": 236.352,
-   "notes": {
-    "easy": 450,
-    "normal": 595,
-    "hard": 877
-   },
+   "difficulty": "normal",
+   "notes": 595,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Disco con Tutti\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -31,11 +25,8 @@
    "title": "Funkorama",
    "bpm": 101.0,
    "duration": 201.456,
-   "notes": {
-    "easy": 288,
-    "normal": 450,
-    "hard": 606
-   },
+   "difficulty": "easy",
+   "notes": 288,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Funkorama\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -44,11 +35,8 @@
    "title": "Hyperfun",
    "bpm": 100.0,
    "duration": 233.326,
-   "notes": {
-    "easy": 383,
-    "normal": 692,
-    "hard": 767
-   },
+   "difficulty": "normal",
+   "notes": 692,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Hyperfun\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -57,11 +45,8 @@
    "title": "Midnight Sun",
    "bpm": 114.99,
    "duration": 214.053,
-   "notes": {
-    "easy": 386,
-    "normal": 496,
-    "hard": 722
-   },
+   "difficulty": "normal",
+   "notes": 496,
    "artist": "Josh Woodward",
    "credit": "Music - \"Midnight Sun\" by Josh Woodward. Free download: https://www.joshwoodward.com/"
   },
@@ -70,11 +55,8 @@
    "title": "Pixel Peeker Polka - faster",
    "bpm": 145.16,
    "duration": 202.005,
-   "notes": {
-    "easy": 495,
-    "normal": 692,
-    "hard": 970
-   },
+   "difficulty": "hard",
+   "notes": 970,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Pixel Peeker Polka - faster\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -83,11 +65,8 @@
    "title": "Release",
    "bpm": 156.0,
    "duration": 230.528,
-   "notes": {
-    "easy": 574,
-    "normal": 653,
-    "hard": 821
-   },
+   "difficulty": "hard",
+   "notes": 821,
    "artist": "Josh Woodward",
    "credit": "Music - \"Release\" by Josh Woodward. Free download: https://www.joshwoodward.com/"
   },
@@ -96,11 +75,8 @@
    "title": "Rhinoceros",
    "bpm": 126.0,
    "duration": 203.886,
-   "notes": {
-    "easy": 411,
-    "normal": 599,
-    "hard": 817
-   },
+   "difficulty": "hard",
+   "notes": 817,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Rhinoceros\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -109,11 +85,8 @@
    "title": "Swansong",
    "bpm": 85.0,
    "duration": 261.507,
-   "notes": {
-    "easy": 323,
-    "normal": 562,
-    "hard": 751
-   },
+   "difficulty": "easy",
+   "notes": 323,
    "artist": "Josh Woodward",
    "credit": "Music - \"Swansong\" by Josh Woodward. Free download: https://www.joshwoodward.com/"
   },
@@ -122,11 +95,8 @@
    "title": "Test Beat 128",
    "bpm": 127.99,
    "duration": 40.0,
-   "notes": {
-    "easy": 82,
-    "normal": 92,
-    "hard": 164
-   },
+   "difficulty": "easy",
+   "notes": 82,
    "artist": "검증용 합성곡"
   }
  ]

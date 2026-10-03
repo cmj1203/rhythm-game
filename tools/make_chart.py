@@ -16,7 +16,8 @@
 #      curl -LsSf https://astral.sh/uv/install.sh | sh
 # 2. Run (writes chart.json next to the audio file):
 #      uv run tools/make_chart.py public/songs/<song-id>/song.mp3 --title "Song Title"
-#    Options: --artist "Name", --credit "attribution text the music license requires"
+#    Options: --artist "Name", --credit "attribution text the music license requires",
+#             --difficulty easy|normal|hard (without it the tempo decides)
 #    The first run downloads PyTorch and the beat-tracking model, which takes a few minutes.
 # ──────────────────
 
@@ -24,6 +25,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
+from enum import StrEnum
 from pathlib import Path
 from typing import Final
 
@@ -74,6 +76,17 @@ ANCHOR_LEVEL_S: Final = 0.005
 ANCHOR_MIN_SHARE: Final = 0.2
 
 
+# A song is charted at one difficulty. Unless one is asked for, its tempo decides: the faster the beat, the harder.
+EASY_BELOW_BPM: Final = 105
+HARD_FROM_BPM: Final = 125
+
+
+class Level(StrEnum):
+    EASY = "easy"
+    NORMAL = "normal"
+    HARD = "hard"
+
+
 @dataclass(frozen=True, slots=True)
 class Difficulty:
     """Minimum accent a grid step needs to become a note, by where it falls in the beat.
@@ -82,17 +95,22 @@ class Difficulty:
     only where the music accents them instead of filling every slot.
     """
 
-    name: str
     on_beat: float
     on_half_beat: float = NEVER
     off_beat: float = NEVER
 
 
-DIFFICULTIES: Final = (
-    Difficulty("easy", on_beat=0.25),
-    Difficulty("normal", on_beat=0.25, on_half_beat=0.8),
-    Difficulty("hard", on_beat=0.25, on_half_beat=0.3, off_beat=0.9),
-)
+DIFFICULTIES: Final = {
+    Level.EASY: Difficulty(on_beat=0.25),
+    Level.NORMAL: Difficulty(on_beat=0.25, on_half_beat=0.8),
+    Level.HARD: Difficulty(on_beat=0.25, on_half_beat=0.3, off_beat=0.9),
+}
+
+
+def level_for(bpm: float) -> Level:
+    if bpm < EASY_BELOW_BPM:
+        return Level.EASY
+    return Level.HARD if bpm >= HARD_FROM_BPM else Level.NORMAL
 
 
 @dataclass(frozen=True, slots=True)
@@ -286,7 +304,8 @@ def write_song_index(songs_dir: Path) -> Path:
                 "title": chart["title"],
                 "bpm": chart["bpm"],
                 "duration": chart["duration"],
-                "notes": {name: len(notes) for name, notes in chart["charts"].items()},
+                "difficulty": chart["difficulty"],
+                "notes": len(chart["notes"]),
                 **optional,
             }
         )
@@ -300,8 +319,9 @@ def main(
     title: str | None = None,
     artist: str | None = None,
     credit: str | None = None,
+    difficulty: Level | None = None,
 ) -> None:
-    """Analyze AUDIO, write chart.json (easy / normal / hard) next to it and refresh the song list."""
+    """Analyze AUDIO, write chart.json next to it and refresh the song list."""
     samples, _ = librosa.load(audio, sr=SAMPLE_RATE, mono=True)
     duration = len(samples) / SAMPLE_RATE
     percussive = librosa.effects.percussive(samples)
@@ -310,20 +330,19 @@ def main(
 
     step_frames = librosa.time_to_frames(grid.step_times, sr=SAMPLE_RATE, hop_length=HOP)
     accent = step_accents(envelope, step_frames)
-    charts = {
-        difficulty.name: [round(float(grid.step_times[step]), 4) for step in select_steps(accent, difficulty)]
-        for difficulty in DIFFICULTIES
-    }
+    level = difficulty or level_for(grid.bpm)
+    notes = [round(float(grid.step_times[step]), 4) for step in select_steps(accent, DIFFICULTIES[level])]
 
     chart = {
-        "version": 3,
+        "version": 4,
         "title": title or audio.parent.name,
         "audio": audio.name,
         "bpm": round(grid.bpm, 2),
         "offset": round(float(grid.step_times[0]), 4),
         "duration": round(duration, 3),
         "anchors": attack_anchors(samples),
-        "charts": charts,
+        "difficulty": level.value,
+        "notes": notes,
     }
     for key, value in (("artist", artist), ("credit", credit)):
         if value:
@@ -337,8 +356,7 @@ def main(
     table.add_column("difficulty")
     table.add_column("notes", justify="right")
     table.add_column("notes/sec", justify="right")
-    for name, notes in charts.items():
-        table.add_row(name, str(len(notes)), f"{len(notes) / duration:.2f}")
+    table.add_row(level.value, str(len(notes)), f"{len(notes) / duration:.2f}")
     console = Console()
     console.print(table)
     console.print(f"[green]wrote[/green] {out}")

@@ -122,6 +122,10 @@ body {
   cursor: pointer;
 }
 
+.song[hidden] {
+  display: none;
+}
+
 .song:hover {
   background: var(--wash);
 }

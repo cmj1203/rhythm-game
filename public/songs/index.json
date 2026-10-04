@@ -11,6 +11,16 @@
    "credit": "Music - \"Aerosol of my Love\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "blippy-trance",
+   "title": "Blippy Trance",
+   "bpm": 100.0,
+   "duration": 120.008,
+   "difficulty": "easy",
+   "notes": 202,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Blippy Trance\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
    "id": "carnivale-intrigue",
    "title": "Carnivale Intrigue",
    "bpm": 94.99,
@@ -121,6 +131,16 @@
    "credit": "Music - \"Groundwork\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "kumasi-groove",
+   "title": "Kumasi Groove",
+   "bpm": 110.0,
+   "duration": 222.604,
+   "difficulty": "normal",
+   "notes": 535,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Kumasi Groove\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
    "id": "lagoa-v2",
    "title": "Lagoa v2",
    "bpm": 130.0,
@@ -139,6 +159,16 @@
    "notes": 722,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Laserpack\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "level-11-high-risk-infiltration",
+   "title": "Level 11 : High risk infiltration",
+   "bpm": 140.0,
+   "duration": 124.429,
+   "difficulty": "hard",
+   "notes": 455,
+   "artist": "Komiku",
+   "credit": "\"Level 11 : High risk infiltration\" by Komiku (https://freemusicarchive.org/music/Komiku/ULTRA_PERSON_VOL4/Komiku_-_ULTRA_PERSON_VOL4_-_05_Level_11_-_High_risk_infiltration/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
   {
    "id": "midnight-sun",
@@ -169,6 +199,16 @@
    "notes": 418,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"No Frills Comparsa\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "protofunk",
+   "title": "Protofunk",
+   "bpm": 113.2,
+   "duration": 182.387,
+   "difficulty": "normal",
+   "notes": 636,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Protofunk\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "raving-energy-faster",
@@ -239,6 +279,16 @@
    "notes": 561,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Tafi Maradi no voice\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "the-adventure",
+   "title": "The adventure",
+   "bpm": 100.0,
+   "duration": 57.6,
+   "difficulty": "easy",
+   "notes": 127,
+   "artist": "Komiku",
+   "credit": "\"The adventure\" by Komiku (https://freemusicarchive.org/music/Komiku/Poupis_incredible_adventures_/Komiku_-_Poupis_incredible_adventures__-_22_The_adventure/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
   {
    "id": "unholy-knight",

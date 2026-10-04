@@ -96,6 +96,15 @@ export const PICTURES = [
   "taco",
   "chameleon",
   "ladybug",
+  "bison",
+  "sushi",
+  "moose",
+  "bat",
+  "cheetah",
+  "tteokbokki",
+  "axolotl",
+  "sloth",
+  "pelican",
   "lighthouse",
 ] as const;
 

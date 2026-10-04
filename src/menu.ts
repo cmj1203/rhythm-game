@@ -6,8 +6,11 @@ export type MenuOptions = {
   readonly songs: readonly SongSummary[];
   readonly initialSongId: string | null;
   readonly onStart: (song: SongSummary) => void;
-  /** The volume chosen so far, as a share of full volume, and what to do when the player changes it. */
-  readonly volume: number;
+  /**
+   * The volume chosen so far, as a share of full volume, and what to do when the player changes it. Null for no
+   * volume slider at all, as on a phone, which has its own volume buttons.
+   */
+  readonly volume: number | null;
   readonly onVolume: (share: number) => void;
 };
 
@@ -77,26 +80,12 @@ export class SongMenu {
     startButton.addEventListener("click", () => this.start());
     this.status.setAttribute("aria-live", "polite");
 
-    const volume = element("label", "volume");
-    const slider = element("input", "volume-slider");
-    slider.type = "range";
-    slider.min = "0";
-    slider.max = "100";
-    slider.step = "5";
-    slider.value = String(Math.round(options.volume * 100));
-    const percent = element("span", "volume-value", `${slider.value}%`);
-    slider.addEventListener("input", () => {
-      percent.textContent = `${slider.value}%`;
-      options.onVolume(Number(slider.value) / 100);
-    });
-    volume.append(element("span", "volume-name", "음량"), slider, percent);
-
     root.append(
       element("h1", "menu-title", "곡 선택"),
       tabs,
       songs.length === 0 ? element("p", "empty", "곡이 없습니다. README의 곡 추가 방법을 따라 넣어 주세요.") : list,
       startButton,
-      volume,
+      ...(options.volume === null ? [] : [this.volumeSlider(options.volume)]),
       this.status,
       this.credit,
     );
@@ -106,6 +95,24 @@ export class SongMenu {
   show(): void {
     this.options.root.hidden = false;
     this.setStatus("");
+  }
+
+  /** "음량", a slider from 0 to 100% starting at `share`, and the percentage it is at. */
+  private volumeSlider(share: number): HTMLLabelElement {
+    const volume = element("label", "volume");
+    const slider = element("input", "volume-slider");
+    slider.type = "range";
+    slider.min = "0";
+    slider.max = "100";
+    slider.step = "5";
+    slider.value = String(Math.round(share * 100));
+    const percent = element("span", "volume-value", `${slider.value}%`);
+    slider.addEventListener("input", () => {
+      percent.textContent = `${slider.value}%`;
+      this.options.onVolume(Number(slider.value) / 100);
+    });
+    volume.append(element("span", "volume-name", "음량"), slider, percent);
+    return volume;
   }
 
   hide(): void {

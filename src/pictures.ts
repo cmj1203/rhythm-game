@@ -86,6 +86,16 @@ export const PICTURES = [
   "polar-bear",
   "strawberry",
   "dumpling",
+  "wolf",
+  "toucan",
+  "gorilla",
+  "croissant",
+  "goat",
+  "snake",
+  "mouse",
+  "taco",
+  "chameleon",
+  "ladybug",
   "lighthouse",
 ] as const;
 

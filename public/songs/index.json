@@ -41,6 +41,26 @@
    "credit": "Music - \"Cloud Dancer\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "coffee",
+   "title": "Coffee",
+   "bpm": 96.67,
+   "duration": 174.483,
+   "difficulty": "easy",
+   "notes": 384,
+   "artist": "Josh Woodward",
+   "credit": "\"Coffee\" by Josh Woodward (https://www.joshwoodward.com/song/Coffee), licensed under CC BY 4.0 https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "covered-in-oil",
+   "title": "Covered In Oil",
+   "bpm": 123.85,
+   "duration": 255.493,
+   "difficulty": "normal",
+   "notes": 772,
+   "artist": "Broke For Free",
+   "credit": "\"Covered In Oil\" by Broke For Free (https://freemusicarchive.org/music/Broke_For_Free/Slam_Funk/Broke_For_Free_-_Slam_Funk_-_10_Covered_In_Oil), licensed under CC BY 3.0 https://creativecommons.org/licenses/by/3.0/"
+  },
+  {
    "id": "dubakupado",
    "title": "Dubakupado",
    "bpm": 115.0,
@@ -79,6 +99,26 @@
    "notes": 379,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Funkorama\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "getting-it-done",
+   "title": "Getting it Done",
+   "bpm": 135.0,
+   "duration": 209.842,
+   "difficulty": "hard",
+   "notes": 783,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Getting it Done\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "groundwork",
+   "title": "Groundwork",
+   "bpm": 102.0,
+   "duration": 169.482,
+   "difficulty": "easy",
+   "notes": 290,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Groundwork\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "lagoa-v2",

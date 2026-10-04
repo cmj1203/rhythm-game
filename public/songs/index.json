@@ -31,6 +31,16 @@
    "credit": "\"Ancient Heavy Tech Donjon\" by Komiku (https://freemusicarchive.org/music/Komiku/Its_time_for_adventure__vol_5/Komiku_-_Its_time_for_adventure_vol_5_-_01_Ancient_Heavy_Tech_Donjon/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
   {
+   "id": "aurea-carmina",
+   "title": "Aurea Carmina",
+   "bpm": 115.0,
+   "duration": 211.122,
+   "difficulty": "normal",
+   "notes": 569,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Aurea Carmina\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
    "id": "blippy-trance",
    "title": "Blippy Trance",
    "bpm": 100.0,
@@ -131,6 +141,16 @@
    "credit": "\"Covered In Oil\" by Broke For Free (https://freemusicarchive.org/music/Broke_For_Free/Slam_Funk/Broke_For_Free_-_Slam_Funk_-_10_Covered_In_Oil), licensed under CC BY 3.0 https://creativecommons.org/licenses/by/3.0/"
   },
   {
+   "id": "desert-of-lost-souls",
+   "title": "Desert of Lost Souls",
+   "bpm": 134.0,
+   "duration": 180.95,
+   "difficulty": "hard",
+   "notes": 703,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Desert of Lost Souls\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
    "id": "dubakupado",
    "title": "Dubakupado",
    "bpm": 115.0,
@@ -171,6 +191,16 @@
    "credit": "Music - \"Fearless First\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "flutey-funk",
+   "title": "Flutey Funk",
+   "bpm": 90.0,
+   "duration": 214.727,
+   "difficulty": "easy",
+   "notes": 281,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Flutey Funk\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
    "id": "freddys-menagerie",
    "title": "Freddy's Menagerie",
    "bpm": 134.0,
@@ -201,6 +231,16 @@
    "credit": "Music - \"Getting it Done\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "glitter-blast",
+   "title": "Glitter Blast",
+   "bpm": 100.0,
+   "duration": 177.816,
+   "difficulty": "easy",
+   "notes": 381,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Glitter Blast\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
    "id": "groundwork",
    "title": "Groundwork",
    "bpm": 102.0,
@@ -209,6 +249,16 @@
    "notes": 290,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Groundwork\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "jaunty-gumption",
+   "title": "Jaunty Gumption",
+   "bpm": 146.0,
+   "duration": 118.413,
+   "difficulty": "hard",
+   "notes": 550,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Jaunty Gumption\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "kicking-bullies",
@@ -321,6 +371,16 @@
    "credit": "Music - \"No Frills Comparsa\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "pookatori-and-friends",
+   "title": "Pookatori and Friends",
+   "bpm": 124.0,
+   "duration": 247.798,
+   "difficulty": "normal",
+   "notes": 815,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Pookatori and Friends\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
    "id": "protofunk",
    "title": "Protofunk",
    "bpm": 113.2,
@@ -409,6 +469,16 @@
    "notes": 561,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Tafi Maradi no voice\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "tech-live",
+   "title": "Tech Live",
+   "bpm": 124.0,
+   "duration": 228.441,
+   "difficulty": "normal",
+   "notes": 695,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Tech Live\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "the-adventure",

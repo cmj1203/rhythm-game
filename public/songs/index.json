@@ -381,6 +381,26 @@
    "credit": "\"Funky Pop\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/power-pop/funky-pop/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
   {
+   "id": "game-boi-1",
+   "title": "Game BOI 1",
+   "bpm": 90.0,
+   "duration": 165.937,
+   "difficulty": "easy",
+   "notes": 317,
+   "artist": "HoliznaCC0",
+   "credit": "\"Game BOI 1\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/gamer-soundtrack-game-boi/game-boi-1/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  {
+   "id": "game-boi-3",
+   "title": "Game BOI 3",
+   "bpm": 120.0,
+   "duration": 197.953,
+   "difficulty": "normal",
+   "notes": 722,
+   "artist": "HoliznaCC0",
+   "credit": "\"Game BOI 3\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/gamer-soundtrack-game-boi/game-boi-3/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  {
    "id": "getting-it-done",
    "title": "Getting it Done",
    "bpm": 135.0,
@@ -579,6 +599,16 @@
    "notes": 529,
    "artist": "Josh Woodward",
    "credit": "Music - \"Midnight Sun\" by Josh Woodward. Free download: https://www.joshwoodward.com/"
+  },
+  {
+   "id": "mini-boss",
+   "title": "Mini Boss",
+   "bpm": 112.5,
+   "duration": 221.833,
+   "difficulty": "normal",
+   "notes": 617,
+   "artist": "HoliznaCC0",
+   "credit": "\"Mini Boss\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/retro-gamer-soundtrack/mini-boss/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
   {
    "id": "mountain-emperor",

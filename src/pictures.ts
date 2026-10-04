@@ -214,6 +214,7 @@ export const PICTURES = [
   "sandwich",
   "lollipop",
   "banana",
+  "cassowary",
   "fried-egg",
   "flying-fish",
   "corn-on-the-cob",
@@ -320,7 +321,17 @@ export const PICTURES = [
   "fortune-cookie",
   "paella",
   "gyeran-ppang",
+  "kimchi",
+  "songpyeon",
+  "onion-rings",
+  "starfruit",
+  "hoppang",
+  "toast",
+  "dalmatian",
   "shrimp",
+  "jerboa",
+  "lyrebird",
+  "slow-loris",
 ] as const;
 
 export type Sewing = { readonly pictureName: string; readonly path: Path };

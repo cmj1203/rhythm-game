@@ -61,6 +61,26 @@
    "credit": "\"Ancient Heavy Tech Donjon\" by Komiku (https://freemusicarchive.org/music/Komiku/Its_time_for_adventure__vol_5/Komiku_-_Its_time_for_adventure_vol_5_-_01_Ancient_Heavy_Tech_Donjon/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
   {
+   "id": "andreas-theme",
+   "title": "Andreas Theme",
+   "bpm": 90.0,
+   "duration": 217.391,
+   "difficulty": "easy",
+   "notes": 317,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Andreas Theme\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "ants",
+   "title": "Ants",
+   "bpm": 100.0,
+   "duration": 211.955,
+   "difficulty": "easy",
+   "notes": 465,
+   "artist": "Rolemusic",
+   "credit": "\"Ants\" by Rolemusic (https://freemusicarchive.org/music/Rolemusic/Pop_Singles_Compilation_2014/02_rolemusic_-_ants/), licensed under CC BY 4.0 https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
    "id": "aurea-carmina",
    "title": "Aurea Carmina",
    "bpm": 115.0,
@@ -209,6 +229,16 @@
    "notes": 436,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Cretaceous Dawn\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "delay-rock",
+   "title": "Delay Rock",
+   "bpm": 112.0,
+   "duration": 178.991,
+   "difficulty": "normal",
+   "notes": 512,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Delay Rock\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "desert-of-lost-souls",
@@ -409,6 +439,16 @@
    "notes": 818,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Hotrock\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "impact-allegretto",
+   "title": "Impact Allegretto",
+   "bpm": 120.0,
+   "duration": 182.073,
+   "difficulty": "normal",
+   "notes": 516,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Impact Allegretto\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "jaunty-gumption",
@@ -841,6 +881,16 @@
    "credit": "Music - \"Voxel Revolution\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "wallpaper",
+   "title": "Wallpaper",
+   "bpm": 93.0,
+   "duration": 220.056,
+   "difficulty": "easy",
+   "notes": 361,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Wallpaper\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
    "id": "your-call",
    "title": "Your Call",
    "bpm": 120.0,
@@ -849,6 +899,16 @@
    "notes": 782,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Your Call\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "zap-beat",
+   "title": "Zap Beat",
+   "bpm": 98.0,
+   "duration": 117.603,
+   "difficulty": "easy",
+   "notes": 205,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Zap Beat\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   }
  ]
 }

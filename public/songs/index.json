@@ -11,6 +11,16 @@
    "credit": "Music - \"8bit Dungeon Boss\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "a-wee-tipple",
+   "title": "A Wee Tipple",
+   "bpm": 119.98,
+   "duration": 147.174,
+   "difficulty": "normal",
+   "notes": 426,
+   "artist": "Scott Holmes Music",
+   "credit": "\"A Wee Tipple\" by Scott Holmes Music (https://freemusicarchive.org/music/Scott_Holmes/Music_For_Media_Vol_2/Scott_Holmes_-_03_-_A_Wee_Tipple_1169/), licensed under CC BY 4.0 https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
    "id": "acoustic-rock",
    "title": "Acoustic Rock",
    "bpm": 130.0,
@@ -371,6 +381,16 @@
    "credit": "Music - \"Jaunty Gumption\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "jenifer-the-game",
+   "title": "Jenifer The Game",
+   "bpm": 120.0,
+   "duration": 209.0,
+   "difficulty": "normal",
+   "notes": 768,
+   "artist": "Komiku",
+   "credit": "\"Jenifer The Game\" by Komiku (https://freemusicarchive.org/music/Komiku/Poupis_incredible_adventures_/Komiku_-_Poupis_incredible_adventures__-_28_Jenifer_The_Game/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  {
    "id": "kicking-bullies",
    "title": "Kicking bullies",
    "bpm": 120.0,
@@ -669,6 +689,16 @@
    "notes": 127,
    "artist": "Komiku",
    "credit": "\"The adventure\" by Komiku (https://freemusicarchive.org/music/Komiku/Poupis_incredible_adventures_/Komiku_-_Poupis_incredible_adventures__-_22_The_adventure/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  {
+   "id": "the-road-we-use-to-travel",
+   "title": "The road we use to travel when we were kids",
+   "bpm": 130.08,
+   "duration": 140.308,
+   "difficulty": "hard",
+   "notes": 482,
+   "artist": "Komiku",
+   "credit": "\"The road we use to travel when we were kids\" by Komiku (https://freemusicarchive.org/music/Komiku/Tale_on_the_Late/Komiku_-_Tale_on_the_Late_-_03_The_road_we_use_to_travel_when_we_were_kids/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
   {
    "id": "to-fight-a-spell-by-dancing",

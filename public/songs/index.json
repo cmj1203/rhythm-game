@@ -201,6 +201,16 @@
    "credit": "\"Covered In Oil\" by Broke For Free (https://freemusicarchive.org/music/Broke_For_Free/Slam_Funk/Broke_For_Free_-_Slam_Funk_-_10_Covered_In_Oil), licensed under CC BY 3.0 https://creativecommons.org/licenses/by/3.0/"
   },
   {
+   "id": "cretaceous-dawn",
+   "title": "Cretaceous Dawn",
+   "bpm": 96.09,
+   "duration": 245.064,
+   "difficulty": "easy",
+   "notes": 436,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Cretaceous Dawn\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
    "id": "desert-of-lost-souls",
    "title": "Desert of Lost Souls",
    "bpm": 134.0,
@@ -311,6 +321,16 @@
    "credit": "Music - \"Funkorama\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "funky-chunk",
+   "title": "Funky Chunk",
+   "bpm": 115.0,
+   "duration": 239.02,
+   "difficulty": "normal",
+   "notes": 644,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Funky Chunk\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
    "id": "funky-pop",
    "title": "Funky Pop",
    "bpm": 120.99,
@@ -369,6 +389,26 @@
    "notes": 249,
    "artist": "Jason Shaw",
    "credit": "Music: \"Heavy Drums N Bass\" by Jason Shaw, Audionautix.com. Licensed under Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "highlight-reel",
+   "title": "Highlight Reel",
+   "bpm": 90.06,
+   "duration": 175.923,
+   "difficulty": "easy",
+   "notes": 278,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Highlight Reel\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "hotrock",
+   "title": "Hotrock",
+   "bpm": 128.0,
+   "duration": 204.722,
+   "difficulty": "hard",
+   "notes": 818,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Hotrock\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "jaunty-gumption",
@@ -531,6 +571,16 @@
    "credit": "Music: \"Occupy The Dance Floor\" by Jason Shaw, Audionautix.com. Licensed under Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "pilot-error",
+   "title": "Pilot Error",
+   "bpm": 112.05,
+   "duration": 155.611,
+   "difficulty": "normal",
+   "notes": 523,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Pilot Error\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
    "id": "pookatori-and-friends",
    "title": "Pookatori and Friends",
    "bpm": 124.0,
@@ -601,6 +651,16 @@
    "credit": "Music: \"Rubix Cube\" by Jason Shaw, Audionautix.com. Licensed under Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "ruby-4",
+   "title": "Ruby 4",
+   "bpm": 86.0,
+   "duration": 158.329,
+   "difficulty": "easy",
+   "notes": 305,
+   "artist": "HoliznaCC0",
+   "credit": "\"Ruby 4\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/ruby-chiptunes/ruby-4/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  {
    "id": "show-your-moves",
    "title": "Show Your Moves",
    "bpm": 136.0,
@@ -619,6 +679,16 @@
    "notes": 398,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Southern Gothic\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "special-spotlight",
+   "title": "Special Spotlight",
+   "bpm": 126.0,
+   "duration": 192.444,
+   "difficulty": "hard",
+   "notes": 661,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Special Spotlight\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "street-party",
@@ -741,6 +811,16 @@
    "credit": "Music - \"Unholy Knight\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "video-games",
+   "title": "Video Games",
+   "bpm": 95.0,
+   "duration": 131.329,
+   "difficulty": "easy",
+   "notes": 194,
+   "artist": "HoliznaCC0",
+   "credit": "\"Video Games\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/only-in-the-milky-way-part-2/video-games/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  {
    "id": "voltaic",
    "title": "Voltaic",
    "bpm": 120.0,
@@ -759,6 +839,16 @@
    "notes": 427,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Voxel Revolution\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "your-call",
+   "title": "Your Call",
+   "bpm": 120.0,
+   "duration": 224.052,
+   "difficulty": "normal",
+   "notes": 782,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Your Call\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   }
  ]
 }

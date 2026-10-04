@@ -91,6 +91,16 @@
    "credit": "Music - \"Aurea Carmina\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "b-3",
+   "title": "B-3",
+   "bpm": 120.0,
+   "duration": 186.044,
+   "difficulty": "normal",
+   "notes": 621,
+   "artist": "BoxCat Games",
+   "credit": "\"B-3\" by BoxCat Games (https://freemusicarchive.org/music/BoxCat_Games/Nameless_the_Hackers_RPG_Soundtrack/BoxCat_Games_-_Nameless-_the_Hackers_RPG_Soundtrack_-_04_B-3/). Licensed under CC BY 3.0 https://creativecommons.org/licenses/by/3.0/"
+  },
+  {
    "id": "back-in-the-80s",
    "title": "Back In The 80s",
    "bpm": 120.0,
@@ -859,6 +869,16 @@
    "notes": 127,
    "artist": "Komiku",
    "credit": "\"The adventure\" by Komiku (https://freemusicarchive.org/music/Komiku/Poupis_incredible_adventures_/Komiku_-_Poupis_incredible_adventures__-_22_The_adventure/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  {
+   "id": "the-final-road",
+   "title": "The Final Road",
+   "bpm": 115.11,
+   "duration": 127.304,
+   "difficulty": "normal",
+   "notes": 406,
+   "artist": "Visager",
+   "credit": "\"The Final Road\" by Visager (https://freemusicarchive.org/music/Visager/Songs_From_An_Unmade_World/Visager_-_Songs_from_an_Unmade_World_-_11_The_Final_Road/). Licensed under CC BY 4.0 https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "the-road-we-use-to-travel",

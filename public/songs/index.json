@@ -41,6 +41,16 @@
    "credit": "Music - \"Aurea Carmina\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "big-car-theft",
+   "title": "Big Car Theft",
+   "bpm": 135.0,
+   "duration": 163.892,
+   "difficulty": "hard",
+   "notes": 713,
+   "artist": "Jason Shaw",
+   "credit": "Music: \"Big Car Theft\" by Jason Shaw, Audionautix.com. Licensed under Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
    "id": "blippy-trance",
    "title": "Blippy Trance",
    "bpm": 100.0,
@@ -79,6 +89,16 @@
    "notes": 478,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"C-Funk\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "captain-glouglou-contest",
+   "title": "Captain Glouglou contest",
+   "bpm": 120.02,
+   "duration": 104.0,
+   "difficulty": "normal",
+   "notes": 352,
+   "artist": "Komiku",
+   "credit": "\"Captain Glouglou contest\" by Komiku (https://freemusicarchive.org/music/Komiku/Helice_Awesome_Dance_Adventure_/captain-glouglou-contest/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
   {
    "id": "carnivale-intrigue",
@@ -161,6 +181,16 @@
    "credit": "Music - \"Dubakupado\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "ectoplasm",
+   "title": "Ectoplasm",
+   "bpm": 112.0,
+   "duration": 157.153,
+   "difficulty": "normal",
+   "notes": 391,
+   "artist": "Jason Shaw",
+   "credit": "Music: \"Ectoplasm\" by Jason Shaw, Audionautix.com. Licensed under Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
    "id": "enter-the-party",
    "title": "Enter the Party",
    "bpm": 120.0,
@@ -239,6 +269,16 @@
    "notes": 381,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Glitter Blast\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "groovy-baby",
+   "title": "Groovy Baby",
+   "bpm": 120.0,
+   "duration": 147.931,
+   "difficulty": "normal",
+   "notes": 577,
+   "artist": "Jason Shaw",
+   "credit": "Music: \"Groovy Baby\" by Jason Shaw, Audionautix.com. Licensed under Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "groundwork",
@@ -371,6 +411,16 @@
    "credit": "Music - \"No Frills Comparsa\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "occupy-the-dance-floor",
+   "title": "Occupy The Dance Floor",
+   "bpm": 135.97,
+   "duration": 170.109,
+   "difficulty": "hard",
+   "notes": 742,
+   "artist": "Jason Shaw",
+   "credit": "Music: \"Occupy The Dance Floor\" by Jason Shaw, Audionautix.com. Licensed under Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
    "id": "pookatori-and-friends",
    "title": "Pookatori and Friends",
    "bpm": 124.0,
@@ -409,6 +459,16 @@
    "notes": 740,
    "artist": "Josh Woodward",
    "credit": "Music - \"Release\" by Josh Woodward. Free download: https://www.joshwoodward.com/"
+  },
+  {
+   "id": "rubix-cube",
+   "title": "Rubix Cube",
+   "bpm": 89.99,
+   "duration": 223.269,
+   "difficulty": "easy",
+   "notes": 349,
+   "artist": "Jason Shaw",
+   "credit": "Music: \"Rubix Cube\" by Jason Shaw, Audionautix.com. Licensed under Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "show-your-moves",
@@ -499,6 +559,16 @@
    "notes": 227,
    "artist": "Komiku",
    "credit": "\"To fight a spell by dancing\" by Komiku (https://freemusicarchive.org/music/Komiku/Helice_Awesome_Dance_Adventure_/to-fight-a-spell-by-dancing/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  {
+   "id": "together-we-are-stronger",
+   "title": "Together we are stronger",
+   "bpm": 90.0,
+   "duration": 192.0,
+   "difficulty": "easy",
+   "notes": 373,
+   "artist": "Komiku",
+   "credit": "\"Together we are stronger\" by Komiku (https://freemusicarchive.org/music/Komiku/Poupis_incredible_adventures_/Komiku_-_Poupis_incredible_adventures__-_59_Together_we_are_stronger/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
   {
    "id": "unholy-knight",

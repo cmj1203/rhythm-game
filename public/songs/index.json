@@ -61,6 +61,16 @@
    "credit": "Music - \"Aurea Carmina\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "back-in-the-80s",
+   "title": "Back In The 80s",
+   "bpm": 120.0,
+   "duration": 239.953,
+   "difficulty": "normal",
+   "notes": 772,
+   "artist": "HoliznaCC0",
+   "credit": "\"Back In The 80s\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/power-pop/back-in-the-80s/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  {
    "id": "big-car-theft",
    "title": "Big Car Theft",
    "bpm": 135.0,
@@ -191,6 +201,16 @@
    "credit": "Music - \"Desert of Lost Souls\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "drama",
+   "title": "Drama",
+   "bpm": 115.0,
+   "duration": 210.745,
+   "difficulty": "normal",
+   "notes": 587,
+   "artist": "HoliznaCC0",
+   "credit": "\"Drama\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/power-pop/drama/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  {
    "id": "dubakupado",
    "title": "Dubakupado",
    "bpm": 115.0,
@@ -279,6 +299,16 @@
    "notes": 379,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Funkorama\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "funky-pop",
+   "title": "Funky Pop",
+   "bpm": 120.99,
+   "duration": 142.753,
+   "difficulty": "normal",
+   "notes": 437,
+   "artist": "HoliznaCC0",
+   "credit": "\"Funky Pop\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/power-pop/funky-pop/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
   {
    "id": "getting-it-done",
@@ -421,6 +451,16 @@
    "credit": "Music - \"Loopster\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "make-funk",
+   "title": "Make Funk",
+   "bpm": 99.0,
+   "duration": 163.009,
+   "difficulty": "easy",
+   "notes": 305,
+   "artist": "HoliznaCC0",
+   "credit": "\"Make Funk\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/bassic/make-funk/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  {
    "id": "midnight-sun",
    "title": "Midnight Sun",
    "bpm": 114.99,
@@ -439,6 +479,16 @@
    "notes": 592,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Mountain Emperor\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "mutant-club",
+   "title": "Mutant Club",
+   "bpm": 139.99,
+   "duration": 130.657,
+   "difficulty": "hard",
+   "notes": 523,
+   "artist": "HoliznaCC0",
+   "credit": "\"Mutant Club\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/power-pop/mutant-club/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
   {
    "id": "no-frills-comparsa",
@@ -511,6 +561,16 @@
    "credit": "Music - \"Release\" by Josh Woodward. Free download: https://www.joshwoodward.com/"
   },
   {
+   "id": "retro-soundtrack",
+   "title": "Retro Soundtrack",
+   "bpm": 139.9,
+   "duration": 157.657,
+   "difficulty": "hard",
+   "notes": 699,
+   "artist": "HoliznaCC0",
+   "credit": "\"Retro Soundtrack\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/power-pop/retro-soundtrack/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  {
    "id": "rubix-cube",
    "title": "Rubix Cube",
    "bpm": 89.99,
@@ -559,6 +619,16 @@
    "notes": 400,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Sunday Dub\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "sunny-afternoon",
+   "title": "Sunny Afternoon",
+   "bpm": 100.0,
+   "duration": 115.153,
+   "difficulty": "easy",
+   "notes": 214,
+   "artist": "HoliznaCC0",
+   "credit": "\"Sunny Afternoon\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/chiptunes/sunny-afternoon/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
   {
    "id": "swansong",

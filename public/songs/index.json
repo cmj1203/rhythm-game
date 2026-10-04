@@ -41,6 +41,26 @@
    "credit": "Music - \"Blippy Trance\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "boss-2-too-powerful-for-you-run",
+   "title": "Boss 2 : Too powerful for you, run !",
+   "bpm": 95.0,
+   "duration": 115.947,
+   "difficulty": "easy",
+   "notes": 200,
+   "artist": "Komiku",
+   "credit": "\"Boss 2 : Too powerful for you, run !\" by Komiku (https://freemusicarchive.org/music/Komiku/ULTRA_PERSON_VOL2/Komiku_-_ULTRA_PERSON_VOL2_-_04_Boss_2_-_Too_powerful_for_you_run_/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  {
+   "id": "boss-3-this-is-the-time-to-glisten",
+   "title": "Boss 3 : This is the time to glisten",
+   "bpm": 90.0,
+   "duration": 161.0,
+   "difficulty": "easy",
+   "notes": 269,
+   "artist": "Komiku",
+   "credit": "\"Boss 3 : This is the time to glisten\" by Komiku (https://freemusicarchive.org/music/Komiku/ULTRA_PERSON_VOL2/Komiku_-_ULTRA_PERSON_VOL2_-_08_Boss_3_-_This_is_the_time_to_glisten/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  {
    "id": "c-funk",
    "title": "C-Funk",
    "bpm": 117.0,
@@ -81,6 +101,16 @@
    "credit": "Music - \"Cloud Dancer\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "club-seamus",
+   "title": "Club Seamus",
+   "bpm": 112.0,
+   "duration": 145.789,
+   "difficulty": "normal",
+   "notes": 356,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Club Seamus\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
    "id": "coffee",
    "title": "Coffee",
    "bpm": 96.67,
@@ -119,6 +149,16 @@
    "notes": 512,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Enter the Party\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "fantasia-fantasia",
+   "title": "Fantasia Fantasia",
+   "bpm": 118.0,
+   "duration": 151.589,
+   "difficulty": "normal",
+   "notes": 418,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Fantasia Fantasia\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "fearless-first",
@@ -219,6 +259,36 @@
    "notes": 455,
    "artist": "Komiku",
    "credit": "\"Level 11 : High risk infiltration\" by Komiku (https://freemusicarchive.org/music/Komiku/ULTRA_PERSON_VOL4/Komiku_-_ULTRA_PERSON_VOL4_-_05_Level_11_-_High_risk_infiltration/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  {
+   "id": "level-4-first-infiltration-in-unresponsible-tech",
+   "title": "Level 4 : First infiltration in Unresponsible Tech",
+   "bpm": 143.01,
+   "duration": 135.176,
+   "difficulty": "hard",
+   "notes": 602,
+   "artist": "Komiku",
+   "credit": "\"Level 4 : First infiltration in Unresponsible Tech\" by Komiku (https://freemusicarchive.org/music/Komiku/ULTRA_PERSON_VOL2/Komiku_-_ULTRA_PERSON_VOL2_-_01_Level_4_-_First_infiltration_in_Unresponsible_Tech/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  {
+   "id": "level-8-find-a-way",
+   "title": "Level 8 : Find a way",
+   "bpm": 129.93,
+   "duration": 111.769,
+   "difficulty": "hard",
+   "notes": 391,
+   "artist": "Komiku",
+   "credit": "\"Level 8 : Find a way\" by Komiku (https://freemusicarchive.org/music/Komiku/ULTRA_PERSON_VOL3/Komiku_-_ULTRA_PERSON_VOL3_-_05_Level_8_-_Find_a_way/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  {
+   "id": "loopster",
+   "title": "Loopster",
+   "bpm": 108.0,
+   "duration": 182.282,
+   "difficulty": "normal",
+   "notes": 450,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Loopster\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "midnight-sun",

@@ -181,6 +181,16 @@
    "credit": "\"Boss 3 : This is the time to glisten\" by Komiku (https://freemusicarchive.org/music/Komiku/ULTRA_PERSON_VOL2/Komiku_-_ULTRA_PERSON_VOL2_-_08_Boss_3_-_This_is_the_time_to_glisten/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
   {
+   "id": "breakdown",
+   "title": "Breakdown",
+   "bpm": 140.0,
+   "duration": 204.069,
+   "difficulty": "hard",
+   "notes": 695,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Breakdown\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
    "id": "c-funk",
    "title": "C-Funk",
    "bpm": 117.0,
@@ -431,6 +441,16 @@
    "credit": "Music - \"Freddy's Menagerie\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "friend-to-friend",
+   "title": "Friend to friend",
+   "bpm": 129.83,
+   "duration": 163.462,
+   "difficulty": "hard",
+   "notes": 530,
+   "artist": "Loyalty Freak Music",
+   "credit": "\"Friend to friend\" by Loyalty Freak Music (https://freemusicarchive.org/music/Loyalty_Freak_Music/INSTRUMENTAL_RB_BEATS_TO_SING_OR_RAP_ON/Loyalty_Freak_Music_-_INSTRUMENTAL_RB_BEATS_TO_SING_OR_RAP_ON_-_02_Friend_to_friend/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  {
    "id": "funkorama",
    "title": "Funkorama",
    "bpm": 101.0,
@@ -559,6 +579,16 @@
    "notes": 818,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Hotrock\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "humble",
+   "title": "Humble",
+   "bpm": 130.01,
+   "duration": 162.482,
+   "difficulty": "hard",
+   "notes": 571,
+   "artist": "1000 Handz",
+   "credit": "\"Humble\" by 1000 Handz (https://freemusicarchive.org/music/1000-handz/cc-by-free-to-use-dancehouse-instrumentals/humble/). Licensed under CC BY 4.0 https://creativecommons.org/licenses/by/4.0/ Attribution: Please credit '1000Handz.com' in the video description to use claim free"
   },
   {
    "id": "impact-allegretto",
@@ -831,6 +861,16 @@
    "credit": "Music - \"Pookatori and Friends\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "prepare-to-fight",
+   "title": "Prepare to fight",
+   "bpm": 120.01,
+   "duration": 123.0,
+   "difficulty": "normal",
+   "notes": 319,
+   "artist": "Basil",
+   "credit": "\"Prepare to fight\" by Basil (https://opengameart.org/content/prepare-to-fight), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  {
    "id": "protofunk",
    "title": "Protofunk",
    "bpm": 113.2,
@@ -849,6 +889,16 @@
    "notes": 659,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Psychedelic Crater\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "punk-rock-metal",
+   "title": "Punk Rock Metal Background Music",
+   "bpm": 110.0,
+   "duration": 113.871,
+   "difficulty": "normal",
+   "notes": 295,
+   "artist": "madworldgames",
+   "credit": "\"Punk Rock Metal Background Music\" by madworldgames (https://opengameart.org/content/punk-rock-metal-background-music), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
   {
    "id": "radio-rock",
@@ -889,6 +939,16 @@
    "notes": 699,
    "artist": "HoliznaCC0",
    "credit": "\"Retro Soundtrack\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/power-pop/retro-soundtrack/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  {
+   "id": "rising-tide-faster",
+   "title": "Rising Tide (faster)",
+   "bpm": 122.0,
+   "duration": 241.032,
+   "difficulty": "normal",
+   "notes": 585,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Rising Tide (faster)\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "rubix-cube",
@@ -1049,6 +1109,16 @@
    "notes": 482,
    "artist": "Komiku",
    "credit": "\"The road we use to travel when we were kids\" by Komiku (https://freemusicarchive.org/music/Komiku/Tale_on_the_Late/Komiku_-_Tale_on_the_Late_-_03_The_road_we_use_to_travel_when_we_were_kids/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  {
+   "id": "the-white",
+   "title": "The White",
+   "bpm": 144.99,
+   "duration": 142.193,
+   "difficulty": "hard",
+   "notes": 711,
+   "artist": "Rolemusic",
+   "credit": "\"The White\" by Rolemusic (https://freemusicarchive.org/music/Rolemusic/The_Black_Dot/The_White/). Licensed under CC BY 4.0 https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "to-fight-a-spell-by-dancing",

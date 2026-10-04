@@ -1,6 +1,16 @@
 {
  "songs": [
   {
+   "id": "8bit-dungeon-boss",
+   "title": "8bit Dungeon Boss",
+   "bpm": 134.0,
+   "duration": 172.008,
+   "difficulty": "hard",
+   "notes": 686,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"8bit Dungeon Boss\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
    "id": "aerosol-of-my-love",
    "title": "Aerosol of my Love",
    "bpm": 100.0,
@@ -11,6 +21,16 @@
    "credit": "Music - \"Aerosol of my Love\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "ancient-heavy-tech-donjon",
+   "title": "Ancient Heavy Tech Donjon",
+   "bpm": 90.0,
+   "duration": 233.0,
+   "difficulty": "easy",
+   "notes": 414,
+   "artist": "Komiku",
+   "credit": "\"Ancient Heavy Tech Donjon\" by Komiku (https://freemusicarchive.org/music/Komiku/Its_time_for_adventure__vol_5/Komiku_-_Its_time_for_adventure_vol_5_-_01_Ancient_Heavy_Tech_Donjon/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  {
    "id": "blippy-trance",
    "title": "Blippy Trance",
    "bpm": 100.0,
@@ -19,6 +39,16 @@
    "notes": 202,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Blippy Trance\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "c-funk",
+   "title": "C-Funk",
+   "bpm": 117.0,
+   "duration": 170.318,
+   "difficulty": "normal",
+   "notes": 478,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"C-Funk\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "carnivale-intrigue",
@@ -81,6 +111,16 @@
    "credit": "Music - \"Dubakupado\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "enter-the-party",
+   "title": "Enter the Party",
+   "bpm": 120.0,
+   "duration": 188.056,
+   "difficulty": "normal",
+   "notes": 512,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Enter the Party\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
    "id": "fearless-first",
    "title": "Fearless First",
    "bpm": 92.0,
@@ -129,6 +169,16 @@
    "notes": 290,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Groundwork\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "kicking-bullies",
+   "title": "Kicking bullies",
+   "bpm": 120.0,
+   "duration": 129.106,
+   "difficulty": "normal",
+   "notes": 398,
+   "artist": "Komiku",
+   "credit": "\"Kicking bullies\" by Komiku (https://freemusicarchive.org/music/Komiku/THE_GIRL_WITH_THE_BASEBALL_BAT/Komiku_-_THE_GIRL_WITH_THE_BASEBALL_BAT_-_06_Kicking_bullies/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
   {
    "id": "kumasi-groove",
@@ -231,6 +281,16 @@
    "credit": "Music - \"Release\" by Josh Woodward. Free download: https://www.joshwoodward.com/"
   },
   {
+   "id": "show-your-moves",
+   "title": "Show Your Moves",
+   "bpm": 136.0,
+   "duration": 215.353,
+   "difficulty": "hard",
+   "notes": 887,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Show Your Moves\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
    "id": "southern-gothic",
    "title": "Southern Gothic",
    "bpm": 126.15,
@@ -289,6 +349,16 @@
    "notes": 127,
    "artist": "Komiku",
    "credit": "\"The adventure\" by Komiku (https://freemusicarchive.org/music/Komiku/Poupis_incredible_adventures_/Komiku_-_Poupis_incredible_adventures__-_22_The_adventure/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  {
+   "id": "to-fight-a-spell-by-dancing",
+   "title": "To fight a spell by dancing",
+   "bpm": 100.0,
+   "duration": 115.2,
+   "difficulty": "easy",
+   "notes": 227,
+   "artist": "Komiku",
+   "credit": "\"To fight a spell by dancing\" by Komiku (https://freemusicarchive.org/music/Komiku/Helice_Awesome_Dance_Adventure_/to-fight-a-spell-by-dancing/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
   {
    "id": "unholy-knight",

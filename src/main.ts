@@ -1,6 +1,6 @@
 import { assertNever } from "./assert";
 import { decodingShift, LEAD_IN_S, SongPlayer, volumeFor } from "./audio";
-import { type Difficulty, loadSong, loadSongIndex, SongLoadError, type SongSummary } from "./chart";
+import { type Difficulty, inMenuOrder, loadSong, loadSongIndex, SongLoadError, type SongSummary } from "./chart";
 import { element } from "./dom";
 import { DrawingLoadError } from "./drawing";
 import { loadIntro } from "./intro";
@@ -137,7 +137,7 @@ async function boot(): Promise<void> {
 
   const menu = new SongMenu({
     root: requireElement<HTMLElement>("#menu"),
-    songs,
+    songs: await inMenuOrder(songs),
     initialSongId: query.get("song"),
     onStart: (song) => void begin(song),
     volume: hasVolumeSlider ? volume : null,

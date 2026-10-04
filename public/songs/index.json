@@ -11,6 +11,26 @@
    "credit": "Music - \"8bit Dungeon Boss\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "acoustic-rock",
+   "title": "Acoustic Rock",
+   "bpm": 130.0,
+   "duration": 166.896,
+   "difficulty": "hard",
+   "notes": 555,
+   "artist": "Jason Shaw",
+   "credit": "Music: \"Acoustic Rock\" by Jason Shaw, Audionautix.com. Licensed under Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "action-discovery",
+   "title": "Action Discovery",
+   "bpm": 98.07,
+   "duration": 100.114,
+   "difficulty": "easy",
+   "notes": 240,
+   "artist": "Komiku",
+   "credit": "\"Action Discovery\" by Komiku (https://freemusicarchive.org/music/Komiku/The_Binge_Watchers__Score_1/Komiku_-_The_Binge_Watchers_-_Score_1_-_12_Action_Discovery/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  {
    "id": "aerosol-of-my-love",
    "title": "Aerosol of my Love",
    "bpm": 100.0,
@@ -221,6 +241,16 @@
    "credit": "Music - \"Fearless First\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "feel-good-rock",
+   "title": "Feel Good Rock",
+   "bpm": 131.0,
+   "duration": 131.709,
+   "difficulty": "hard",
+   "notes": 536,
+   "artist": "Jason Shaw",
+   "credit": "Music: \"Feel Good Rock\" by Jason Shaw, Audionautix.com. Licensed under Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
    "id": "flutey-funk",
    "title": "Flutey Funk",
    "bpm": 90.0,
@@ -289,6 +319,16 @@
    "notes": 290,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Groundwork\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "heavy-drums-n-bass",
+   "title": "Heavy Drums N Bass",
+   "bpm": 109.0,
+   "duration": 118.204,
+   "difficulty": "normal",
+   "notes": 249,
+   "artist": "Jason Shaw",
+   "credit": "Music: \"Heavy Drums N Bass\" by Jason Shaw, Audionautix.com. Licensed under Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "jaunty-gumption",
@@ -441,6 +481,16 @@
    "credit": "Music - \"Protofunk\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "radio-rock",
+   "title": "Radio Rock",
+   "bpm": 110.0,
+   "duration": 177.241,
+   "difficulty": "normal",
+   "notes": 519,
+   "artist": "Jason Shaw",
+   "credit": "Music: \"Radio Rock\" by Jason Shaw, Audionautix.com. Licensed under Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
    "id": "raving-energy-faster",
    "title": "Raving Energy (faster)",
    "bpm": 134.0,
@@ -569,6 +619,16 @@
    "notes": 373,
    "artist": "Komiku",
    "credit": "\"Together we are stronger\" by Komiku (https://freemusicarchive.org/music/Komiku/Poupis_incredible_adventures_/Komiku_-_Poupis_incredible_adventures__-_59_Together_we_are_stronger/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  {
+   "id": "transition",
+   "title": "Transition",
+   "bpm": 140.0,
+   "duration": 114.364,
+   "difficulty": "hard",
+   "notes": 515,
+   "artist": "Jason Shaw",
+   "credit": "Music: \"Transition\" by Jason Shaw, Audionautix.com. Licensed under Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "unholy-knight",

@@ -332,6 +332,18 @@ export const PICTURES = [
   "jerboa",
   "lyrebird",
   "slow-loris",
+  "honey-jar",
+  "gummy-bears",
+  "candy-apple",
+  "chamoe",
+  "lychee",
+  "croquette",
+  "beagle",
+  "roadrunner",
+  "angelfish",
+  "dung-beetle",
+  "stoat",
+  "sea-anemone",
 ] as const;
 
 export type Sewing = { readonly pictureName: string; readonly path: Path };

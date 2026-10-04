@@ -321,6 +321,16 @@
    "credit": "Music - \"Fantasia Fantasia\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "fat-caps",
+   "title": "Fat Caps",
+   "bpm": 109.0,
+   "duration": 178.469,
+   "difficulty": "normal",
+   "notes": 522,
+   "artist": "Jason Shaw",
+   "credit": "\"Fat Caps\" by Jason Shaw (https://freemusicarchive.org/music/Jason_Shaw/Audionautix_Tech_Urban_Dance/TU-FatCaps/). Licensed under CC BY 3.0 https://creativecommons.org/licenses/by/3.0/"
+  },
+  {
    "id": "fearless-first",
    "title": "Fearless First",
    "bpm": 92.0,
@@ -349,6 +359,16 @@
    "notes": 281,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Flutey Funk\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "forever-believe",
+   "title": "Forever Believe",
+   "bpm": 120.99,
+   "duration": 162.351,
+   "difficulty": "normal",
+   "notes": 484,
+   "artist": "Jason Shaw",
+   "credit": "\"Forever Believe\" by Jason Shaw (https://freemusicarchive.org/music/Jason_Shaw/Audionautix_Tech_Urban_Dance/TU-ForeverBelieve/). Licensed under CC BY 3.0 https://creativecommons.org/licenses/by/3.0/"
   },
   {
    "id": "freddys-menagerie",
@@ -409,6 +429,16 @@
    "notes": 722,
    "artist": "HoliznaCC0",
    "credit": "\"Game BOI 3\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/gamer-soundtrack-game-boi/game-boi-3/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  {
+   "id": "game-travel-1",
+   "title": "Game Travel 1",
+   "bpm": 93.1,
+   "duration": 116.737,
+   "difficulty": "easy",
+   "notes": 286,
+   "artist": "HoliznaCC0",
+   "credit": "\"Game Travel 1\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/retro-gamer-soundtrack/game-travel-1/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
   {
    "id": "getting-it-done",

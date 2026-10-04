@@ -1,6 +1,7 @@
 import { assertNever } from "./assert";
 import { decodingShift, LEAD_IN_S, SongPlayer, volumeFor } from "./audio";
 import { type Difficulty, loadSong, loadSongIndex, SongLoadError, type SongSummary } from "./chart";
+import { element } from "./dom";
 import { DrawingLoadError } from "./drawing";
 import { loadIntro } from "./intro";
 import { PlayState } from "./judge";
@@ -77,6 +78,8 @@ function savedVolume(): number {
 
 async function boot(): Promise<void> {
   const renderer = new Renderer(requireElement<HTMLCanvasElement>("#game"));
+  const overButtons = requireElement<HTMLElement>("#over");
+  const backCorner = requireElement<HTMLElement>("#back");
   const player = new SongPlayer();
   const volume = savedVolume();
   player.setVolume(volume);
@@ -106,6 +109,7 @@ async function boot(): Promise<void> {
       );
       const sections = planSections(times, chart.bpm, chart.offset);
       menu.hide();
+      backCorner.hidden = false;
       screen = {
         kind: "ready",
         song,
@@ -162,11 +166,14 @@ async function boot(): Promise<void> {
 
   const backToMenu = (): void => {
     player.stop();
+    overButtons.hidden = true;
+    backCorner.hidden = true;
     screen = { kind: "menu" };
     menu.show();
   };
 
   const startPlaying = (ready: ReadyScreen): void => {
+    backCorner.hidden = true;
     player.start(ready.buffer, ready.audioShift, ready.volume, query.has("tick") ? ready.play.times : []);
     screen = {
       kind: "playing",
@@ -185,8 +192,30 @@ async function boot(): Promise<void> {
 
   /** The same song from the start, waiting for the start key, with nothing played yet. */
   const playAgain = (over: Extract<Screen, { kind: "over" }>): void => {
+    overButtons.hidden = true;
+    backCorner.hidden = false;
     screen = { ...over.source, play: new PlayState(over.play.times) };
   };
+
+  const backButton = element("button", "start secondary", "곡 선택");
+  backButton.type = "button";
+  // A tap anywhere else on this screen starts the song; this one must not.
+  backButton.addEventListener("pointerdown", (event) => event.stopPropagation());
+  backButton.addEventListener("click", () => {
+    if (screen.kind === "ready") backToMenu();
+  });
+  backCorner.append(backButton);
+
+  const retryButton = element("button", "start", "다시 하기");
+  const listButton = element("button", "start secondary", "곡 선택");
+  for (const button of [retryButton, listButton]) button.type = "button";
+  retryButton.addEventListener("click", () => {
+    if (screen.kind === "over") playAgain(screen);
+  });
+  listButton.addEventListener("click", () => {
+    if (screen.kind === "over") backToMenu();
+  });
+  overButtons.append(retryButton, listButton);
 
   const press = (playing: PlayingScreen, performanceMs: number): void => {
     const songTime = player.songTime(performanceMs);
@@ -248,7 +277,7 @@ async function boot(): Promise<void> {
         return;
       case "over":
         if (event.code === "Escape") backToMenu();
-        else if (event.code === "Enter") playAgain(screen);
+        else if (event.code === "Enter" && !(event.target instanceof HTMLButtonElement)) playAgain(screen);
         return;
       default:
         assertNever(screen);
@@ -259,7 +288,6 @@ async function boot(): Promise<void> {
     if (screen.kind === "title") intro.skip();
     else if (screen.kind === "ready") startPlaying(screen);
     else if (screen.kind === "playing") press(screen, event.timeStamp);
-    else if (screen.kind === "over") playAgain(screen);
   });
 
   window.addEventListener("click", () => {
@@ -292,6 +320,7 @@ async function boot(): Promise<void> {
         while (screen.bursts[0] !== undefined && songTime - screen.bursts[0].at > BURST_S) screen.bursts.shift();
         if (screen.play.overAt !== null) {
           player.stop();
+          overButtons.hidden = false;
           screen = {
             kind: "over",
             song: screen.song,

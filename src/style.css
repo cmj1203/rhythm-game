@@ -208,6 +208,49 @@ body {
   opacity: 0.9;
 }
 
+/* Game over: two buttons under the words, which the canvas draws. Only the buttons take taps. */
+#over {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 52%;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 0 20px;
+  pointer-events: none;
+}
+
+#over[hidden] {
+  display: none;
+}
+
+#over .start {
+  width: min(160px, 42vw);
+  pointer-events: auto;
+}
+
+.start.secondary {
+  background: var(--surface);
+  color: var(--text);
+}
+
+/* Before the song starts: the way back to the song list, small in the top-right corner. */
+#back {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+}
+
+#back[hidden] {
+  display: none;
+}
+
+#back .start {
+  padding: 8px 14px;
+  font-size: 14px;
+}
+
 .difficulty:focus-visible,
 .start:focus-visible {
   outline: 2px solid var(--text);

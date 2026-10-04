@@ -33,7 +33,6 @@ export const PICTURES = [
   "fox",
   "violin",
   "owl",
-  "lighthouse",
   "turtle",
   "giraffe",
   "gramophone",
@@ -77,6 +76,17 @@ export const PICTURES = [
   "watermelon",
   "hippo",
   "raccoon",
+  "tiger",
+  "parrot",
+  "monkey",
+  "shark",
+  "cow",
+  "seal",
+  "pizza",
+  "polar-bear",
+  "strawberry",
+  "dumpling",
+  "lighthouse",
 ] as const;
 
 export type Sewing = { readonly pictureName: string; readonly path: Path };

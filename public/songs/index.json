@@ -1,6 +1,16 @@
 {
  "songs": [
   {
+   "id": "aerosol-of-my-love",
+   "title": "Aerosol of my Love",
+   "bpm": 100.0,
+   "duration": 141.819,
+   "difficulty": "easy",
+   "notes": 239,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Aerosol of my Love\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
    "id": "carnivale-intrigue",
    "title": "Carnivale Intrigue",
    "bpm": 94.99,
@@ -41,6 +51,16 @@
    "credit": "Music - \"Dubakupado\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "fearless-first",
+   "title": "Fearless First",
+   "bpm": 92.0,
+   "duration": 195.709,
+   "difficulty": "easy",
+   "notes": 324,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Fearless First\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
    "id": "freddys-menagerie",
    "title": "Freddy's Menagerie",
    "bpm": 134.0,
@@ -71,6 +91,16 @@
    "credit": "Music - \"Lagoa v2\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "laserpack",
+   "title": "Laserpack",
+   "bpm": 127.96,
+   "duration": 185.678,
+   "difficulty": "hard",
+   "notes": 722,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Laserpack\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
    "id": "midnight-sun",
    "title": "Midnight Sun",
    "bpm": 114.99,
@@ -79,6 +109,16 @@
    "notes": 529,
    "artist": "Josh Woodward",
    "credit": "Music - \"Midnight Sun\" by Josh Woodward. Free download: https://www.joshwoodward.com/"
+  },
+  {
+   "id": "mountain-emperor",
+   "title": "Mountain Emperor",
+   "bpm": 120.0,
+   "duration": 200.072,
+   "difficulty": "normal",
+   "notes": 592,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Mountain Emperor\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "no-frills-comparsa",
@@ -109,6 +149,26 @@
    "notes": 740,
    "artist": "Josh Woodward",
    "credit": "Music - \"Release\" by Josh Woodward. Free download: https://www.joshwoodward.com/"
+  },
+  {
+   "id": "southern-gothic",
+   "title": "Southern Gothic",
+   "bpm": 126.15,
+   "duration": 147.2,
+   "difficulty": "hard",
+   "notes": 398,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Southern Gothic\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "street-party",
+   "title": "Street Party",
+   "bpm": 114.0,
+   "duration": 172.696,
+   "difficulty": "normal",
+   "notes": 509,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Street Party\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "sunday-dub",
@@ -149,6 +209,16 @@
    "notes": 520,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Unholy Knight\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "voltaic",
+   "title": "Voltaic",
+   "bpm": 120.0,
+   "duration": 196.075,
+   "difficulty": "normal",
+   "notes": 621,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Voltaic\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "voxel-revolution",

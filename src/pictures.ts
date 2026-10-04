@@ -344,6 +344,18 @@ export const PICTURES = [
   "dung-beetle",
   "stoat",
   "sea-anemone",
+  "tiramisu",
+  "blueberries",
+  "fig",
+  "udon",
+  "hamburger-steak",
+  "patbingsu-cup",
+  "condor",
+  "robin",
+  "cardinal",
+  "canary",
+  "cockatiel",
+  "heron",
 ] as const;
 
 export type Sewing = { readonly pictureName: string; readonly path: Path };

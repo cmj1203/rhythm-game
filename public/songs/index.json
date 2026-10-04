@@ -41,6 +41,16 @@
    "credit": "\"Action Discovery\" by Komiku (https://freemusicarchive.org/music/Komiku/The_Binge_Watchers__Score_1/Komiku_-_The_Binge_Watchers_-_Score_1_-_12_Action_Discovery/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
   {
+   "id": "adventures-of-yuki",
+   "title": "Adventures of Yuki Level 1",
+   "bpm": 139.0,
+   "duration": 126.013,
+   "difficulty": "hard",
+   "notes": 550,
+   "artist": "playgb.com",
+   "credit": "\"Adventures of Yuki Level 1\" by playgb.com (https://opengameart.org/content/adventures-of-yuki-level-1-music). Licensed under CC BY 4.0 https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
    "id": "aerosol-of-my-love",
    "title": "Aerosol of my Love",
    "bpm": 100.0,
@@ -129,6 +139,16 @@
    "notes": 713,
    "artist": "Jason Shaw",
    "credit": "Music: \"Big Car Theft\" by Jason Shaw, Audionautix.com. Licensed under Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "big-love",
+   "title": "Big Love",
+   "bpm": 127.0,
+   "duration": 136.072,
+   "difficulty": "hard",
+   "notes": 529,
+   "artist": "1000 Handz",
+   "credit": "\"Big Love\" by 1000 Handz (https://freemusicarchive.org/music/1000-handz/cc-by-free-to-use-dancehouse-instrumentals/big-love-2/). Licensed under CC BY 4.0 https://creativecommons.org/licenses/by/4.0/ Attribution: Please credit '1000Handz.com' in the video description to use claim free"
   },
   {
    "id": "blippy-trance",
@@ -361,6 +381,26 @@
    "credit": "Music: \"Feel Good Rock\" by Jason Shaw, Audionautix.com. Licensed under Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "feels-good-2-b",
+   "title": "Feels Good 2 B",
+   "bpm": 90.0,
+   "duration": 170.971,
+   "difficulty": "easy",
+   "notes": 320,
+   "artist": "Jason Shaw",
+   "credit": "\"Feels Good 2 B\" by Jason Shaw (https://freemusicarchive.org/music/Jason_Shaw/Audionautix_Tech_Urban_Dance/TU-FeelsGood2B/). Licensed under CC BY 3.0 https://creativecommons.org/licenses/by/3.0/"
+  },
+  {
+   "id": "final-level",
+   "title": "Final Level",
+   "bpm": 129.99,
+   "duration": 239.953,
+   "difficulty": "hard",
+   "notes": 943,
+   "artist": "HoliznaCC0",
+   "credit": "\"Final Level\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/gamer-beats/final-level/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  {
    "id": "flutey-funk",
    "title": "Flutey Funk",
    "bpm": 90.0,
@@ -551,6 +591,16 @@
    "credit": "\"Jenifer The Game\" by Komiku (https://freemusicarchive.org/music/Komiku/Poupis_incredible_adventures_/Komiku_-_Poupis_incredible_adventures__-_28_Jenifer_The_Game/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
   {
+   "id": "jupiter",
+   "title": "Jupiter",
+   "bpm": 90.0,
+   "duration": 135.937,
+   "difficulty": "easy",
+   "notes": 281,
+   "artist": "HoliznaCC0",
+   "credit": "\"Jupiter\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/interstellar-pop-songs/jupiter/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  {
    "id": "kicking-bullies",
    "title": "Kicking bullies",
    "bpm": 120.0,
@@ -621,6 +671,16 @@
    "credit": "\"Level 8 : Find a way\" by Komiku (https://freemusicarchive.org/music/Komiku/ULTRA_PERSON_VOL3/Komiku_-_ULTRA_PERSON_VOL3_-_05_Level_8_-_Find_a_way/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
   {
+   "id": "looking-for-ammunition",
+   "title": "Wandering Around Looking for Ammunition",
+   "bpm": 120.0,
+   "duration": 100.0,
+   "difficulty": "normal",
+   "notes": 340,
+   "artist": "Ragnar Random",
+   "credit": "\"Wandering Around Looking for Ammunition\" by Ragnar Random (https://opengameart.org/content/fakebit-chiptune-music-pack), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  {
    "id": "loopster",
    "title": "Loopster",
    "bpm": 108.0,
@@ -629,6 +689,16 @@
    "notes": 450,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Loopster\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "magic-bottle-town",
+   "title": "The Town Where I Got the Magic Bottle",
+   "bpm": 110.0,
+   "duration": 104.727,
+   "difficulty": "normal",
+   "notes": 370,
+   "artist": "Ragnar Random",
+   "credit": "\"The Town Where I Got the Magic Bottle\" by Ragnar Random (https://opengameart.org/content/fakebit-chiptune-music-pack), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
   {
    "id": "make-funk",
@@ -681,6 +751,16 @@
    "credit": "Music - \"Mountain Emperor\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "mt-fox-shop",
+   "title": "Mt Fox Shop",
+   "bpm": 110.0,
+   "duration": 194.142,
+   "difficulty": "normal",
+   "notes": 503,
+   "artist": "BoxCat Games",
+   "credit": "\"Mt Fox Shop\" by BoxCat Games (https://freemusicarchive.org/music/BoxCat_Games/Nameless_the_Hackers_RPG_Soundtrack/BoxCat_Games_-_Nameless-_the_Hackers_RPG_Soundtrack_-_02_Mt_Fox_Shop/). Licensed under CC BY 3.0 https://creativecommons.org/licenses/by/3.0/"
+  },
+  {
    "id": "mutant-club",
    "title": "Mutant Club",
    "bpm": 139.99,
@@ -719,6 +799,16 @@
    "notes": 742,
    "artist": "Jason Shaw",
    "credit": "Music: \"Occupy The Dance Floor\" by Jason Shaw, Audionautix.com. Licensed under Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "pensive-adventure",
+   "title": "Pensive Adventure",
+   "bpm": 95.07,
+   "duration": 222.265,
+   "difficulty": "easy",
+   "notes": 433,
+   "artist": "HoliznaCC0",
+   "credit": "\"Pensive Adventure\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/retro-gamer-soundtrack/pensive-adventure/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
   {
    "id": "pilot-error",
@@ -1039,6 +1129,16 @@
    "notes": 361,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Wallpaper\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+   "id": "wretched-destroyer",
+   "title": "Wretched Destroyer",
+   "bpm": 140.0,
+   "duration": 198.06,
+   "difficulty": "hard",
+   "notes": 623,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Wretched Destroyer\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "your-call",

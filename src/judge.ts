@@ -37,17 +37,13 @@ export class PlayState {
   readonly history: Judgement[] = [];
   /** The song time at which the game ended for a note that was never pressed for, or null while it goes on. */
   overAt: number | null = null;
-  /** Which note, counting from 1, went by without a press and ended the game; null while it goes on. */
-  overNote: number | null = null;
   private nextIndex = 0;
-  private offsetSumMs = 0;
   /** The song time of the last press, counted or not; null before the first. */
   private lastPressAt: number | null = null;
   /** When the note now due became due: when the note before it was hit or missed. */
   private turnStart = Number.NEGATIVE_INFINITY;
   /** Until when a note that went by without a press waits for a late one; null when none is waiting. */
   private lateDeadline: number | null = null;
-  private lateNote = 0;
 
   constructor(readonly times: readonly number[]) {}
 
@@ -73,7 +69,6 @@ export class PlayState {
     this.combo += 1;
     this.maxCombo = Math.max(this.maxCombo, this.combo);
     this.score += BASE_SCORE[judgement] + Math.min(this.combo, COMBO_BONUS_CAP) * COMBO_BONUS;
-    this.offsetSumMs += offsetS * 1000;
     const index = this.nextIndex;
     this.history.push(judgement);
     this.nextIndex += 1;
@@ -97,35 +92,17 @@ export class PlayState {
       this.nextIndex += 1;
       // Strictly after: the press that hit the note before belongs to that note, not to this one.
       const wasPressedFor = this.lastPressAt !== null && this.lastPressAt > this.turnStart;
-      if (!wasPressedFor && this.lateDeadline === null) {
-        this.lateDeadline = time + LATE_GRACE_S;
-        this.lateNote = this.nextIndex;
-      }
+      if (!wasPressedFor && this.lateDeadline === null) this.lateDeadline = time + LATE_GRACE_S;
       this.turnStart = time + MAX_WINDOW_S;
     }
-    if (this.lateDeadline !== null && songTime > this.lateDeadline) {
-      this.overAt = this.lateDeadline;
-      this.overNote = this.lateNote;
-    }
+    if (this.lateDeadline !== null && songTime > this.lateDeadline) this.overAt = this.lateDeadline;
     return events;
-  }
-
-  private get hitCount(): number {
-    return this.counts.perfect + this.counts.great + this.counts.good;
-  }
-
-  get hasHits(): boolean {
-    return this.hitCount > 0;
   }
 
   get accuracy(): number {
     if (this.times.length === 0) return 0;
     const weighted = JUDGEMENTS.reduce((sum, j) => sum + this.counts[j] * ACCURACY_WEIGHT[j], 0);
     return weighted / this.times.length;
-  }
-
-  get meanOffsetMs(): number {
-    return this.hasHits ? this.offsetSumMs / this.hitCount : 0;
   }
 
   /** The play as a mark out of 100. It is rounded down, so only a play of nothing but Perfects gets 100. */

@@ -98,7 +98,6 @@ export class SongMenu {
       startButton,
       volume,
       this.status,
-      element("p", "hint", "↑↓ 곡 선택 · ←→ 난이도 · Enter 시작 · Esc 처음 화면"),
       this.credit,
     );
     this.refresh();

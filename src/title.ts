@@ -20,7 +20,7 @@ export class TitleScreen {
       element("h1", "title-name", GAME_NAME),
       element("p", "title-tagline", "키 하나로 그리는 리듬게임"),
       start,
-      element("p", "hint", "Enter 시작"),
+
     );
   }
 

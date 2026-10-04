@@ -14,7 +14,7 @@ export type ResultFrame = {
   readonly fade: number;
 };
 
-const STATS_HEIGHT = 390;
+const STATS_HEIGHT = 330;
 
 function drawStats(painter: Painter, frame: ResultFrame, x: number, top: number, scale: number): void {
   const { play } = frame;
@@ -22,7 +22,7 @@ function drawStats(painter: Painter, frame: ResultFrame, x: number, top: number,
   painter.text(`${frame.title}  ·  ${frame.difficulty}  ·  ${frame.pictureName}`, at(0), { size: 16 * scale, color: COLOR.dim });
   painter.text(`${play.grade}점`, at(80), { size: 104 * scale, weight: 800 });
   painter.text(play.score.toLocaleString("en-US"), at(160), { size: 34 * scale, weight: 700 });
-  painter.text(`100점 만점   최대 콤보 ${play.maxCombo}`, at(198), {
+  painter.text(`최대 콤보 ${play.maxCombo}`, at(198), {
     size: 15 * scale,
     color: COLOR.dim,
   });
@@ -37,16 +37,6 @@ function drawStats(painter: Painter, frame: ResultFrame, x: number, top: number,
     });
     painter.text(String(play.counts[judgement]), { x: x + 20 * scale, y }, { size: 15 * scale, weight: 600, align: "left" });
   });
-
-  if (play.hasHits) {
-    const mean = play.meanOffsetMs;
-    const direction = mean < 0 ? "빠르게" : "느리게";
-    painter.text(`평균 ${Math.abs(mean).toFixed(1)}ms ${direction} 쳤습니다`, at(352), {
-      size: 14 * scale,
-      color: COLOR.dim,
-    });
-  }
-  painter.text("Enter  곡 목록으로", at(STATS_HEIGHT - 6), { size: 15 * scale, color: COLOR.dim });
 }
 
 export function drawResult(painter: Painter, frame: ResultFrame, size: Size): void {

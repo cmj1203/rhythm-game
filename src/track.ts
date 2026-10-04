@@ -286,13 +286,9 @@ function drawHud(painter: Painter, frame: PlayingFrame, { width, height }: Size)
     painter.text("COMBO", { x, y: height * 0.16 + 40 }, { size: 13, weight: 600, color: COLOR.dim });
   }
   if (frame.phase === "ready") {
-    painter.text("아무 키나 누르면 시작", { x, y: height * 0.2 }, { size: 28, weight: 800 });
-    painter.text("화면을 눌러도 시작합니다 · Esc 곡 목록", { x, y: height * 0.2 + 36 }, { size: 14, color: COLOR.dim });
+    painter.text("누르면 시작", { x, y: height * 0.2 }, { size: 28, weight: 800 });
   } else if (songTime < 0) {
     painter.text(String(Math.ceil(-songTime)), { x, y: height * 0.2 }, { size: 64, weight: 800 });
-  }
-  if (play.resolvedCount === 0) {
-    painter.text("크레파스 끝이 흰 고리에 닿는 순간 아무 키나 누르세요", { x, y: height * 0.84 }, { size: 16, color: COLOR.dim });
   }
   drawFeedback(painter, feedback, songTime, { x, y: height * 0.76 });
 }
@@ -318,23 +314,16 @@ export function drawPlaying(painter: Painter, frame: PlayingFrame, size: Size): 
   drawCircling(painter, frame, view);
   drawHud(painter, frame, size);
   ctx.restore();
-  if (frame.phase === "over") drawGameOver(painter, frame, size);
+  if (frame.phase === "over") drawGameOver(painter, size);
 }
 
-/** The road dimmed behind a notice of where the play stopped and how to go on. */
-function drawGameOver(painter: Painter, { play }: PlayingFrame, { width, height }: Size): void {
+/** The road dimmed behind the words "게임 오버", and nothing else. */
+function drawGameOver(painter: Painter, { width, height }: Size): void {
   const { ctx } = painter;
   ctx.save();
   ctx.globalAlpha = GAME_OVER_SHADE;
   ctx.fillStyle = COLOR.background;
   ctx.fillRect(0, 0, width, height);
   ctx.restore();
-  const x = width / 2;
-  const y = height * 0.42;
-  painter.text("게임 오버", { x, y }, { size: 48, weight: 800, color: JUDGEMENT_COLOR.miss });
-  painter.text(`${play.overNote ?? play.resolvedCount}번째 노트를 누르지 않고 지나갔습니다 (모두 ${play.times.length}개)`, { x, y: y + 48 }, {
-    size: 16,
-    color: COLOR.text,
-  });
-  painter.text("Enter 또는 화면을 누르면 다시 하기 · Esc 곡 목록", { x, y: y + 84 }, { size: 14, color: COLOR.dim });
+  painter.text("게임 오버", { x: width / 2, y: height * 0.45 }, { size: 48, weight: 800, color: JUDGEMENT_COLOR.miss });
 }

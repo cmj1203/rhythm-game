@@ -281,6 +281,16 @@
    "credit": "Music: \"Ectoplasm\" by Jason Shaw, Audionautix.com. Licensed under Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "electro-cabello",
+   "title": "Electro Cabello",
+   "bpm": 117.0,
+   "duration": 190.824,
+   "difficulty": "normal",
+   "notes": 526,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Electro Cabello\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
    "id": "enter-the-party",
    "title": "Enter the Party",
    "bpm": 120.0,
@@ -641,6 +651,16 @@
    "credit": "Music - \"Protofunk\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "psychedelic-crater",
+   "title": "Psychedelic Crater",
+   "bpm": 120.0,
+   "duration": 200.072,
+   "difficulty": "normal",
+   "notes": 659,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Psychedelic Crater\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
    "id": "radio-rock",
    "title": "Radio Rock",
    "bpm": 110.0,
@@ -699,6 +719,16 @@
    "notes": 305,
    "artist": "HoliznaCC0",
    "credit": "\"Ruby 4\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/ruby-chiptunes/ruby-4/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  {
+   "id": "sax-rock-and-roll",
+   "title": "Sax, Rock, and Roll",
+   "bpm": 127.96,
+   "duration": 204.722,
+   "difficulty": "hard",
+   "notes": 833,
+   "artist": "Kevin MacLeod",
+   "credit": "Music - \"Sax, Rock, and Roll\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "show-your-moves",

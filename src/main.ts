@@ -334,7 +334,12 @@ async function boot(): Promise<void> {
           screen = { kind: "title" };
           return;
         }
-        if (event.code === "Enter" && !(event.target instanceof HTMLButtonElement)) tutorial.finish();
+        if (event.code === "Enter") {
+          if (!(event.target instanceof HTMLButtonElement)) tutorial.finish();
+          return;
+        }
+        if (event.metaKey || event.ctrlKey || event.altKey) return;
+        tutorial.press(event.timeStamp);
         return;
       case "menu":
         if (event.code === "Escape") {
@@ -400,6 +405,8 @@ async function boot(): Promise<void> {
     else if (screen.kind === "playing") press(screen, event.timeStamp);
     else if (screen.kind === "calibration" && !(event.target instanceof HTMLButtonElement)) {
       calibration.press(event.timeStamp);
+    } else if (screen.kind === "tutorial" && !(event.target instanceof HTMLButtonElement)) {
+      tutorial.press(event.timeStamp);
     }
   });
 

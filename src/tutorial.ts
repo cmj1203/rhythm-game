@@ -1,4 +1,7 @@
+import { JUDGEMENT_COLOR } from "./canvas";
 import { element } from "./dom";
+import { judgementOf } from "./judge";
+import { EARLY_LATE_MIN_MS } from "./track";
 
 export type TutorialOptions = {
   readonly root: HTMLElement;
@@ -11,8 +14,11 @@ const MARKS = [
   { kind: "twirl", name: "보라 고리", meaning: "이 칸에서 크레파스가 도는 방향이 바뀝니다" },
 ] as const;
 
+/** How long a judgement made on the demo stays up, fading out over the last part of it. */
+const JUDGEMENT_SHOWN_MS = 1200;
+
 /** A looping picture of the one move in the game: the crayon comes round and its point touches the ring. */
-function demo(): HTMLElement {
+function demo(): { readonly figure: HTMLElement; readonly hand: HTMLElement } {
   const figure = element("div", "demo");
   figure.setAttribute("aria-hidden", "true");
   const hand = element("span", "demo-hand");
@@ -25,10 +31,13 @@ function demo(): HTMLElement {
     element("span", "demo-stitch"),
     element("span", "demo-now", "지금!"),
   );
-  return figure;
+  return { figure, hand };
 }
 
 export class TutorialScreen {
+  private readonly hand: HTMLElement;
+  private readonly judged = element("p", "tutorial-judgement");
+
   constructor(private readonly options: TutorialOptions) {
     const marks = element("ul", "marks");
     for (const { kind, name, meaning } of MARKS) {
@@ -45,9 +54,13 @@ export class TutorialScreen {
     done.type = "button";
     done.addEventListener("click", () => this.finish());
 
+    const { figure, hand } = demo();
+    this.hand = hand;
+    this.judged.setAttribute("aria-live", "polite");
     options.root.append(
       element("h1", "menu-title", "하는 법"),
-      demo(),
+      figure,
+      this.judged,
       element("p", "tutorial-rule", "크레파스 끝이 흰 고리에 닿는 순간 아무 키나 누르세요. 화면을 눌러도 됩니다."),
       marks,
       done,
@@ -56,6 +69,28 @@ export class TutorialScreen {
 
   finish(): void {
     this.options.onDone();
+  }
+
+  /**
+   * A press at `performanceMs` while the demo turns, judged as the game judges a note: against the moment the
+   * crayon's point touches the ring nearest to it (the start of each turn), shown under the picture.
+   */
+  press(performanceMs: number): void {
+    const turn = this.hand.getAnimations()[0];
+    const period = Number(turn?.effect?.getTiming().duration);
+    if (turn === undefined || turn.startTime === null || !(period > 0)) return;
+    const into = (((performanceMs - Number(turn.startTime)) % period) + period) % period;
+    const offsetMs = into < period / 2 ? into : into - period;
+    const judgement = judgementOf(offsetMs / 1000) ?? "miss";
+    const name = element("strong", "tutorial-judgement-name", judgement.toUpperCase());
+    name.style.color = JUDGEMENT_COLOR[judgement];
+    const off = Math.round(Math.abs(offsetMs));
+    const side = off < EARLY_LATE_MIN_MS ? "" : `${offsetMs < 0 ? "빠름" : "느림"} ${off}ms`;
+    this.judged.replaceChildren(name, element("span", "tutorial-judgement-offset", side));
+    this.judged.animate([{ opacity: 1 }, { opacity: 1, offset: 0.6 }, { opacity: 0 }], {
+      duration: JUDGEMENT_SHOWN_MS,
+      fill: "forwards",
+    });
   }
 
   show(): void {

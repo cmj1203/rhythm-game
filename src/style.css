@@ -425,6 +425,27 @@ body {
   margin-bottom: auto;
 }
 
+.tutorial-judgement {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-height: 52px;
+  opacity: 0;
+}
+
+.tutorial-judgement-name {
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.tutorial-judgement-offset {
+  min-height: 16px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--dim);
+}
+
 #tutorial .menu-title,
 .tutorial-rule {
   text-align: center;

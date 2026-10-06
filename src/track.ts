@@ -45,7 +45,7 @@ const TILES_AHEAD = 20;
 /** How clearly the stitches already sewn show while the song plays, so that the road ahead stands out. */
 const PAST_OPACITY = 0.3;
 const FEEDBACK_FADE_S = 0.5;
-const EARLY_LATE_MIN_MS = 15;
+export const EARLY_LATE_MIN_MS = 15;
 const FINALE_DELAY_S = 1;
 const FINALE_S = 2.5;
 const SPARKLES_BY_JUDGEMENT = { perfect: 8, great: 6, good: 4, miss: 0 } as const;

@@ -16,7 +16,7 @@ const COMBO_BONUS_CAP = 100;
 const LATE_GRACE_S = 0.3;
 
 /** The judgement of a press `offsetS` seconds off the beat, or null if that is too far off to count. */
-function judgementOf(offsetS: number): HitJudgement | null {
+export function judgementOf(offsetS: number): HitJudgement | null {
   return HIT_WINDOWS.find((window) => Math.abs(offsetS) <= window.withinS)?.judgement ?? null;
 }
 

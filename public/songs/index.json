@@ -35,7 +35,7 @@
    "title": "Action Discovery",
    "bpm": 98.07,
    "duration": 100.114,
-   "difficulty": "easy",
+   "difficulty": "normal",
    "notes": 240,
    "artist": "Komiku",
    "credit": "\"Action Discovery\" by Komiku (https://freemusicarchive.org/music/Komiku/The_Binge_Watchers__Score_1/Komiku_-_The_Binge_Watchers_-_Score_1_-_12_Action_Discovery/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
@@ -115,8 +115,8 @@
    "title": "Back In The 80s",
    "bpm": 120.0,
    "duration": 239.953,
-   "difficulty": "normal",
-   "notes": 772,
+   "difficulty": "easy",
+   "notes": 523,
    "artist": "HoliznaCC0",
    "credit": "\"Back In The 80s\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/power-pop/back-in-the-80s/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
@@ -205,7 +205,7 @@
    "title": "Captain Glouglou contest",
    "bpm": 120.02,
    "duration": 104.0,
-   "difficulty": "normal",
+   "difficulty": "hard",
    "notes": 352,
    "artist": "Komiku",
    "credit": "\"Captain Glouglou contest\" by Komiku (https://freemusicarchive.org/music/Komiku/Helice_Awesome_Dance_Adventure_/captain-glouglou-contest/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
@@ -219,16 +219,6 @@
    "notes": 337,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Carnivale Intrigue\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
-   "id": "circles",
-   "title": "Circles",
-   "bpm": 93.0,
-   "duration": 202.206,
-   "difficulty": "easy",
-   "notes": 328,
-   "artist": "Josh Woodward",
-   "credit": "Music - \"Circles\" by Josh Woodward. Free download: https://www.joshwoodward.com/"
   },
   {
    "id": "cloud-dancer",
@@ -245,7 +235,7 @@
    "title": "Club Seamus",
    "bpm": 112.0,
    "duration": 145.789,
-   "difficulty": "normal",
+   "difficulty": "easy",
    "notes": 356,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Club Seamus\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
@@ -265,7 +255,7 @@
    "title": "Covered In Oil",
    "bpm": 123.85,
    "duration": 255.493,
-   "difficulty": "normal",
+   "difficulty": "hard",
    "notes": 772,
    "artist": "Broke For Free",
    "credit": "\"Covered In Oil\" by Broke For Free (https://freemusicarchive.org/music/Broke_For_Free/Slam_Funk/Broke_For_Free_-_Slam_Funk_-_10_Covered_In_Oil), licensed under CC BY 3.0 https://creativecommons.org/licenses/by/3.0/"
@@ -475,7 +465,7 @@
    "title": "Funky Pop",
    "bpm": 120.99,
    "duration": 142.753,
-   "difficulty": "normal",
+   "difficulty": "hard",
    "notes": 437,
    "artist": "HoliznaCC0",
    "credit": "\"Funky Pop\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/power-pop/funky-pop/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
@@ -495,7 +485,7 @@
    "title": "Game BOI 3",
    "bpm": 120.0,
    "duration": 197.953,
-   "difficulty": "normal",
+   "difficulty": "hard",
    "notes": 722,
    "artist": "HoliznaCC0",
    "credit": "\"Game BOI 3\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/gamer-soundtrack-game-boi/game-boi-3/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
@@ -505,7 +495,7 @@
    "title": "Game Travel 1",
    "bpm": 93.1,
    "duration": 116.737,
-   "difficulty": "easy",
+   "difficulty": "normal",
    "notes": 286,
    "artist": "HoliznaCC0",
    "credit": "\"Game Travel 1\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/retro-gamer-soundtrack/game-travel-1/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
@@ -535,7 +525,7 @@
    "title": "Groovy Baby",
    "bpm": 120.0,
    "duration": 147.931,
-   "difficulty": "normal",
+   "difficulty": "hard",
    "notes": 577,
    "artist": "Jason Shaw",
    "credit": "Music: \"Groovy Baby\" by Jason Shaw, Audionautix.com. Licensed under Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/"
@@ -555,7 +545,7 @@
    "title": "Heavy Drums N Bass",
    "bpm": 109.0,
    "duration": 118.204,
-   "difficulty": "normal",
+   "difficulty": "easy",
    "notes": 249,
    "artist": "Jason Shaw",
    "credit": "Music: \"Heavy Drums N Bass\" by Jason Shaw, Audionautix.com. Licensed under Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/"
@@ -615,7 +605,7 @@
    "title": "Jenifer The Game",
    "bpm": 120.0,
    "duration": 209.0,
-   "difficulty": "normal",
+   "difficulty": "hard",
    "notes": 768,
    "artist": "Komiku",
    "credit": "\"Jenifer The Game\" by Komiku (https://freemusicarchive.org/music/Komiku/Poupis_incredible_adventures_/Komiku_-_Poupis_incredible_adventures__-_28_Jenifer_The_Game/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
@@ -656,7 +646,7 @@
    "bpm": 130.0,
    "duration": 193.907,
    "difficulty": "hard",
-   "notes": 777,
+   "notes": 570,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Lagoa v2\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -835,7 +825,7 @@
    "title": "Pensive Adventure",
    "bpm": 95.07,
    "duration": 222.265,
-   "difficulty": "easy",
+   "difficulty": "normal",
    "notes": 433,
    "artist": "HoliznaCC0",
    "credit": "\"Pensive Adventure\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/retro-gamer-soundtrack/pensive-adventure/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
@@ -855,7 +845,7 @@
    "title": "Pookatori and Friends",
    "bpm": 124.0,
    "duration": 247.798,
-   "difficulty": "normal",
+   "difficulty": "hard",
    "notes": 815,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Pookatori and Friends\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
@@ -885,7 +875,7 @@
    "title": "Psychedelic Crater",
    "bpm": 120.0,
    "duration": 200.072,
-   "difficulty": "normal",
+   "difficulty": "hard",
    "notes": 659,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Psychedelic Crater\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
@@ -925,7 +915,7 @@
    "title": "Release",
    "bpm": 156.0,
    "duration": 230.528,
-   "difficulty": "hard",
+   "difficulty": "normal",
    "notes": 740,
    "artist": "Josh Woodward",
    "credit": "Music - \"Release\" by Josh Woodward. Free download: https://www.joshwoodward.com/"
@@ -1185,7 +1175,7 @@
    "title": "Voxel Revolution",
    "bpm": 122.13,
    "duration": 129.907,
-   "difficulty": "normal",
+   "difficulty": "hard",
    "notes": 427,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Voxel Revolution\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
@@ -1205,7 +1195,7 @@
    "title": "Wretched Destroyer",
    "bpm": 140.0,
    "duration": 198.06,
-   "difficulty": "hard",
+   "difficulty": "normal",
    "notes": 623,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Wretched Destroyer\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"

@@ -24,6 +24,9 @@ pnpm dev       # 터미널에 나오는 http://localhost:5173 주소를 브라�
 | 곡 목록 | ↑ ↓ 또는 곡 클릭 | 보이는 난이도 안에서 곡 고르기 |
 | 곡 목록 | Enter 또는 시작 버튼 (곡 더블클릭도 가능) | 플레이 시작 |
 | 곡 목록 | Esc | 처음 화면으로 |
+| 곡 목록 | 박자 맞추기 버튼 | 박자 맞추기 화면으로 |
+| 박자 맞추기 | 아무 키, 또는 화면 클릭/탭 | 딸깍 소리에 맞춰 누른다. 처음 4번은 연습이고 다음 12번을 잰다 |
+| 박자 맞추기 | 확인 / 다시 / Esc | 잰 값을 저장하고 곡 목록으로 / 다시 재기 / 저장하지 않고 곡 목록으로 |
 | 시작 대기 | 아무 키, 또는 화면 클릭/탭 | 곡을 고르면 멀리서 길의 앞부분이 보인 채로 멈춰 있다. 누르면 3, 2, 1을 세는 동안 화면이 다가오고 노래가 시작된다 |
 | 시작 대기 | Esc 또는 오른쪽 위 곡 선택 버튼 | 곡 목록으로 |
 | 플레이 | 아무 키, 또는 화면 클릭/탭 | 크레파스 끝이 다음 칸의 흰 고리에 닿는 순간 누른다 |
@@ -32,7 +35,9 @@ pnpm dev       # 터미널에 나오는 http://localhost:5173 주소를 브라�
 
 주소 뒤에 `?song=<곡-id>`를 붙이면 곡 목록에서 그 곡이 선택된 상태로 열린다.
 
-주소 뒤에 `?tick`을 붙이면 노트 자리마다 "톡" 소리가 난다. 노트가 노래 박자와 맞는지 귀로 확인할 때 쓴다. 둘을 같이 쓰려면 `?song=circles&tick`처럼 적는다.
+주소 뒤에 `?tick`을 붙이면 노트 자리마다 "톡" 소리가 난다. 노트가 노래 박자와 맞는지 귀로 확인할 때 쓴다. 둘을 같이 쓰려면 `?song=ruby-4&tick`처럼 적는다.
+
+폰이나 블루투스 스피커는 소리가 늦게 나오는데, 브라우저가 알려 주는 늦음이 실제와 다를 때가 있다. 박자 맞추기는 딸깍 소리(100 BPM)에 맞춰 누른 시간이 소리보다 얼마나 늦거나 빠른지 재서, 12번의 가운데값(±300ms 안)을 브라우저에 저장한다(`livecanvas.lagMs`). 플레이할 때는 판정과 화면을 그만큼 옮긴다. +는 늦게 누른 것이다. 기기나 스피커를 바꾸면 다시 잰다.
 
 ## 온라인 주소와 배포
 
@@ -84,19 +89,19 @@ pnpm dev       # 터미널에 나오는 http://localhost:5173 주소를 브라�
 | 악기 | 기타, 바이올린, 축음기, 피아노 |
 | 물건과 풍경 | 자전거, 돛단배, 주전자, 로켓, 새장, 백야, 재봉틀, 등대, 풍차, 기관차, 관람차 |
 
-그림은 모두 369장이다. 곡마다 그림이 하나 나온다. 그림을 나눌 때 곡마다 난이도 세 자리(Easy, Normal, Hard)를 잡아 두고 그 곡의 난이도 자리 것을 쓰기 때문에, 곡 123개까지는 곡마다 다른 그림이 나온다. 곡이 늘면 아스트라가 그림을 더 그린다. 새 그림은 동물을 먼저, 다음으로 음식을 고른다.
+그림은 모두 369장이다. 곡마다 그림이 하나 나오고, 두 곡이 같은 그림을 쓰지 않는다. 그림이 곡 수보다 모자라면 아스트라가 그림을 더 그린다. 새 그림은 동물을 먼저, 다음으로 음식을 고른다.
 
 황제펭귄은 사용자가 준 연속선 그림(`docs/reference/emperor-penguin.png`, 게임에는 실리지 않는 원본)을 한 줄 선으로 옮긴 것이다.
 
 리듬은 그림에 두 가지로 남는다. 오래 기다린 노트의 선은 굵고 빠른 노트의 선은 가늘며, 곡의 구간이 바뀌면 선 색이 바뀐다. 잘 맞춘 곳은 진하게, 덜 맞춘 곳은 옅게 남는다. 그래서 같은 그림이라도 곡마다 다르게 완성된다.
 
-어느 그림이 나올지는 게임이 정한다. 그림은 곡 목록 순서대로, 곡마다 난이도 세 자리에 카드처럼 한 장씩 나눠지고, 곡은 자기 난이도 자리의 그림을 쓴다. 그림이 자리보다 많은 동안에는 같은 그림이 두 곡에 나오지 않는다. 그림을 두 장 이상 받은 자리는 그중 하나를, 그리고 모든 곡은 선의 어느 쪽 끝에서 그리기 시작할지를, 자기 리듬이 그림에서 가장 덜 벗어나는 쪽으로 고른다. 같은 곡은 항상 같은 그림이고, 곡을 추가하거나 지우거나 난이도를 바꾸면 배정이 바뀔 수 있다.
+어느 그림이 나올지는 `public/songs/pictures.json`에 곡마다 정해 두었다. `tools/pick_pictures.ts`가 모든 곡을 모든 그림과 (선의 양쪽 끝에서 각각) 짝지어 길을 만들어 보고, 리듬이 그림에서 가장 덜 벗어나는 짝을 두 곡이 같은 그림을 쓰지 않게 고른다(헝가리안 방법). 그림이 마지막 노트보다 두 노트 이상 일찍 끝나거나, 크레파스 빠르기가 2% 넘게 어긋나거나, 완만한 꺾임이 6번 이상 이어지는 짝은 피한다. 곡을 새로 넣으면 그 곡만 남은 그림에서 고르고, 다른 곡의 그림은 바뀌지 않는다. 고른 그림이 없는 곡은 곡 목록 순서대로 그림을 카드처럼 나눠 받는다.
 
 그림을 추가하려면:
 
 1. `public/pictures/<그림-id>.svg`를 만든다. `viewBox="0 0 100 100"` 안에 채우기 없이 선만 그리고, `transform`은 쓰지 않는다. `<path>` 하나에 `M`이 한 번만 나오면 한 줄 그림이다. 그림 이름은 `<title>`에 적는다.
 2. 선이 여러 개여도 된다(`path`, `line`, `polyline`, `polygon`, `circle`, `ellipse`, `rect`). 가까운 끝끼리 이어서 그리고, 선 사이를 옮겨 가는 구간은 완성된 그림에 남지 않는다.
-3. `src/pictures.ts`의 `PICTURES`에 그림 id를 추가한다.
+3. `src/pictures.ts`의 `PICTURES`에 그림 id를 추가한다. 새 그림을 지금 있는 곡에도 쓰게 하려면 `bun tools/pick_pictures.ts --all`로 모든 곡의 그림을 다시 고른다(이미 고른 곡의 그림도 바뀔 수 있다).
 
 경로에 `S`, `T`, 소문자 `m` 명령이 들어 있으면 그림을 읽는 데 1초 가까이 걸린다. `M L C Q A`만 쓰면 0.02초 안에 읽는다.
 
@@ -106,18 +111,36 @@ pnpm dev       # 터미널에 나오는 http://localhost:5173 주소를 브라�
 
 ## 곡 추가
 
-1. `public/songs/<곡-id>/` 폴더를 만들고 mp3를 `song.mp3` 이름으로 넣는다. 곡 id는 영어 소문자, 숫자, `-`만 쓴다.
+1. mp3를 128kbps로 바꿔 `public/songs/<곡-id>/song.mp3`에 넣는다. 곡 id는 영어 소문자, 숫자, `-`만 쓴다. 파일이 작아야 폰에서 빨리 열리고, 사이트 전체가 깃허브 페이지 한도(1GB)를 넘지 않는다.
+
+   ```bash
+   ffmpeg -i 원본.mp3 -map_metadata -1 -vn -ac 2 -ar 44100 -codec:a libmp3lame -b:a 128k public/songs/<곡-id>/song.mp3
+   ```
+
 2. 채보를 만든다. 같은 폴더에 `chart.json`이 생기고, 곡 목록(`public/songs/index.json`)도 함께 갱신된다. (처음 실행은 분석 도구와 박자 분석 모델을 내려받느라 몇 분 걸린다)
 
    ```bash
    pnpm chart public/songs/<곡-id>/song.mp3 --title "곡 제목" --artist "만든 사람"
    ```
 
-3. 브라우저를 새로고침하면 곡 목록에 나타난다. 난이도 탭 안의 순서는 `public/songs/order.json`을 따르고, 여기에 없는 곡은 그 난이도의 맨 끝에 나온다. 원하는 자리에 곡 id를 넣으면 그 자리로 간다.
+3. 박자를 검사한다. 노트의 80% 이상이 노래의 타격 소리와 25ms 안에 맞고, 음악이 끝난 뒤의 노트가 없어야 통과다. 넣기 전의 후보는 `uv run tools/check_timing.py --mp3 후보.mp3`로 미리 검사할 수 있다(파일을 쓰지 않는다).
+
+   ```bash
+   uv run tools/check_timing.py <곡-id>
+   ```
+
+4. 그림을 고르고 화면을 검사한다. `pnpm dev`를 켠 채로 다른 터미널에서 실행한다. 그림 고르기는 그림이 아직 없는 곡에만, 남은 그림 가운데 가장 잘 맞는 것을 골라 `public/songs/pictures.json`에 적는다. 화면 검사는 모든 곡의 크레파스 빠르기, 그림이 마지막 노트에 끝나는지, 완만한 꺾임 연속, 그림 겹침을 보고, 하나라도 걸리면 FAIL을 찍는다.
+
+   ```bash
+   bun tools/pick_pictures.ts
+   bun tools/check_screen.ts
+   ```
+
+5. 브라우저를 새로고침하면 곡 목록에 나타난다. 난이도 탭 안의 순서는 `public/songs/order.json`을 따르고, 여기에 없는 곡은 그 난이도의 맨 끝에 나온다. 원하는 자리에 곡 id를 넣으면 그 자리로 간다.
 
 곡을 지울 때는 폴더를 지운 뒤 아무 곡이나 채보를 다시 만들면 목록에서 빠진다.
 
-곡마다 난이도는 하나다. 채보 도구가 곡의 빠르기로 정한다: 105 BPM 미만은 Easy, 125 BPM 이상은 Hard, 그 사이는 Normal. 직접 정하려면 `--difficulty easy`(또는 `normal`, `hard`)를 붙인다. 곡 목록에서는 그 난이도 탭에 나타난다.
+곡마다 난이도는 하나다. 채보 도구는 곡의 빠르기로 노트를 얼마나 고를지 정하고(105 BPM 미만은 아래 표의 Easy 기준, 125 BPM 이상은 Hard 기준, 그 사이는 Normal 기준), 고른 노트가 얼마나 치기 어려운지로 난이도 탭을 정한다. 1분당 노트 수 × (1 + 엇박 노트 비율) × (1 + 0.5 × 앞 노트와 0.25초 안에 이어지는 노트 비율)이 200 미만이면 Easy, 360 이상이면 Hard, 그 사이는 Normal이다. 직접 정하려면 `--difficulty easy`(또는 `normal`, `hard`)를 붙인다. 그 난이도 기준으로 노트를 고르고 그 탭에 넣는다.
 
 `chart.json`의 `notes`에는 "눌러야 하는 시간(초)" 목록이, `difficulty`에는 난이도가 들어 있다. 마음에 안 들면 직접 고쳐도 된다. 길 모양은 게임이 이 시간들로부터 그때그때 만든다. 노트 자리가 노래와 맞는지는 주소 뒤에 `?tick`을 붙여 귀로 확인한다.
 
@@ -152,18 +175,14 @@ pnpm dev       # 터미널에 나오는 http://localhost:5173 주소를 브라�
 | `feels-good-2-b` | Feels Good 2 B (어반 댄스) | Easy | 90 BPM | Jason Shaw (Free Music Archive), CC BY 3.0 |
 | `jupiter` | Jupiter (신스 팝) | Easy | 90 BPM | HoliznaCC0 (Free Music Archive), CC0 |
 | `fearless-first` | Fearless First (밴드 록) | Easy | 92 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
-| `circles` | Circles | Easy | 93 BPM | Josh Woodward, CC BY 4.0 |
 | `wallpaper` | Wallpaper (밝은 신스와 드럼, 엇박 많음) | Easy | 93 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
-| `game-travel-1` | Game Travel 1 (게임 음악, 엇박 많음) | Easy | 93 BPM | HoliznaCC0 (Free Music Archive), CC0 |
 | `carnivale-intrigue` | Carnivale Intrigue (삼바, 엇박 많음) | Easy | 95 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `boss-2-too-powerful-for-you-run` | Boss 2 : Too powerful for you, run ! (게임 음악 보스전, 엇박 많음) | Easy | 95 BPM | Komiku (Free Music Archive), CC0 |
 | `video-games` | Video Games (전자음악, 엇박 많음) | Easy | 95 BPM | HoliznaCC0 (Free Music Archive), CC0 |
 | `no-war` | No War (중동풍 힙합 비트, 엇박 많음) | Easy | 95 BPM | Ketsa (Free Music Archive), CC BY 4.0 |
-| `pensive-adventure` | Pensive Adventure (게임 음악) | Easy | 95 BPM | HoliznaCC0 (Free Music Archive), CC0 |
 | `cretaceous-dawn` | Cretaceous Dawn (타악기, 엇박 많음) | Easy | 96 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `battle-of-the-void` | Battle of the Void (게임 전투 음악) | Easy | 97 BPM | Marcelo Fernandez (OpenGameArt), CC BY 3.0 |
 | `coffee` | Coffee (보컬 팝록) | Easy | 97 BPM | Josh Woodward, CC BY 4.0 |
-| `action-discovery` | Action Discovery (게임 음악, 엇박 많음) | Easy | 98 BPM | Komiku (Free Music Archive), CC0 |
 | `zap-beat` | Zap Beat (전자음악, 엇박 많음) | Easy | 98 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `make-funk` | Make Funk (펑크 베이스) | Easy | 99 BPM | HoliznaCC0 (Free Music Archive), CC0 |
 | `aerosol-of-my-love` | Aerosol of my Love (신스팝, 엇박 많음) | Easy | 100 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
@@ -176,20 +195,24 @@ pnpm dev       # 터미널에 나오는 http://localhost:5173 주소를 브라�
 | `funkorama` | Funkorama | Easy | 101 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `sunday-dub` | Sunday Dub (더브, 엇박 많음) | Easy | 102 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `groundwork` | Groundwork (안정적인 그루브) | Easy | 102 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
+| `heavy-drums-n-bass` | Heavy Drums N Bass (드럼 중심) | Easy | 109 BPM | Jason Shaw (Audionautix.com), CC BY 4.0 |
+| `club-seamus` | Club Seamus (백파이프 클럽 그루브) | Easy | 112 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
+| `back-in-the-80s` | Back In The 80s (80년대 신스팝, 촘촘함) | Easy | 120 BPM | HoliznaCC0 (Free Music Archive), CC0 |
+| `game-travel-1` | Game Travel 1 (게임 음악, 엇박 많음) | Normal | 93 BPM | HoliznaCC0 (Free Music Archive), CC0 |
+| `pensive-adventure` | Pensive Adventure (게임 음악) | Normal | 95 BPM | HoliznaCC0 (Free Music Archive), CC0 |
+| `action-discovery` | Action Discovery (게임 음악, 엇박 많음) | Normal | 98 BPM | Komiku (Free Music Archive), CC0 |
 | `cloud-dancer` | Cloud Dancer (EDM, 구간 변화 많음) | Normal | 107 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `loopster` | Loopster (베이스와 일렉트릭 피아노, 촘촘함) | Normal | 108 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
-| `heavy-drums-n-bass` | Heavy Drums N Bass (드럼 중심) | Normal | 109 BPM | Jason Shaw (Audionautix.com), CC BY 4.0 |
 | `fat-caps` | Fat Caps (어반 댄스, 엇박 많음) | Normal | 109 BPM | Jason Shaw (Free Music Archive), CC BY 3.0 |
 | `kumasi-groove` | Kumasi Groove (타악기와 마림바, 엇박 많음) | Normal | 110 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `radio-rock` | Radio Rock (록) | Normal | 110 BPM | Jason Shaw (Audionautix.com), CC BY 4.0 |
 | `magic-bottle-town` | The Town Where I Got the Magic Bottle (칩튠) | Normal | 110 BPM | Ragnar Random (OpenGameArt), CC0 |
 | `mt-fox-shop` | Mt Fox Shop (칩튠 게임 음악) | Normal | 110 BPM | BoxCat Games (Free Music Archive), CC BY 3.0 |
 | `punk-rock-metal` | Punk Rock Metal Background Music (펑크 록) | Normal | 110 BPM | madworldgames (OpenGameArt), CC0 |
-| `club-seamus` | Club Seamus (백파이프 클럽 그루브) | Normal | 112 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `ectoplasm` | Ectoplasm (엇박 많음) | Normal | 112 BPM | Jason Shaw (Audionautix.com), CC BY 4.0 |
 | `pilot-error` | Pilot Error (록, 엇박 많음) | Normal | 112 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `delay-rock` | Delay Rock (록) | Normal | 112 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
-| `mini-boss` | Mini Boss (게임 음악) | Normal | 113 BPM | HoliznaCC0 (Free Music Archive), CC0 |
+| `mini-boss` | Mini Boss (게임 음악) | Normal | 112 BPM | HoliznaCC0 (Free Music Archive), CC0 |
 | `protofunk` | Protofunk (펑크 드럼과 기타) | Normal | 113 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `street-party` | Street Party (브라스와 드럼, 엇박 많음) | Normal | 114 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `midnight-sun` | Midnight Sun | Normal | 115 BPM | Josh Woodward, CC BY 4.0 |
@@ -206,27 +229,28 @@ pnpm dev       # 터미널에 나오는 http://localhost:5173 주소를 브라�
 | `voltaic` | Voltaic (전자 타악기, 촘촘함) | Normal | 120 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `enter-the-party` | Enter the Party (댄스, 엇박 많음) | Normal | 120 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `kicking-bullies` | Kicking bullies (게임 음악) | Normal | 120 BPM | Komiku (Free Music Archive), CC0 |
-| `captain-glouglou-contest` | Captain Glouglou contest (게임 음악, 엇박 많음) | Normal | 120 BPM | Komiku (Free Music Archive), CC0 |
-| `groovy-baby` | Groovy Baby (촘촘한 그루브, 엇박 많음) | Normal | 120 BPM | Jason Shaw (Audionautix.com), CC BY 4.0 |
-| `back-in-the-80s` | Back In The 80s (80년대 신스팝, 촘촘함) | Normal | 120 BPM | HoliznaCC0 (Free Music Archive), CC0 |
 | `a-wee-tipple` | A Wee Tipple (셈여림 변화 큼) | Normal | 120 BPM | Scott Holmes Music (Free Music Archive), CC BY 4.0 |
-| `jenifer-the-game` | Jenifer The Game (게임 음악, 촘촘함) | Normal | 120 BPM | Komiku (Free Music Archive), CC0 |
 | `your-call` | Your Call (촘촘함, 엇박 많음) | Normal | 120 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `impact-allegretto` | Impact Allegretto (오케스트라 타격, 엇박 많음) | Normal | 120 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
-| `psychedelic-crater` | Psychedelic Crater (촘촘함, 구간 변화 큼) | Normal | 120 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
-| `game-boi-3` | Game BOI 3 (게임 음악, 촘촘함, 엇박 많음) | Normal | 120 BPM | HoliznaCC0 (Free Music Archive), CC0 |
 | `b-3` | B-3 (칩튠 게임 음악) | Normal | 120 BPM | BoxCat Games (Free Music Archive), CC BY 3.0 |
 | `saturn` | Saturn (신스 그루브, 엇박 많음) | Normal | 120 BPM | HoliznaCC0 (Free Music Archive), CC0 |
 | `menace` | Menace (빠른 고딕 메탈) | Normal | 120 BPM | Tomasz Kucza (OpenGameArt), CC BY 4.0 |
 | `looking-for-ammunition` | Wandering Around Looking for Ammunition (칩튠) | Normal | 120 BPM | Ragnar Random (OpenGameArt), CC0 |
 | `prepare-to-fight` | Prepare to fight (게임 전투 음악) | Normal | 120 BPM | Basil (OpenGameArt), CC0 |
-| `funky-pop` | Funky Pop (팝, 엇박 많음) | Normal | 121 BPM | HoliznaCC0 (Free Music Archive), CC0 |
 | `forever-believe` | Forever Believe (어반 댄스) | Normal | 121 BPM | Jason Shaw (Free Music Archive), CC BY 3.0 |
-| `voxel-revolution` | Voxel Revolution (전자음악, 엇박 많음) | Normal | 122 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `rising-tide-faster` | Rising Tide (faster) (전자음악, 촘촘함) | Normal | 122 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
-| `covered-in-oil` | Covered In Oil (펑키한 전자 힙합) | Normal | 124 BPM | Broke For Free (Free Music Archive), CC BY 3.0 |
-| `pookatori-and-friends` | Pookatori and Friends (통통 튀는 신스, 엇박 많음) | Normal | 124 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `tech-live` | Tech Live (전자 타악기, 촘촘함) | Normal | 124 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
+| `wretched-destroyer` | Wretched Destroyer (헤비 메탈) | Normal | 140 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
+| `release` | Release | Normal | 156 BPM | Josh Woodward, CC BY 4.0 |
+| `captain-glouglou-contest` | Captain Glouglou contest (게임 음악, 엇박 많음) | Hard | 120 BPM | Komiku (Free Music Archive), CC0 |
+| `groovy-baby` | Groovy Baby (촘촘한 그루브, 엇박 많음) | Hard | 120 BPM | Jason Shaw (Audionautix.com), CC BY 4.0 |
+| `jenifer-the-game` | Jenifer The Game (게임 음악, 촘촘함) | Hard | 120 BPM | Komiku (Free Music Archive), CC0 |
+| `psychedelic-crater` | Psychedelic Crater (촘촘함, 구간 변화 큼) | Hard | 120 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
+| `game-boi-3` | Game BOI 3 (게임 음악, 촘촘함, 엇박 많음) | Hard | 120 BPM | HoliznaCC0 (Free Music Archive), CC0 |
+| `funky-pop` | Funky Pop (팝, 엇박 많음) | Hard | 121 BPM | HoliznaCC0 (Free Music Archive), CC0 |
+| `voxel-revolution` | Voxel Revolution (전자음악, 엇박 많음) | Hard | 122 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
+| `covered-in-oil` | Covered In Oil (펑키한 전자 힙합) | Hard | 124 BPM | Broke For Free (Free Music Archive), CC BY 3.0 |
+| `pookatori-and-friends` | Pookatori and Friends (통통 튀는 신스, 엇박 많음) | Hard | 124 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `southern-gothic` | Southern Gothic (밴조, 발 구르기와 박수) | Hard | 126 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `special-spotlight` | Special Spotlight (빠른 록) | Hard | 126 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `big-love` | Big Love (댄스 하우스) | Hard | 127 BPM | 1000 Handz (Free Music Archive), CC BY 4.0 |
@@ -257,11 +281,9 @@ pnpm dev       # 터미널에 나오는 http://localhost:5173 주소를 브라�
 | `mutant-club` | Mutant Club (클럽 음악, 엇박 많음) | Hard | 140 BPM | HoliznaCC0 (Free Music Archive), CC0 |
 | `retro-soundtrack` | Retro Soundtrack (빠른 신스, 구간 변화 많음) | Hard | 140 BPM | HoliznaCC0 (Free Music Archive), CC0 |
 | `breakdown` | Breakdown (록, 촘촘함) | Hard | 140 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
-| `wretched-destroyer` | Wretched Destroyer (헤비 메탈) | Hard | 140 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `level-4-first-infiltration-in-unresponsible-tech` | Level 4 : First infiltration in Unresponsible Tech (빠른 아케이드 액션) | Hard | 143 BPM | Komiku (Free Music Archive), CC0 |
 | `the-white` | The White (빠른 칩튠, 촘촘함) | Hard | 145 BPM | Rolemusic (Free Music Archive), CC BY 4.0 |
 | `jaunty-gumption` | Jaunty Gumption (빠른 마림바와 오르간) | Hard | 146 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
-| `release` | Release | Hard | 156 BPM | Josh Woodward, CC BY 4.0 |
 
 Josh Woodward의 곡은 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)으로 공개되어 있다. Free download: https://www.joshwoodward.com/
 
@@ -312,18 +334,23 @@ HoliznaCC0의 곡("Back In The 80s", "Drama", "Final Level", "Funky Pop", "Game 
 | 경로 | 역할 |
 |---|---|
 | `tools/make_chart.py` | mp3를 분석해 박자를 찾고(Beat This! 모델) 채보(`chart.json`)와 곡 목록(`index.json`)을 쓰는 도구 |
+| `tools/check_timing.py` | 박자 검사: 노트가 노래의 타격 소리와 25ms 안에 맞는 비율(80% 이상 통과)과 음악이 끝난 뒤의 노트. 넣기 전 후보 mp3도 검사한다 |
+| `tools/pick_pictures.ts` | 곡마다 가장 잘 맞는 그림을 골라 `public/songs/pictures.json`에 적는다 (`pnpm dev`가 켜져 있어야 한다) |
+| `tools/check_screen.ts` | 화면 검사: 곡마다 크레파스 빠르기, 그림이 마지막 노트에 끝나는지, 완만한 꺾임 연속, 그림 겹침 (`pnpm dev`가 켜져 있어야 한다) |
+| `tools/sewing-stats.ts` | 위 두 도구가 함께 쓰는 길 재기 |
 | `DESIGN.md` | 디자인 규칙 (색, 글꼴, 부품 상태, 움직임). 화면을 바꿀 때 먼저 읽는다 |
 | `src/chart.ts` | 곡 목록, 채보, 음원 불러오기 |
 | `public/songs/order.json` | 곡 목록 화면의 곡 순서(난이도마다 잘 만들어진 곡이 먼저). 그림을 나누는 순서인 `index.json`과 따로 둔다 |
+| `public/songs/pictures.json` | 곡마다 고른 그림. 여기에 없는 곡은 곡 목록 순서대로 그림을 나눠 받는다 |
 | `public/pictures/*.svg` | 한붓그리기 그림. 파일마다 한 줄로 이어진 선 하나 |
 | `public/pictures/logo.svg` | 제목 글자. 그림 목록(`PICTURES`)에는 넣지 않는다 |
 | `src/path.ts` | 노트 시간으로 길(칸의 위치, 크레파스가 도는 각도, 선 굵기)을 만든다. 길이 그림을 따라가게 하고, 마지막 노트에서 그림이 끝나도록 그림 크기를 맞춘다 |
-| `src/pictures.ts` | 그림 목록과, 채보의 리듬에 가장 잘 맞는 그림 고르기 |
+| `src/pictures.ts` | 그림 목록과, 곡마다 고른 그림으로 길 만들기(고른 그림이 없으면 곡 목록 순서대로 나눠 주기) |
 | `src/drawing.ts` | 그림 파일을 읽어 선을 점으로 바꾼다 |
 | `src/guide.ts` | 그림을 길 크기에 맞춰 일정한 간격의 점으로 놓고, 길이 따라갈 수 있게 작은 고리를 편 줄을 따로 만든다 |
 | `src/sections.ts` | 곡을 16박 구간으로 나눠 구간마다 선 색과 카메라 움직임(거리, 기울기, 옆으로 미끄러짐)을 정한다 |
 | `src/judge.ts` | 판정, 점수, 콤보, 노트별 판정 기록 |
-| `src/audio.ts` | 재생과 곡 시간 계산, 브라우저마다 다른 mp3 디코딩 차이 맞추기, 곡마다 다른 녹음 크기 맞추기(큰 곡은 줄여서 틂), `?tick`의 톡 소리 |
+| `src/audio.ts` | 재생과 곡 시간 계산, 브라우저마다 다른 mp3 디코딩 차이 맞추기, 곡마다 다른 녹음 크기 맞추기(큰 곡은 줄여서 틂), `?tick`의 톡 소리, 박자 맞추기의 딸깍 소리와 저장한 늦음 반영 |
 | `src/track.ts` | 플레이 화면 그리기 (앞길, 도는 크레파스, 타격 효과, 콤보 효과, 점수, 끝날 때 멀어지는 장면) |
 | `src/crayon.ts` | 크레파스 모양과 종이 결 그리기 (플레이 화면, 결과 화면, 인트로가 함께 쓴다) |
 | `src/intro.ts` | 인트로: 크레파스가 제목을 한 글자씩 쓰기, LIVE 표시등 |
@@ -333,7 +360,8 @@ HoliznaCC0의 곡("Back In The 80s", "Drama", "Final Level", "Funky Pop", "Game 
 | `src/render.ts` | 캔버스 크기 맞춤과 화면 선택 |
 | `src/title.ts` | 처음 화면의 글자와 시작 버튼. 제목 로고는 그 뒤의 캔버스에 `src/intro.ts`가 그린다 (글자로 된 이름은 이 파일의 `GAME_NAME`) |
 | `src/tutorial.ts` | 하는 법 화면 (누르는 순간을 보여 주는 그림과 큰 분홍 점, 큰 하늘 점, 보라 고리 설명) |
-| `src/menu.ts` | 곡 목록 화면 (난이도 탭과 그 난이도의 곡들, 음량 막대) |
+| `src/menu.ts` | 곡 목록 화면 (난이도 탭과 그 난이도의 곡들, 음량 막대, 박자 맞추기 버튼) |
+| `src/calibration.ts` | 박자 맞추기 화면 (딸깍 소리에 맞춰 누른 시간 차이 재기) |
 | `src/main.ts` | 입력과 화면 전환 |
 
 ## 이전 버전

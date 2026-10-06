@@ -59,6 +59,7 @@ def timing(samples: np.ndarray, notes: list[float], bpm: float, offset: float) -
         "on_beat": float(on_time[~off_beat].mean()) if (~off_beat).any() else 1.0,
         "off_beat": float(on_time[off_beat].mean()) if off_beat.any() else 1.0,
         "after_end": int(np.sum(times > mc.music_end(samples))),
+        "unheard_lead_in": len(mc.unheard_lead_in(samples, notes)),
     }
 
 
@@ -80,6 +81,8 @@ def check_mp3(audio: Path, difficulty: mc.Level | None) -> tuple[str, dict[str, 
         for step in mc.select_steps(accent, mc.DIFFICULTIES[difficulty or mc.level_for(grid.bpm)])
         if grid.step_times[step] <= end
     ]
+    unheard = set(mc.unheard_lead_in(samples, notes))
+    notes = [time for time in notes if time not in unheard]
     result = timing(samples, notes, grid.bpm, float(grid.step_times[0]))
     listed = difficulty or mc.rated_level(notes, grid.bpm, float(grid.step_times[0]))
     return f"{audio} ({listed.value}, {grid.bpm:.1f} BPM, {len(notes)} notes)", result
@@ -98,12 +101,12 @@ def main(
             results = pool.map(check_song, ids)
     failed = 0
     for name, result in results:
-        passes = result["on_time"] >= ENOUGH_ON_TIME and result["after_end"] == 0
+        passes = result["on_time"] >= ENOUGH_ON_TIME and result["after_end"] == 0 and result["unheard_lead_in"] == 0
         failed += not passes
         print(
             f"{'ok  ' if passes else 'FAIL'} {name}: {result['on_time']:.0%} on time "
             f"(on the beat {result['on_beat']:.0%}, off it {result['off_beat']:.0%}), "
-            f"{result['after_end']} after the end"
+            f"{result['after_end']} after the end, {result['unheard_lead_in']} unheard before the music starts"
         )
     print(f"{len(results)} checked, {failed} failing")
     raise typer.Exit(1 if failed else 0)

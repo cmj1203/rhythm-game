@@ -73,6 +73,12 @@ MIN_STRENGTH: Final = 0.04
 # The music has ended once it stays this far below its loudest; the faint hits of a fade-out after that are no notes.
 END_LEVEL_DB: Final = -30.0
 END_FRAME: Final = 2048
+# Before the music first comes within END_LEVEL_DB of its loudest, a note needs something to hear around it: one
+# on the silence of a lead-in, or on the fading tail of a soft pickup, is a tap on nothing. -36 dB lies between
+# the softest pickup hit charted so far (-32 dB, Impact Allegretto) and the loudest such tail (-43 dB, the same song).
+HEARD_LEVEL_DB: Final = -36.0
+HEARD_FRAME: Final = 512
+HEARD_SEARCH_S: Final = 0.05
 
 ANCHOR_COUNT: Final = 8
 ANCHOR_LEVEL_S: Final = 0.005
@@ -325,6 +331,31 @@ def music_end(samples: np.ndarray) -> float:
     return float((loud[-1] * HOP + END_FRAME / 2) / SAMPLE_RATE)
 
 
+def music_start(samples: np.ndarray) -> float:
+    """The time before which the song never comes within END_LEVEL_DB of its loudest moment."""
+    rms = librosa.feature.rms(y=samples, frame_length=END_FRAME, hop_length=HOP)[0]
+    level = 20 * np.log10(np.maximum(rms, 1e-9) / max(float(rms.max()), 1e-9))
+    loud = np.flatnonzero(level > END_LEVEL_DB)
+    if len(loud) == 0:
+        return 0.0
+    return max(0.0, float((loud[0] * HOP - END_FRAME / 2) / SAMPLE_RATE))
+
+
+def unheard_lead_in(samples: np.ndarray, notes: list[float]) -> list[float]:
+    """The notes before `music_start` with nothing within HEARD_LEVEL_DB of the loudest moment around them."""
+    start = music_start(samples)
+    loudest = float(librosa.feature.rms(y=samples, frame_length=END_FRAME, hop_length=HOP)[0].max())
+    rms = librosa.feature.rms(y=samples, frame_length=HEARD_FRAME, hop_length=HOP)[0]
+    level = 20 * np.log10(np.maximum(rms, 1e-9) / max(loudest, 1e-9))
+
+    def heard(time: float) -> bool:
+        low = max(0, int((time - HEARD_SEARCH_S) * SAMPLE_RATE / HOP))
+        high = min(len(level), int((time + HEARD_SEARCH_S) * SAMPLE_RATE / HOP) + 1)
+        return bool(level[low:high].max() > HEARD_LEVEL_DB) if high > low else False
+
+    return [time for time in notes if time < start and not heard(time)]
+
+
 def attack_anchors(samples: np.ndarray) -> list[float]:
     """Times of the sharpest attack in each stretch of the song.
 
@@ -390,6 +421,8 @@ def main(
         for step in select_steps(accent, DIFFICULTIES[level])
         if grid.step_times[step] <= end
     ]
+    unheard = set(unheard_lead_in(samples, notes))
+    notes = [time for time in notes if time not in unheard]
     listed = difficulty or rated_level(notes, grid.bpm, float(grid.step_times[0]))
 
     chart = {

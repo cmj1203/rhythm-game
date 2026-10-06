@@ -6,14 +6,7 @@ export type MenuOptions = {
   readonly songs: readonly SongSummary[];
   readonly initialSongId: string | null;
   readonly onStart: (song: SongSummary) => void;
-  /**
-   * The volume chosen so far, as a share of full volume, and what to do when the player changes it. Null for no
-   * volume slider at all, as on a phone, which has its own volume buttons.
-   */
-  readonly volume: number | null;
-  readonly onVolume: (share: number) => void;
-  /** Opens the timing check. */
-  readonly onCalibrate: () => void;
+  readonly onSettings: () => void;
   /** The player picked `song` in the list, by clicking it, the arrow keys or a difficulty tab. */
   readonly onBrowse: (song: SongSummary) => void;
 };
@@ -82,9 +75,9 @@ export class SongMenu {
     const startButton = element("button", "start", "시작");
     startButton.type = "button";
     startButton.addEventListener("click", () => this.start());
-    const calibrateButton = element("button", "start secondary", "박자 맞추기");
-    calibrateButton.type = "button";
-    calibrateButton.addEventListener("click", () => options.onCalibrate());
+    const settingsButton = element("button", "start secondary", "설정");
+    settingsButton.type = "button";
+    settingsButton.addEventListener("click", () => options.onSettings());
     this.status.setAttribute("aria-live", "polite");
 
     root.append(
@@ -92,8 +85,7 @@ export class SongMenu {
       tabs,
       songs.length === 0 ? element("p", "empty", "곡이 없습니다. README의 곡 추가 방법을 따라 넣어 주세요.") : list,
       startButton,
-      calibrateButton,
-      ...(options.volume === null ? [] : [this.volumeSlider(options.volume)]),
+      settingsButton,
       this.status,
       this.credit,
     );
@@ -105,24 +97,6 @@ export class SongMenu {
     this.setStatus("");
   }
 
-  /** "음량", a slider from 0 to 100% starting at `share`, and the percentage it is at. */
-  private volumeSlider(share: number): HTMLLabelElement {
-    const volume = element("label", "volume");
-    const slider = element("input", "volume-slider");
-    slider.type = "range";
-    slider.min = "0";
-    slider.max = "100";
-    slider.step = "5";
-    slider.value = String(Math.round(share * 100));
-    const percent = element("span", "volume-value", `${slider.value}%`);
-    slider.addEventListener("input", () => {
-      percent.textContent = `${slider.value}%`;
-      this.options.onVolume(Number(slider.value) / 100);
-    });
-    volume.append(element("span", "volume-name", "음량"), slider, percent);
-    return volume;
-  }
-
   hide(): void {
     this.options.root.hidden = true;
   }
@@ -132,8 +106,6 @@ export class SongMenu {
   }
 
   handleKey(event: KeyboardEvent): void {
-    // The volume slider takes the arrow keys for itself while it has the focus.
-    if (event.target instanceof HTMLInputElement) return;
     switch (event.code) {
       case "ArrowUp":
         this.step(-1);

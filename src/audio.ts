@@ -13,11 +13,13 @@ const PREVIEW_S = 12;
 const PREVIEW_FROM = 0.3;
 const PREVIEW_FADE_S = 0.6;
 /**
- * Songs are mastered at very different levels. A song whose root mean square (1 being full scale) is above
- * this plays turned down to it, so that no song is much louder than the rest or than other sound on the same
- * device; a quieter song plays as it is.
+ * Songs are mastered at very different levels. Every song plays at this root mean square (1 being full scale):
+ * a louder one turned down to it, a quieter one turned up to it, so that all songs sound about as loud as each
+ * other and as other sound on the same device.
  */
-const LOUDEST_RMS = 0.05;
+const SONG_RMS = 0.05;
+/** A quiet song is turned up only so far that its loudest moment stays below full scale, and does not crackle. */
+const MAX_PEAK = 0.99;
 
 /**
  * How many seconds later (negative: earlier) this browser's decoded audio plays each sound than the chart
@@ -61,17 +63,20 @@ export function decodingShift(buffer: AudioBuffer, anchors: readonly number[]): 
   return shifts[shifts.length >> 1] ?? 0;
 }
 
-/**
- * What to multiply `buffer` by as it plays, so that it is no louder than `LOUDEST_RMS`: 1 for a quiet song,
- * less for a loud one.
- */
+/** What to multiply `buffer` by as it plays, so that it plays at `SONG_RMS` without clipping. */
 export function volumeFor(buffer: AudioBuffer): number {
   let squares = 0;
+  let peak = 0;
   for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
     const samples = buffer.getChannelData(channel);
-    for (let i = 0; i < samples.length; i++) squares += (samples[i] ?? 0) ** 2;
+    for (let i = 0; i < samples.length; i++) {
+      const sample = samples[i] ?? 0;
+      squares += sample * sample;
+      peak = Math.max(peak, Math.abs(sample));
+    }
   }
-  return Math.min(1, LOUDEST_RMS / Math.sqrt(squares / (buffer.length * buffer.numberOfChannels)));
+  if (peak === 0) return 1;
+  return Math.min(SONG_RMS / Math.sqrt(squares / (buffer.length * buffer.numberOfChannels)), MAX_PEAK / peak);
 }
 
 export class SongPlayer {

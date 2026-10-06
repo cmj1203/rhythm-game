@@ -1,6 +1,7 @@
 import { assertNever } from "./assert";
 import { decodingShift, LEAD_IN_S, SongPlayer, volumeFor } from "./audio";
 import { CalibrationScreen } from "./calibration";
+import { SettingsScreen } from "./settings";
 import {
   type Difficulty,
   inMenuOrder,
@@ -38,6 +39,7 @@ type Screen =
   | { readonly kind: "title" }
   | { readonly kind: "tutorial" }
   | { readonly kind: "menu" }
+  | { readonly kind: "settings" }
   | { readonly kind: "calibration" }
   | { readonly kind: "loading" }
   | ReadyScreen
@@ -192,18 +194,33 @@ async function boot(): Promise<void> {
     songs: await inMenuOrder(songs),
     initialSongId: query.get("song"),
     onStart: (song) => void begin(song),
+    onSettings: () => {
+      stopPreview();
+      menu.hide();
+      settings.show();
+      screen = { kind: "settings" };
+    },
+    onBrowse: previewSong,
+  });
+
+  const settings = new SettingsScreen({
+    root: requireElement<HTMLElement>("#settings"),
     volume: hasVolumeSlider ? volume : null,
     onVolume: (share) => {
       player.setVolume(share);
       localStorage.setItem(VOLUME_KEY, String(share));
     },
+    lagMs: Math.round(savedLag() * 1000),
     onCalibrate: () => {
-      stopPreview();
-      menu.hide();
+      settings.hide();
       calibration.show();
       screen = { kind: "calibration" };
     },
-    onBrowse: previewSong,
+    onClose: () => {
+      settings.hide();
+      menu.show();
+      screen = { kind: "menu" };
+    },
   });
 
   const calibration = new CalibrationScreen({
@@ -211,11 +228,13 @@ async function boot(): Promise<void> {
     player,
     onDone: (lag) => {
       if (lag !== null) {
+        const ms = Math.round(lag * 1000);
         player.setLag(lag);
-        localStorage.setItem(LAG_KEY, String(Math.round(lag * 1000)));
+        localStorage.setItem(LAG_KEY, String(ms));
+        settings.setLag(ms);
       }
-      menu.show();
-      screen = { kind: "menu" };
+      settings.show();
+      screen = { kind: "settings" };
     },
   });
 
@@ -327,6 +346,13 @@ async function boot(): Promise<void> {
         }
         menu.handleKey(event);
         return;
+      case "settings":
+        if (event.code === "Escape") {
+          settings.hide();
+          menu.show();
+          screen = { kind: "menu" };
+        }
+        return;
       case "calibration":
         if (event.code === "Escape") {
           calibration.cancel();
@@ -387,6 +413,7 @@ async function boot(): Promise<void> {
         return intro.advance(performance.now());
       case "tutorial":
       case "menu":
+      case "settings":
       case "calibration":
       case "loading":
         return { kind: "idle" };

@@ -4,6 +4,14 @@ const ANCHOR_SEARCH_S = 0.06;
 const TICK_S = 0.03;
 const TICK_PITCH = 1800;
 const TICK_LOUDNESS = 0.075;
+/** The clicks of the timing check play alone, so they are louder than the ticks laid over a song. */
+const CHECK_LOUDNESS = 0.3;
+/** How long after `startClicks` the first click sounds. */
+const CHECK_LEAD_S = 0.6;
+/** A preview plays this long from this far into the song (as a share of its length), past most intros. */
+const PREVIEW_S = 12;
+const PREVIEW_FROM = 0.3;
+const PREVIEW_FADE_S = 0.6;
 /**
  * Songs are mastered at very different levels. A song whose root mean square (1 being full scale) is above
  * this plays turned down to it, so that no song is much louder than the rest or than other sound on the same
@@ -73,9 +81,18 @@ export class SongPlayer {
   /** Everything the player plays goes through this, at the share of full volume the player has chosen. */
   private readonly output = this.context.createGain();
   private startAt = 0;
+  /**
+   * How much later than the browser reports the player hears each sound and presses for it, in seconds, as the
+   * timing check measured. Song time is moved back by this much, for the judging and the picture alike.
+   */
+  private lag = 0;
 
   setVolume(share: number): void {
     this.output.gain.value = share;
+  }
+
+  setLag(seconds: number): void {
+    this.lag = seconds;
   }
 
   /** Must be called from a user gesture: browsers keep audio suspended until one happens. */
@@ -106,15 +123,48 @@ export class SongPlayer {
     this.source = source;
     if (ticks.length === 0) return;
 
+    this.playClicks(ticks, TICK_LOUDNESS);
+  }
+
+  /** Plays a stretch of `buffer`, fading in and out, at `volume` of its own level, for hearing a song before playing it. */
+  preview(buffer: AudioBuffer, volume: number): void {
+    this.stop();
+    const source = this.context.createBufferSource();
+    const level = this.context.createGain();
+    const at = this.context.currentTime;
+    const length = Math.min(PREVIEW_S, buffer.duration * (1 - PREVIEW_FROM));
+    level.gain.setValueAtTime(0, at);
+    level.gain.linearRampToValueAtTime(volume, at + PREVIEW_FADE_S);
+    level.gain.setValueAtTime(volume, at + length - PREVIEW_FADE_S);
+    level.gain.linearRampToValueAtTime(0, at + length);
+    source.buffer = buffer;
+    this.output.connect(this.context.destination);
+    source.connect(level).connect(this.output);
+    source.start(at, buffer.duration * PREVIEW_FROM, length);
+    this.source = source;
+  }
+
+  /**
+   * Plays only a click at each of `times`, the first `CHECK_LEAD_S` from now, for the timing check. Afterwards
+   * `heardTime` counts from the moment the clicks count from.
+   */
+  startClicks(times: readonly number[]): void {
+    this.stop();
+    this.output.connect(this.context.destination);
+    this.startAt = this.context.currentTime + CHECK_LEAD_S;
+    this.playClicks(times, CHECK_LOUDNESS);
+  }
+
+  private playClicks(times: readonly number[], loudness: number): void {
     const rate = this.context.sampleRate;
     const click = this.context.createBuffer(1, Math.round(TICK_S * rate), rate);
     const samples = click.getChannelData(0);
     for (let i = 0; i < samples.length; i++) {
-      samples[i] = TICK_LOUDNESS * Math.sin((2 * Math.PI * TICK_PITCH * i) / rate) * (1 - i / samples.length) ** 2;
+      samples[i] = loudness * Math.sin((2 * Math.PI * TICK_PITCH * i) / rate) * (1 - i / samples.length) ** 2;
     }
     const bus = this.context.createGain();
     bus.connect(this.output);
-    for (const time of ticks) {
+    for (const time of times) {
       const tick = this.context.createBufferSource();
       tick.buffer = click;
       tick.connect(bus);
@@ -131,8 +181,13 @@ export class SongPlayer {
     this.ticks = null;
   }
 
-  /** Song position (seconds) heard at `performanceMs`; negative during the lead-in. */
+  /** Song position (seconds) the player is at, at `performanceMs`; negative during the lead-in. */
   songTime(performanceMs: number): number {
+    return this.heardTime(performanceMs) - this.lag;
+  }
+
+  /** Song position (seconds) coming out of the speakers at `performanceMs`, as far as the browser knows. */
+  heardTime(performanceMs: number): number {
     // getOutputTimestamp pairs the audio clock with the performance clock, so a key event's own
     // timestamp can be converted instead of sampling the clock whenever the handler happens to run.
     const stamp = this.context.getOutputTimestamp();

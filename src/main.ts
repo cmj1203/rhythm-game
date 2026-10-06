@@ -1,13 +1,22 @@
 import { assertNever } from "./assert";
 import { decodingShift, LEAD_IN_S, SongPlayer, volumeFor } from "./audio";
-import { type Difficulty, inMenuOrder, loadSong, loadSongIndex, SongLoadError, type SongSummary } from "./chart";
+import { CalibrationScreen } from "./calibration";
+import {
+  type Difficulty,
+  inMenuOrder,
+  loadPicturePins,
+  loadSong,
+  loadSongIndex,
+  SongLoadError,
+  type SongSummary,
+} from "./chart";
 import { element } from "./dom";
 import { DrawingLoadError } from "./drawing";
 import { loadIntro } from "./intro";
 import { PlayState } from "./judge";
 import { SongMenu } from "./menu";
 import type { Path } from "./path";
-import { sewingFor } from "./pictures";
+import { sewingFor, sewingOf } from "./pictures";
 import { type Frame, Renderer } from "./render";
 import { dyePath, planSections, type Section } from "./sections";
 import { TitleScreen } from "./title";
@@ -15,6 +24,8 @@ import { BURST_S, type Feedback, finaleProgress } from "./track";
 import { TutorialScreen } from "./tutorial";
 
 const RESULT_FADE_MS = 600;
+/** A song is previewed once the player has stayed on it this long, so that running down the list stays quiet. */
+const PREVIEW_DELAY_MS = 350;
 
 type Session = {
   readonly song: SongSummary;
@@ -27,6 +38,7 @@ type Screen =
   | { readonly kind: "title" }
   | { readonly kind: "tutorial" }
   | { readonly kind: "menu" }
+  | { readonly kind: "calibration" }
   | { readonly kind: "loading" }
   | ReadyScreen
   | (Session & {
@@ -76,6 +88,14 @@ function savedVolume(): number {
   return Number.isFinite(saved) ? Math.min(1, Math.max(0, saved)) : 1;
 }
 
+const LAG_KEY = "livecanvas.lagMs";
+
+/** The lag the timing check found last time, in seconds; none if it was never kept. */
+function savedLag(): number {
+  const saved = Number(localStorage.getItem(LAG_KEY) ?? "0");
+  return Number.isFinite(saved) ? saved / 1000 : 0;
+}
+
 async function boot(): Promise<void> {
   const renderer = new Renderer(requireElement<HTMLCanvasElement>("#game"));
   const overButtons = requireElement<HTMLElement>("#over");
@@ -85,7 +105,9 @@ async function boot(): Promise<void> {
   const hasVolumeSlider = !window.matchMedia("(pointer: coarse)").matches;
   const volume = hasVolumeSlider ? savedVolume() : 1;
   player.setVolume(volume);
+  player.setLag(savedLag());
   const songs = await loadSongIndex();
+  const picturePins = await loadPicturePins();
   const query = new URLSearchParams(window.location.search);
   const intro = await loadIntro({
     isCalm: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
@@ -93,8 +115,34 @@ async function boot(): Promise<void> {
   });
   let screen: Screen = { kind: "title" };
 
+  let previewTimer = 0;
+  let previewing: string | null = null;
+  const stopPreview = (): void => {
+    window.clearTimeout(previewTimer);
+    previewing = null;
+    player.stop();
+  };
+  const playPreview = async (songId: string): Promise<void> => {
+    let buffer: AudioBuffer;
+    try {
+      buffer = await player.decode((await loadSong(songId)).audio);
+    } catch (error) {
+      // A preview that cannot load stays silent: starting the song reports the same failure.
+      if (error instanceof SongLoadError || error instanceof DOMException) return;
+      throw error;
+    }
+    if (previewing === songId && screen.kind === "menu") player.preview(buffer, volumeFor(buffer));
+  };
+  const previewSong = (song: SongSummary): void => {
+    stopPreview();
+    previewing = song.id;
+    void player.unlock();
+    previewTimer = window.setTimeout(() => void playPreview(song.id), PREVIEW_DELAY_MS);
+  };
+
   const begin = async (song: SongSummary): Promise<void> => {
     if (screen.kind !== "menu") return;
+    stopPreview();
     screen = { kind: "loading" };
     menu.setStatus("불러오는 중...");
     const unlocked = player.unlock();
@@ -103,12 +151,16 @@ async function boot(): Promise<void> {
       const buffer = await player.decode(audio);
       await unlocked;
       const times = chart.notes;
-      const { pictureName, path } = await sewingFor(
-        times,
-        songs.findIndex(({ id }) => id === song.id),
-        songs.length,
-        song.difficulty,
-      );
+      const pinned = picturePins.get(song.id);
+      const { pictureName, path } =
+        pinned === undefined
+          ? await sewingFor(
+              times,
+              songs.findIndex(({ id }) => id === song.id),
+              songs.length,
+              song.difficulty,
+            )
+          : await sewingOf(times, pinned);
       const sections = planSections(times, chart.bpm, chart.offset);
       menu.hide();
       backCorner.hidden = false;
@@ -144,6 +196,26 @@ async function boot(): Promise<void> {
     onVolume: (share) => {
       player.setVolume(share);
       localStorage.setItem(VOLUME_KEY, String(share));
+    },
+    onCalibrate: () => {
+      stopPreview();
+      menu.hide();
+      calibration.show();
+      screen = { kind: "calibration" };
+    },
+    onBrowse: previewSong,
+  });
+
+  const calibration = new CalibrationScreen({
+    root: requireElement<HTMLElement>("#calibration"),
+    player,
+    onDone: (lag) => {
+      if (lag !== null) {
+        player.setLag(lag);
+        localStorage.setItem(LAG_KEY, String(Math.round(lag * 1000)));
+      }
+      menu.show();
+      screen = { kind: "menu" };
     },
   });
 
@@ -247,12 +319,22 @@ async function boot(): Promise<void> {
         return;
       case "menu":
         if (event.code === "Escape") {
+          stopPreview();
           menu.hide();
           title.show();
           screen = { kind: "title" };
           return;
         }
         menu.handleKey(event);
+        return;
+      case "calibration":
+        if (event.code === "Escape") {
+          calibration.cancel();
+          return;
+        }
+        if (event.metaKey || event.ctrlKey || event.altKey || event.target instanceof HTMLButtonElement) return;
+        event.preventDefault();
+        calibration.press(event.timeStamp);
         return;
       case "loading":
         return;
@@ -290,6 +372,9 @@ async function boot(): Promise<void> {
     if (screen.kind === "title") intro.skip();
     else if (screen.kind === "ready") startPlaying(screen);
     else if (screen.kind === "playing") press(screen, event.timeStamp);
+    else if (screen.kind === "calibration" && !(event.target instanceof HTMLButtonElement)) {
+      calibration.press(event.timeStamp);
+    }
   });
 
   window.addEventListener("click", () => {
@@ -302,6 +387,7 @@ async function boot(): Promise<void> {
         return intro.advance(performance.now());
       case "tutorial":
       case "menu":
+      case "calibration":
       case "loading":
         return { kind: "idle" };
       case "ready":

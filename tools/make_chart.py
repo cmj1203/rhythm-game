@@ -80,9 +80,18 @@ ANCHOR_LEVEL_S: Final = 0.005
 ANCHOR_MIN_SHARE: Final = 0.2
 
 
-# A song is charted at one difficulty. Unless one is asked for, its tempo decides: the faster the beat, the harder.
+# A song is charted at one difficulty. Unless one is asked for, its tempo picks how many of its hits become notes
+# (`level_for`), and then the notes picked decide the difficulty the chart is listed under (`rated_level`).
 EASY_BELOW_BPM: Final = 105
 HARD_FROM_BPM: Final = 125
+
+# How hard a chart is to play: its notes per minute, raised by the share of them off the beat and by the share
+# that come within QUICK_GAP_S of the note before. 200 and 360 split the songs into thirds of about equal size.
+QUICK_GAP_S: Final = 0.25
+QUICK_WEIGHT: Final = 0.5
+OFF_BEAT_TOLERANCE: Final = 0.1
+EASY_BELOW_LOAD: Final = 200
+HARD_FROM_LOAD: Final = 360
 
 
 class Level(StrEnum):
@@ -122,6 +131,20 @@ def level_for(bpm: float) -> Level:
     if bpm < EASY_BELOW_BPM:
         return Level.EASY
     return Level.HARD if bpm >= HARD_FROM_BPM else Level.NORMAL
+
+
+def rated_level(notes: list[float], bpm: float, offset: float) -> Level:
+    """The difficulty to list a chart under, from how hard its notes are to play."""
+    times = np.asarray(notes)
+    phase = ((times - offset) * bpm / 60) % 1
+    off_beat = float(np.mean(np.abs(phase - np.round(phase)) > OFF_BEAT_TOLERANCE))
+    gaps = np.diff(times)
+    quick = float(np.mean(gaps < QUICK_GAP_S)) if len(gaps) > 0 else 0.0
+    per_minute = len(times) / max(float(times[-1] - times[0]), 1.0) * 60
+    load = per_minute * (1 + off_beat) * (1 + QUICK_WEIGHT * quick)
+    if load < EASY_BELOW_LOAD:
+        return Level.EASY
+    return Level.HARD if load >= HARD_FROM_LOAD else Level.NORMAL
 
 
 @dataclass(frozen=True, slots=True)
@@ -367,6 +390,7 @@ def main(
         for step in select_steps(accent, DIFFICULTIES[level])
         if grid.step_times[step] <= end
     ]
+    listed = difficulty or rated_level(notes, grid.bpm, float(grid.step_times[0]))
 
     chart = {
         "version": 4,
@@ -376,7 +400,7 @@ def main(
         "offset": round(float(grid.step_times[0]), 4),
         "duration": round(duration, 3),
         "anchors": attack_anchors(samples),
-        "difficulty": level.value,
+        "difficulty": listed.value,
         "notes": notes,
     }
     for key, value in (("artist", artist), ("credit", credit)):
@@ -391,7 +415,7 @@ def main(
     table.add_column("difficulty")
     table.add_column("notes", justify="right")
     table.add_column("notes/sec", justify="right")
-    table.add_row(level.value, str(len(notes)), f"{len(notes) / duration:.2f}")
+    table.add_row(listed.value, str(len(notes)), f"{len(notes) / duration:.2f}")
     console = Console()
     console.print(table)
     console.print(f"[green]wrote[/green] {out}")

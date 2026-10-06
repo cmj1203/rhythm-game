@@ -1,5 +1,5 @@
 import { DIFFICULTIES, type Difficulty } from "./chart";
-import { backwards, loadDrawing, routeOf } from "./drawing";
+import { backwards, type Drawing, loadDrawing, routeOf } from "./drawing";
 import { GUIDE_STEP } from "./guide";
 import { buildPath, type Path, shareEnding } from "./path";
 
@@ -379,12 +379,18 @@ export const PICTURES = [
 export type Sewing = { readonly pictureName: string; readonly path: Path };
 
 /**
- * The picture for one chart, and the road that sews it. The pictures are dealt out like cards to the charts,
- * in the order the songs are listed (`songNumber` counts from 0, of `songCount` songs), so no two charts sew
- * the same picture while there are enough pictures. A chart that is dealt more than one picture, and every
- * chart for the two ends a line can be sewn from, takes the one whose picture its last note completes, and
- * among those what its rhythm follows most closely, so that the bends its notes force on the road fall where the
- * picture bends anyway.
+ * The road that sews the picture `pictureName` for one chart. Most songs have their picture picked for them in
+ * `public/songs/pictures.json` by tools/pick_pictures.ts, out of all the pictures, as the one their rhythm
+ * follows best.
+ */
+export async function sewingOf(times: readonly number[], pictureName: string): Promise<Sewing> {
+  return bestSewing(times, [await loadDrawing(pictureName)]);
+}
+
+/**
+ * The picture for a chart that has none picked yet, and the road that sews it. The pictures are dealt out like
+ * cards to the charts, in the order the songs are listed (`songNumber` counts from 0, of `songCount` songs), so
+ * no two charts sew the same picture while there are enough pictures.
  */
 export async function sewingFor(
   times: readonly number[],
@@ -395,7 +401,15 @@ export async function sewingFor(
   const turn = songNumber * DIFFICULTIES.length + DIFFICULTIES.indexOf(difficulty);
   const dealt = PICTURES.filter((_, i) => i % (songCount * DIFFICULTIES.length) === turn);
   const offered = dealt.length > 0 ? dealt : [PICTURES[turn % PICTURES.length] ?? PICTURES[0]];
-  const drawings = await Promise.all(offered.map(loadDrawing));
+  return bestSewing(times, await Promise.all(offered.map(loadDrawing)));
+}
+
+/**
+ * Of `drawings`, each sewn from either end of its line, the one whose picture the chart's last note completes,
+ * and among those what its rhythm follows most closely, so that the bends its notes force on the road fall where
+ * the picture bends anyway.
+ */
+function bestSewing(times: readonly number[], drawings: readonly Drawing[]): Sewing {
   const sewings = drawings.flatMap((drawing) =>
     [routeOf(drawing), backwards(routeOf(drawing))].map((route) => ({
       pictureName: drawing.name,

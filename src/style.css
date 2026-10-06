@@ -288,6 +288,70 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+#calibration {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  box-sizing: border-box;
+  padding: 24px 20px;
+  background: var(--background);
+  touch-action: manipulation;
+  user-select: none;
+}
+
+#calibration[hidden] {
+  display: none;
+}
+
+#calibration > * {
+  width: min(420px, 100%);
+  box-sizing: border-box;
+  margin: 0;
+  text-align: center;
+}
+
+.calibration-dots {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.calibration-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--surface);
+}
+
+.calibration-dot.pressed {
+  background: var(--text);
+}
+
+.calibration-result {
+  min-height: 34px;
+  font-size: 28px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.calibration-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.calibration-buttons .start {
+  width: min(160px, 42vw);
+}
+
+.calibration-buttons .start[hidden] {
+  display: none;
+}
+
 #tutorial {
   position: fixed;
   inset: 0;

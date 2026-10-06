@@ -7,10 +7,11 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tools",
     "chart": "uv run tools/make_chart.py"
   },
   "devDependencies": {
+    "@types/bun": "^1.4.2",
     "typescript": "^7.0.2",
     "vite": "^8.3.1"
   },

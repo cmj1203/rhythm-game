@@ -60,6 +60,14 @@ export async function loadSongIndex(): Promise<readonly SongSummary[]> {
   return songIndexSchema.parse(await (await fetchOk(`${SONGS_URL}/index.json`)).json()).songs;
 }
 
+const picturePinsSchema = z.object({ pictures: z.record(songIdSchema, z.string().regex(/^[a-z0-9-]+$/)) });
+
+/** The picture picked for each song (tools/pick_pictures.ts writes them), by song id. */
+export async function loadPicturePins(): Promise<ReadonlyMap<string, string>> {
+  const { pictures } = picturePinsSchema.parse(await (await fetchOk(`${SONGS_URL}/pictures.json`)).json());
+  return new Map(Object.entries(pictures));
+}
+
 const songOrderSchema = z.object({ order: z.array(songIdSchema) });
 
 /**

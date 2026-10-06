@@ -12,6 +12,10 @@ export type MenuOptions = {
    */
   readonly volume: number | null;
   readonly onVolume: (share: number) => void;
+  /** Opens the timing check. */
+  readonly onCalibrate: () => void;
+  /** The player picked `song` in the list, by clicking it, the arrow keys or a difficulty tab. */
+  readonly onBrowse: (song: SongSummary) => void;
 };
 
 const DIFFICULTY_LABEL = { easy: "Easy", normal: "Normal", hard: "Hard" } as const satisfies Record<Difficulty, string>;
@@ -78,6 +82,9 @@ export class SongMenu {
     const startButton = element("button", "start", "시작");
     startButton.type = "button";
     startButton.addEventListener("click", () => this.start());
+    const calibrateButton = element("button", "start secondary", "박자 맞추기");
+    calibrateButton.type = "button";
+    calibrateButton.addEventListener("click", () => options.onCalibrate());
     this.status.setAttribute("aria-live", "polite");
 
     root.append(
@@ -85,6 +92,7 @@ export class SongMenu {
       tabs,
       songs.length === 0 ? element("p", "empty", "곡이 없습니다. README의 곡 추가 방법을 따라 넣어 주세요.") : list,
       startButton,
+      calibrateButton,
       ...(options.volume === null ? [] : [this.volumeSlider(options.volume)]),
       this.status,
       this.credit,
@@ -161,6 +169,8 @@ export class SongMenu {
   private select(index: number): void {
     this.songIndex = index;
     this.refresh();
+    const song = this.options.songs[index];
+    if (song !== undefined) this.options.onBrowse(song);
   }
 
   /** Picks the next song of the difficulty on show: `by` 1 goes down the list, -1 up. */

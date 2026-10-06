@@ -311,16 +311,6 @@
    "credit": "Music - \"Dubakupado\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
-   "id": "ectoplasm",
-   "title": "Ectoplasm",
-   "bpm": 112.0,
-   "duration": 157.153,
-   "difficulty": "normal",
-   "notes": 391,
-   "artist": "Jason Shaw",
-   "credit": "Music: \"Ectoplasm\" by Jason Shaw, Audionautix.com. Licensed under Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
    "id": "electro-cabello",
    "title": "Electro Cabello",
    "bpm": 117.0,
@@ -379,26 +369,6 @@
    "notes": 536,
    "artist": "Jason Shaw",
    "credit": "Music: \"Feel Good Rock\" by Jason Shaw, Audionautix.com. Licensed under Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
-   "id": "feels-good-2-b",
-   "title": "Feels Good 2 B",
-   "bpm": 90.0,
-   "duration": 170.971,
-   "difficulty": "easy",
-   "notes": 320,
-   "artist": "Jason Shaw",
-   "credit": "\"Feels Good 2 B\" by Jason Shaw (https://freemusicarchive.org/music/Jason_Shaw/Audionautix_Tech_Urban_Dance/TU-FeelsGood2B/). Licensed under CC BY 3.0 https://creativecommons.org/licenses/by/3.0/"
-  },
-  {
-   "id": "final-level",
-   "title": "Final Level",
-   "bpm": 129.99,
-   "duration": 239.953,
-   "difficulty": "hard",
-   "notes": 943,
-   "artist": "HoliznaCC0",
-   "credit": "\"Final Level\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/gamer-beats/final-level/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
   {
    "id": "flutey-funk",
@@ -481,16 +451,6 @@
    "credit": "\"Game BOI 1\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/gamer-soundtrack-game-boi/game-boi-1/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
   {
-   "id": "game-boi-3",
-   "title": "Game BOI 3",
-   "bpm": 120.0,
-   "duration": 197.953,
-   "difficulty": "hard",
-   "notes": 722,
-   "artist": "HoliznaCC0",
-   "credit": "\"Game BOI 3\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/gamer-soundtrack-game-boi/game-boi-3/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
-  },
-  {
    "id": "game-travel-1",
    "title": "Game Travel 1",
    "bpm": 93.1,
@@ -521,16 +481,6 @@
    "credit": "Music - \"Glitter Blast\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
-   "id": "groovy-baby",
-   "title": "Groovy Baby",
-   "bpm": 120.0,
-   "duration": 147.931,
-   "difficulty": "hard",
-   "notes": 577,
-   "artist": "Jason Shaw",
-   "credit": "Music: \"Groovy Baby\" by Jason Shaw, Audionautix.com. Licensed under Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
    "id": "groundwork",
    "title": "Groundwork",
    "bpm": 102.0,
@@ -541,16 +491,6 @@
    "credit": "Music - \"Groundwork\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
-   "id": "heavy-drums-n-bass",
-   "title": "Heavy Drums N Bass",
-   "bpm": 109.0,
-   "duration": 118.204,
-   "difficulty": "easy",
-   "notes": 249,
-   "artist": "Jason Shaw",
-   "credit": "Music: \"Heavy Drums N Bass\" by Jason Shaw, Audionautix.com. Licensed under Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
    "id": "highlight-reel",
    "title": "Highlight Reel",
    "bpm": 90.06,
@@ -559,16 +499,6 @@
    "notes": 278,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Highlight Reel\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
-   "id": "hotrock",
-   "title": "Hotrock",
-   "bpm": 128.0,
-   "duration": 204.722,
-   "difficulty": "hard",
-   "notes": 818,
-   "artist": "Kevin MacLeod",
-   "credit": "Music - \"Hotrock\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "humble",
@@ -711,16 +641,6 @@
    "credit": "Music - \"Loopster\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
-   "id": "magic-bottle-town",
-   "title": "The Town Where I Got the Magic Bottle",
-   "bpm": 110.0,
-   "duration": 104.727,
-   "difficulty": "normal",
-   "notes": 370,
-   "artist": "Ragnar Random",
-   "credit": "\"The Town Where I Got the Magic Bottle\" by Ragnar Random (https://opengameart.org/content/fakebit-chiptune-music-pack), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
-  },
-  {
    "id": "make-funk",
    "title": "Make Funk",
    "bpm": 99.0,
@@ -759,16 +679,6 @@
    "notes": 617,
    "artist": "HoliznaCC0",
    "credit": "\"Mini Boss\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/retro-gamer-soundtrack/mini-boss/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
-  },
-  {
-   "id": "mountain-emperor",
-   "title": "Mountain Emperor",
-   "bpm": 120.0,
-   "duration": 200.072,
-   "difficulty": "normal",
-   "notes": 592,
-   "artist": "Kevin MacLeod",
-   "credit": "Music - \"Mountain Emperor\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "mt-fox-shop",
@@ -931,16 +841,6 @@
    "credit": "\"Retro Soundtrack\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/power-pop/retro-soundtrack/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
   {
-   "id": "rising-tide-faster",
-   "title": "Rising Tide (faster)",
-   "bpm": 122.0,
-   "duration": 241.032,
-   "difficulty": "normal",
-   "notes": 585,
-   "artist": "Kevin MacLeod",
-   "credit": "Music - \"Rising Tide (faster)\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
    "id": "rubix-cube",
    "title": "Rubix Cube",
    "bpm": 89.99,
@@ -959,26 +859,6 @@
    "notes": 305,
    "artist": "HoliznaCC0",
    "credit": "\"Ruby 4\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/ruby-chiptunes/ruby-4/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
-  },
-  {
-   "id": "saturn",
-   "title": "Saturn",
-   "bpm": 120.0,
-   "duration": 179.953,
-   "difficulty": "normal",
-   "notes": 609,
-   "artist": "HoliznaCC0",
-   "credit": "\"Saturn\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/interstellar-pop-songs/saturn-1/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
-  },
-  {
-   "id": "sax-rock-and-roll",
-   "title": "Sax, Rock, and Roll",
-   "bpm": 127.96,
-   "duration": 204.722,
-   "difficulty": "hard",
-   "notes": 833,
-   "artist": "Kevin MacLeod",
-   "credit": "Music - \"Sax, Rock, and Roll\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "show-your-moves",
@@ -1099,16 +979,6 @@
    "notes": 482,
    "artist": "Komiku",
    "credit": "\"The road we use to travel when we were kids\" by Komiku (https://freemusicarchive.org/music/Komiku/Tale_on_the_Late/Komiku_-_Tale_on_the_Late_-_03_The_road_we_use_to_travel_when_we_were_kids/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
-  },
-  {
-   "id": "the-white",
-   "title": "The White",
-   "bpm": 144.99,
-   "duration": 142.193,
-   "difficulty": "hard",
-   "notes": 711,
-   "artist": "Rolemusic",
-   "credit": "\"The White\" by Rolemusic (https://freemusicarchive.org/music/Rolemusic/The_Black_Dot/The_White/). Licensed under CC BY 4.0 https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "to-fight-a-spell-by-dancing",

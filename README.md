@@ -132,6 +132,12 @@ pnpm dev       # 터미널에 나오는 http://localhost:5173 주소를 브라�
    uv run tools/check_timing.py <곡-id>
    ```
 
+   반복도 검사한다. 마디마다 소리를 4마디 앞, 8마디 앞 마디와 비교해 거의 같은 마디가 50% 이상이면 FAIL이다. 같은 구간만 되풀이하는 곡은 넣지 않는다.
+
+   ```bash
+   uv run tools/check_variety.py <곡-id>
+   ```
+
 4. 그림을 고르고 화면을 검사한다. `pnpm dev`를 켠 채로 다른 터미널에서 실행한다. 그림 고르기는 그림이 아직 없는 곡에만, 남은 그림 가운데 가장 잘 맞는 것을 골라 `public/songs/pictures.json`에 적는다. 화면 검사는 모든 곡의 크레파스 빠르기, 그림이 마지막 노트에 끝나는지, 완만한 꺾임 연속, 그림 겹침을 보고, 하나라도 걸리면 FAIL을 찍는다.
 
    ```bash
@@ -175,7 +181,6 @@ pnpm dev       # 터미널에 나오는 http://localhost:5173 주소를 브라�
 | `highlight-reel` | Highlight Reel (밝은 록) | Easy | 90 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `andreas-theme` | Andreas Theme (밴드 록) | Easy | 90 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `game-boi-1` | Game BOI 1 (게임 음악, 엇박 많음) | Easy | 90 BPM | HoliznaCC0 (Free Music Archive), CC0 |
-| `feels-good-2-b` | Feels Good 2 B (어반 댄스) | Easy | 90 BPM | Jason Shaw (Free Music Archive), CC BY 3.0 |
 | `jupiter` | Jupiter (신스 팝) | Easy | 90 BPM | HoliznaCC0 (Free Music Archive), CC0 |
 | `fearless-first` | Fearless First (밴드 록) | Easy | 92 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `wallpaper` | Wallpaper (밝은 신스와 드럼, 엇박 많음) | Easy | 93 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
@@ -198,7 +203,6 @@ pnpm dev       # 터미널에 나오는 http://localhost:5173 주소를 브라�
 | `funkorama` | Funkorama | Easy | 101 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `sunday-dub` | Sunday Dub (더브, 엇박 많음) | Easy | 102 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `groundwork` | Groundwork (안정적인 그루브) | Easy | 102 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
-| `heavy-drums-n-bass` | Heavy Drums N Bass (드럼 중심) | Easy | 109 BPM | Jason Shaw (Audionautix.com), CC BY 4.0 |
 | `club-seamus` | Club Seamus (백파이프 클럽 그루브) | Easy | 112 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `back-in-the-80s` | Back In The 80s (80년대 신스팝, 촘촘함) | Easy | 120 BPM | HoliznaCC0 (Free Music Archive), CC0 |
 | `game-travel-1` | Game Travel 1 (게임 음악, 엇박 많음) | Normal | 93 BPM | HoliznaCC0 (Free Music Archive), CC0 |
@@ -209,10 +213,8 @@ pnpm dev       # 터미널에 나오는 http://localhost:5173 주소를 브라�
 | `fat-caps` | Fat Caps (어반 댄스, 엇박 많음) | Normal | 109 BPM | Jason Shaw (Free Music Archive), CC BY 3.0 |
 | `kumasi-groove` | Kumasi Groove (타악기와 마림바, 엇박 많음) | Normal | 110 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `radio-rock` | Radio Rock (록) | Normal | 110 BPM | Jason Shaw (Audionautix.com), CC BY 4.0 |
-| `magic-bottle-town` | The Town Where I Got the Magic Bottle (칩튠) | Normal | 110 BPM | Ragnar Random (OpenGameArt), CC0 |
 | `mt-fox-shop` | Mt Fox Shop (칩튠 게임 음악) | Normal | 110 BPM | BoxCat Games (Free Music Archive), CC BY 3.0 |
 | `punk-rock-metal` | Punk Rock Metal Background Music (펑크 록) | Normal | 110 BPM | madworldgames (OpenGameArt), CC0 |
-| `ectoplasm` | Ectoplasm (엇박 많음) | Normal | 112 BPM | Jason Shaw (Audionautix.com), CC BY 4.0 |
 | `pilot-error` | Pilot Error (록, 엇박 많음) | Normal | 112 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `delay-rock` | Delay Rock (록) | Normal | 112 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `mini-boss` | Mini Boss (게임 음악) | Normal | 112 BPM | HoliznaCC0 (Free Music Archive), CC0 |
@@ -228,7 +230,6 @@ pnpm dev       # 터미널에 나오는 http://localhost:5173 주소를 브라�
 | `c-funk` | C-Funk (펑크, 엇박 많음) | Normal | 117 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `electro-cabello` | Electro Cabello (드럼과 브라스 그루브) | Normal | 117 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `fantasia-fantasia` | Fantasia Fantasia (판타지 록, 구간 변화 많음) | Normal | 118 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
-| `mountain-emperor` | Mountain Emperor (타이코 북과 가믈란) | Normal | 120 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `voltaic` | Voltaic (전자 타악기, 촘촘함) | Normal | 120 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `enter-the-party` | Enter the Party (댄스, 엇박 많음) | Normal | 120 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `kicking-bullies` | Kicking bullies (게임 음악) | Normal | 120 BPM | Komiku (Free Music Archive), CC0 |
@@ -236,20 +237,16 @@ pnpm dev       # 터미널에 나오는 http://localhost:5173 주소를 브라�
 | `your-call` | Your Call (촘촘함, 엇박 많음) | Normal | 120 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `impact-allegretto` | Impact Allegretto (오케스트라 타격, 엇박 많음) | Normal | 120 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `b-3` | B-3 (칩튠 게임 음악) | Normal | 120 BPM | BoxCat Games (Free Music Archive), CC BY 3.0 |
-| `saturn` | Saturn (신스 그루브, 엇박 많음) | Normal | 120 BPM | HoliznaCC0 (Free Music Archive), CC0 |
 | `menace` | Menace (빠른 고딕 메탈) | Normal | 120 BPM | Tomasz Kucza (OpenGameArt), CC BY 4.0 |
 | `looking-for-ammunition` | Wandering Around Looking for Ammunition (칩튠) | Normal | 120 BPM | Ragnar Random (OpenGameArt), CC0 |
 | `prepare-to-fight` | Prepare to fight (게임 전투 음악) | Normal | 120 BPM | Basil (OpenGameArt), CC0 |
 | `forever-believe` | Forever Believe (어반 댄스) | Normal | 121 BPM | Jason Shaw (Free Music Archive), CC BY 3.0 |
-| `rising-tide-faster` | Rising Tide (faster) (전자음악, 촘촘함) | Normal | 122 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `tech-live` | Tech Live (전자 타악기, 촘촘함) | Normal | 124 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `wretched-destroyer` | Wretched Destroyer (헤비 메탈) | Normal | 140 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `release` | Release | Normal | 156 BPM | Josh Woodward, CC BY 4.0 |
 | `captain-glouglou-contest` | Captain Glouglou contest (게임 음악, 엇박 많음) | Hard | 120 BPM | Komiku (Free Music Archive), CC0 |
-| `groovy-baby` | Groovy Baby (촘촘한 그루브, 엇박 많음) | Hard | 120 BPM | Jason Shaw (Audionautix.com), CC BY 4.0 |
 | `jenifer-the-game` | Jenifer The Game (게임 음악, 촘촘함) | Hard | 120 BPM | Komiku (Free Music Archive), CC0 |
 | `psychedelic-crater` | Psychedelic Crater (촘촘함, 구간 변화 큼) | Hard | 120 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
-| `game-boi-3` | Game BOI 3 (게임 음악, 촘촘함, 엇박 많음) | Hard | 120 BPM | HoliznaCC0 (Free Music Archive), CC0 |
 | `funky-pop` | Funky Pop (팝, 엇박 많음) | Hard | 121 BPM | HoliznaCC0 (Free Music Archive), CC0 |
 | `voxel-revolution` | Voxel Revolution (전자음악, 엇박 많음) | Hard | 122 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `covered-in-oil` | Covered In Oil (펑키한 전자 힙합) | Hard | 124 BPM | Broke For Free (Free Music Archive), CC BY 3.0 |
@@ -258,11 +255,8 @@ pnpm dev       # 터미널에 나오는 http://localhost:5173 주소를 브라�
 | `special-spotlight` | Special Spotlight (빠른 록) | Hard | 126 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `big-love` | Big Love (댄스 하우스) | Hard | 127 BPM | 1000 Handz (Free Music Archive), CC BY 4.0 |
 | `laserpack` | Laserpack (신스와 금속 타악기) | Hard | 128 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
-| `hotrock` | Hotrock (록, 촘촘함) | Hard | 128 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
-| `sax-rock-and-roll` | Sax, Rock, and Roll (색소폰 록, 촘촘함) | Hard | 128 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `friend-to-friend` | Friend to friend (R&B 비트, 엇박 많음) | Hard | 130 BPM | Loyalty Freak Music (Free Music Archive), CC0 |
 | `humble` | Humble (댄스 하우스) | Hard | 130 BPM | 1000 Handz (Free Music Archive), CC BY 4.0 |
-| `final-level` | Final Level (게임 음악, 가장 촘촘함) | Hard | 130 BPM | HoliznaCC0 (Free Music Archive), CC0 |
 | `lagoa-v2` | Lagoa v2 (브라질 카니발) | Hard | 130 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `level-8-find-a-way` | Level 8 : Find a way (게임 음악) | Hard | 130 BPM | Komiku (Free Music Archive), CC0 |
 | `acoustic-rock` | Acoustic Rock (빠른 어쿠스틱 록) | Hard | 130 BPM | Jason Shaw (Audionautix.com), CC BY 4.0 |
@@ -285,22 +279,19 @@ pnpm dev       # 터미널에 나오는 http://localhost:5173 주소를 브라�
 | `retro-soundtrack` | Retro Soundtrack (빠른 신스, 구간 변화 많음) | Hard | 140 BPM | HoliznaCC0 (Free Music Archive), CC0 |
 | `breakdown` | Breakdown (록, 촘촘함) | Hard | 140 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `level-4-first-infiltration-in-unresponsible-tech` | Level 4 : First infiltration in Unresponsible Tech (빠른 아케이드 액션) | Hard | 143 BPM | Komiku (Free Music Archive), CC0 |
-| `the-white` | The White (빠른 칩튠, 촘촘함) | Hard | 145 BPM | Rolemusic (Free Music Archive), CC BY 4.0 |
 | `jaunty-gumption` | Jaunty Gumption (빠른 마림바와 오르간) | Hard | 146 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 
 Josh Woodward의 곡은 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)으로 공개되어 있다. Free download: https://www.joshwoodward.com/
 
-Kevin MacLeod의 곡(8bit Dungeon Boss, Aerosol of my Love, Andreas Theme, Aurea Carmina, Blippy Trance, Breakdown, C-Funk, Carnivale Intrigue, Cloud Dancer, Club Seamus, Cretaceous Dawn, Delay Rock, Desert of Lost Souls, Dubakupado, Electro Cabello, Enter the Party, Fantasia Fantasia, Fearless First, Flutey Funk, Freddy's Menagerie, Funkorama, Funky Chunk, Getting it Done, Glitter Blast, Groundwork, Highlight Reel, Hotrock, Impact Allegretto, Jaunty Gumption, Kumasi Groove, Lagoa v2, Laserpack, Loopster, Mountain Emperor, No Frills Comparsa, Pilot Error, Pookatori and Friends, Protofunk, Psychedelic Crater, Raving Energy (faster), Rising Tide (faster), "Sax, Rock, and Roll", Show Your Moves, Southern Gothic, Special Spotlight, Street Party, Sunday Dub, Tafi Maradi no voice, Tech Live, Unholy Knight, Voltaic, Voxel Revolution, Wallpaper, Wretched Destroyer, Your Call, Zap Beat)은 Kevin MacLeod (incompetech.com)의 작품이다. Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/ 음원은 고치지 않고 그대로 쓴다.
+Kevin MacLeod의 곡(8bit Dungeon Boss, Aerosol of my Love, Andreas Theme, Aurea Carmina, Blippy Trance, Breakdown, C-Funk, Carnivale Intrigue, Cloud Dancer, Club Seamus, Cretaceous Dawn, Delay Rock, Desert of Lost Souls, Dubakupado, Electro Cabello, Enter the Party, Fantasia Fantasia, Fearless First, Flutey Funk, Freddy's Menagerie, Funkorama, Funky Chunk, Getting it Done, Glitter Blast, Groundwork, Highlight Reel, Impact Allegretto, Jaunty Gumption, Kumasi Groove, Lagoa v2, Laserpack, Loopster, No Frills Comparsa, Pilot Error, Pookatori and Friends, Protofunk, Psychedelic Crater, Raving Energy (faster), Show Your Moves, Southern Gothic, Special Spotlight, Street Party, Sunday Dub, Tafi Maradi no voice, Tech Live, Unholy Knight, Voltaic, Voxel Revolution, Wallpaper, Wretched Destroyer, Your Call, Zap Beat)은 Kevin MacLeod (incompetech.com)의 작품이다. Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/ 음원은 고치지 않고 그대로 쓴다.
 
 "Covered In Oil"은 Broke For Free의 곡이다(https://freemusicarchive.org/music/Broke_For_Free/Slam_Funk/Broke_For_Free_-_Slam_Funk_-_10_Covered_In_Oil). Licensed under Creative Commons: By Attribution 3.0. https://creativecommons.org/licenses/by/3.0/
 
-Jason Shaw의 곡 "Fat Caps"(https://freemusicarchive.org/music/Jason_Shaw/Audionautix_Tech_Urban_Dance/TU-FatCaps/), "Feels Good 2 B"(https://freemusicarchive.org/music/Jason_Shaw/Audionautix_Tech_Urban_Dance/TU-FeelsGood2B/)와 "Forever Believe"(https://freemusicarchive.org/music/Jason_Shaw/Audionautix_Tech_Urban_Dance/TU-ForeverBelieve/)는 Free Music Archive에 공개된 것을 쓴다. Licensed under Creative Commons: By Attribution 3.0. https://creativecommons.org/licenses/by/3.0/
+Jason Shaw의 곡 "Fat Caps"(https://freemusicarchive.org/music/Jason_Shaw/Audionautix_Tech_Urban_Dance/TU-FatCaps/)와 "Forever Believe"(https://freemusicarchive.org/music/Jason_Shaw/Audionautix_Tech_Urban_Dance/TU-ForeverBelieve/)는 Free Music Archive에 공개된 것을 쓴다. Licensed under Creative Commons: By Attribution 3.0. https://creativecommons.org/licenses/by/3.0/
 
-Jason Shaw의 곡("Acoustic Rock", "Big Car Theft", "Ectoplasm", "Feel Good Rock", "Groovy Baby", "Heavy Drums N Bass", "Occupy The Dance Floor", "Radio Rock", "Rubix Cube", "Transition")은 Jason Shaw (Audionautix.com)의 작품이다. Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/
+Jason Shaw의 곡("Acoustic Rock", "Big Car Theft", "Feel Good Rock", "Occupy The Dance Floor", "Radio Rock", "Rubix Cube", "Transition")은 Jason Shaw (Audionautix.com)의 작품이다. Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/
 
 Komiku의 곡("Action Discovery", "Ancient Heavy Tech Donjon", "Boss 2 : Too powerful for you, run !", "Boss 3 : This is the time to glisten", "Captain Glouglou contest", "Jenifer The Game", "Kicking bullies", "Level 4 : First infiltration in Unresponsible Tech", "Level 8 : Find a way", "Level 11 : High risk infiltration", "The adventure", "The road we use to travel when we were kids", "To fight a spell by dancing", "Together we are stronger")은 Free Music Archive에서 CC0(퍼블릭 도메인)으로 공개되어 있다. 출처를 밝힐 의무는 없지만 곡 목록에 함께 적는다.
-
-"The White"는 Rolemusic의 곡이다(https://freemusicarchive.org/music/Rolemusic/The_Black_Dot/The_White/). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/
 
 "Friend to friend"(Loyalty Freak Music, https://freemusicarchive.org/music/Loyalty_Freak_Music/INSTRUMENTAL_RB_BEATS_TO_SING_OR_RAP_ON/Loyalty_Freak_Music_-_INSTRUMENTAL_RB_BEATS_TO_SING_OR_RAP_ON_-_02_Friend_to_friend/), "Punk Rock Metal Background Music"(madworldgames, https://opengameart.org/content/punk-rock-metal-background-music), "Prepare to fight"(Basil, https://opengameart.org/content/prepare-to-fight)는 CC0(퍼블릭 도메인)으로 공개되어 있다. 출처를 밝힐 의무는 없지만 곡 목록에 함께 적는다.
 
@@ -310,7 +301,7 @@ Komiku의 곡("Action Discovery", "Ancient Heavy Tech Donjon", "Boss 2 : Too pow
 
 "Adventures of Yuki Level 1"은 playgb.com의 곡이다(https://opengameart.org/content/adventures-of-yuki-level-1-music). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/
 
-Ragnar Random의 곡 "The Town Where I Got the Magic Bottle"과 "Wandering Around Looking for Ammunition"(팩 안의 파일 이름은 "07 - the town where i got the magic bottle chiptune", "10 - wandering around looking for ammunition")은 OpenGameArt의 Fakebit Chiptune Music Pack(https://opengameart.org/content/fakebit-chiptune-music-pack)에 CC0(퍼블릭 도메인)으로 공개되어 있다. 출처를 밝힐 의무는 없지만 곡 목록에 함께 적는다.
+Ragnar Random의 곡 "Wandering Around Looking for Ammunition"(팩 안의 파일 이름은 "10 - wandering around looking for ammunition")은 OpenGameArt의 Fakebit Chiptune Music Pack(https://opengameart.org/content/fakebit-chiptune-music-pack)에 CC0(퍼블릭 도메인)으로 공개되어 있다. 출처를 밝힐 의무는 없지만 곡 목록에 함께 적는다.
 
 "Battle of the Void"는 Marcelo Fernandez의 곡이다(https://opengameart.org/content/battle-of-the-void, OpenGameArt에 CC-BY 3.0으로 공개). 작곡가가 요청한 표기: “Battle of the Void”. Music by Marcelo Fernandez (http://www.marcelofernandezmusic.com). Licensed under Creative Commons Attribution 4.0 International (http://creativecommons.org/licenses/by/4.0/).
 
@@ -326,11 +317,13 @@ Ragnar Random의 곡 "The Town Where I Got the Magic Bottle"과 "Wandering Aroun
 
 "A Wee Tipple"은 Scott Holmes Music의 곡이다(https://freemusicarchive.org/music/Scott_Holmes/Music_For_Media_Vol_2/Scott_Holmes_-_03_-_A_Wee_Tipple_1169/). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/
 
-HoliznaCC0의 곡("Back In The 80s", "Drama", "Final Level", "Funky Pop", "Game BOI 1", "Game BOI 3", "Game Travel 1", "Jupiter", "Make Funk", "Mini Boss", "Mutant Club", "Pensive Adventure", "Retro Soundtrack", "Ruby 4", "Saturn", "Sunny Afternoon", "Video Games")은 Free Music Archive에서 CC0(퍼블릭 도메인)으로 공개되어 있다. 출처를 밝힐 의무는 없지만 곡 목록에 함께 적는다.
+HoliznaCC0의 곡("Back In The 80s", "Drama", "Funky Pop", "Game BOI 1", "Game Travel 1", "Jupiter", "Make Funk", "Mini Boss", "Mutant Club", "Pensive Adventure", "Retro Soundtrack", "Ruby 4", "Sunny Afternoon", "Video Games")은 Free Music Archive에서 CC0(퍼블릭 도메인)으로 공개되어 있다. 출처를 밝힐 의무는 없지만 곡 목록에 함께 적는다.
 
 모든 곡의 출처를 밝혀 두어서, 곡 목록에서 곡을 고르면 화면 아래에 출처 문구가 나온다.
 
 2026-10-04에 지루한 곡 5개(Test Beat 128, Hyperfun, Rhinoceros, Pixel Peeker Polka - faster, Disco con Tutti)를 뺐다. 채보를 재 보니 같은 간격이 44~82번 이어지거나(마디가 거의 똑같이 반복) 곡 내내 음량 변화가 거의 없었다. 스윙 느낌이라 박자가 어긋나게 잡힌 후보 3곡(Dentaneosuchus Hunt, Jet Fueled Vixen, Mega Hyper Ultrastorm)은 넣지 않았다. 함께 넣었던 Sergio's Magic Dustbin(곡이 점점 빨라짐)과 surpass your limits!(노트 간격이 한 박과 반 박에 반씩 나뉨)는 크레파스가 한 박에 반 바퀴를 지키지 못해서(칸의 10%가 9~15% 넘게 어긋남) 다시 뺐다.
+
+2026-10-06에 같은 구간을 계속 되풀이하는 곡 13개(Rising Tide (faster), Groovy Baby, Heavy Drums N Bass, Feels Good 2 B, Sax, Rock, and Roll, Final Level, The Town Where I Got the Magic Bottle, Saturn, Hotrock, Ectoplasm, Game BOI 3, The White, Mountain Emperor)를 뺐다. `tools/check_variety.py`로 재 보니 마디의 50~98%가 4마디나 8마디 앞 마디와 거의 같은 소리였다.
 
 ## 구조
 
@@ -338,6 +331,7 @@ HoliznaCC0의 곡("Back In The 80s", "Drama", "Final Level", "Funky Pop", "Game 
 |---|---|
 | `tools/make_chart.py` | mp3를 분석해 박자를 찾고(Beat This! 모델) 채보(`chart.json`)와 곡 목록(`index.json`)을 쓰는 도구 |
 | `tools/check_timing.py` | 박자 검사: 노트가 노래의 타격 소리와 25ms 안에 맞는 비율(80% 이상 통과)과 음악이 끝난 뒤의 노트. 넣기 전 후보 mp3도 검사한다 |
+| `tools/check_variety.py` | 반복 검사: 마디마다 소리를 4마디 앞, 8마디 앞 마디와 비교해 거의 같은(상관 0.95 이상) 마디의 비율(50% 이상이면 FAIL)과 가장 긴 반복 구간 |
 | `tools/pick_pictures.ts` | 곡마다 가장 잘 맞는 그림을 골라 `public/songs/pictures.json`에 적는다 (`pnpm dev`가 켜져 있어야 한다) |
 | `tools/check_screen.ts` | 화면 검사: 곡마다 크레파스 빠르기, 그림이 마지막 노트에 끝나는지, 완만한 꺾임 연속, 그림 겹침 (`pnpm dev`가 켜져 있어야 한다) |
 | `tools/sewing-stats.ts` | 위 두 도구가 함께 쓰는 길 재기 |

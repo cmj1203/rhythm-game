@@ -136,7 +136,14 @@ function openingZoom(songTime: number): number {
  * The camera pose at `songTime`: the move of the section being played, gliding over from the move of the
  * section before around the section's first note.
  */
-export function poseAt(sections: readonly Section[], songTime: number): Pose {
+export function poseAt(sections: readonly Section[], songTime: number, reducedMotion: boolean): Pose {
+  if (reducedMotion) {
+    let current = 0;
+    while ((sections[current + 1]?.startTime ?? Number.POSITIVE_INFINITY) <= songTime) current++;
+    const section = sections[current];
+    return section === undefined ? START_POSE : { zoom: section.zoom, tilt: section.tilt, slide: 0 };
+  }
+
   let current = 0;
   while ((sections[current + 1]?.startTime ?? Number.POSITIVE_INFINITY) - POSE_BLEND_S / 2 <= songTime) current++;
   const section = sections[current];

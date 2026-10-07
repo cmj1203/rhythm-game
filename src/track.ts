@@ -97,6 +97,7 @@ const DOT_RADIUS = 0.11;
 const MARK_DOT_RADIUS = 0.07;
 const MARK_RING_RADIUS = 0.18;
 const MARK_RING_WIDTH = 0.05;
+const REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 /**
  * After the last note the camera pulls back until the whole embroidery fits where the result screen shows it.
@@ -109,6 +110,7 @@ export function finaleProgress({ tiles }: Path, songTime: number): number {
 
 /** 1 at the moment of a hit, falling to 0 shortly after. */
 function hitPulse({ feedback, songTime }: PlayingFrame): number {
+  if (REDUCED_MOTION.matches) return 0;
   if (feedback === null || feedback.judgement === "miss") return 0;
   const age = songTime - feedback.at;
   return age < 0 || age > PULSE_S ? 0 : 1 - age / PULSE_S;
@@ -119,7 +121,7 @@ function comboTier(combo: number): number {
 }
 
 function followView({ width, height }: Size, frame: PlayingFrame): View {
-  const pose = poseAt(frame.sections, frame.songTime);
+  const pose = poseAt(frame.sections, frame.songTime, REDUCED_MOTION.matches);
   const shorter = Math.min(width, height);
   const tileSize = Math.min(MAX_TILE_PX, Math.max(MIN_TILE_PX, shorter * TILE_SHARE));
   return {
@@ -241,18 +243,18 @@ function drawBursts(painter: Painter, { bursts, path, play, songTime }: PlayingF
     const radius = view.tileSize * 0.4;
     ctx.save();
     ctx.globalAlpha = BURST_OPACITY * (1 - age);
-    painter.circle(center, radius * (1 + 0.9 * easeOut(age)));
+    painter.circle(center, radius * (REDUCED_MOTION.matches ? 1 : 1 + 0.9 * easeOut(age)));
     ctx.strokeStyle = color;
-    ctx.lineWidth = radius * 0.16 * (1 - age);
+    ctx.lineWidth = radius * 0.16 * (REDUCED_MOTION.matches ? 1 : 1 - age);
     ctx.stroke();
-    if (tier >= 2) {
+    if (!REDUCED_MOTION.matches && tier >= 2) {
       painter.circle(center, radius * (1 + 1.7 * easeOut(age)));
       ctx.strokeStyle = COLOR.text;
       ctx.lineWidth = radius * 0.08 * (1 - age);
       ctx.stroke();
     }
 
-    const count = SPARKLES_BY_JUDGEMENT[burst.judgement] + 2 * tier;
+    const count = REDUCED_MOTION.matches ? 0 : SPARKLES_BY_JUDGEMENT[burst.judgement] + 2 * tier;
     for (let i = 0; i < count; i++) {
       const direction = (i / count) * Math.PI * 2 + burst.index * 0.7;
       const distance = radius * (1.2 + (1.8 + 0.5 * tier) * easeOut(age));
@@ -314,21 +316,22 @@ function drawHud(painter: Painter, frame: PlayingFrame, { width, height }: Size)
 export function drawPlaying(painter: Painter, frame: PlayingFrame, size: Size): void {
   const { ctx } = painter;
   const finale = finaleProgress(frame.path, frame.songTime);
+  const visualFinale = REDUCED_MOTION.matches && finale > 0 ? 1 : finale;
   const follow = followView(size, frame);
   // While the camera pulls back, the thread is pulled tight, so the sewn road settles into the picture.
-  const taut = easeInOut(finale);
-  const view = finale > 0 ? blendViews(follow, fitView(frame.path, clothRect(size)), taut) : follow;
+  const taut = easeInOut(visualFinale);
+  const view = visualFinale > 0 ? blendViews(follow, fitView(frame.path, clothRect(size)), taut) : follow;
 
   drawCloth(painter, view, size);
   // The sewn road stays in the background until the piece is finished; the road ahead is drawn over it.
   drawStitches(painter, frame.path, frame.play.history, view, taut, PAST_OPACITY + (1 - PAST_OPACITY) * taut);
   ctx.save();
-  ctx.globalAlpha = 1 - finale;
+  ctx.globalAlpha = 1 - visualFinale;
   drawAhead(painter, frame, view);
   ctx.restore();
   drawBursts(painter, frame, view);
   ctx.save();
-  ctx.globalAlpha = 1 - finale;
+  ctx.globalAlpha = 1 - visualFinale;
   drawCircling(painter, frame, view);
   drawDanger(painter, frame.play.danger, size);
   drawHud(painter, frame, size);

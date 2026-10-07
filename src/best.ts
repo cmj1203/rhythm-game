@@ -30,16 +30,19 @@ function saveBests(bests: ReadonlyMap<string, Best>): void {
 
 /**
  * Keeps `play` as the song's best if it beats the one kept: a higher mark, or the same mark with a higher score.
- * Gives the best kept after it, and whether that is `play`.
+ * Gives the best kept after it, whether that is `play`, and the best from before this play if there was one.
  */
-export function recordBest(songId: string, play: Best): { readonly best: Best; readonly isNew: boolean } {
+export function recordBest(
+  songId: string,
+  play: Best,
+): { readonly best: Best; readonly isNew: boolean; readonly previous: Best | null } {
   const bests = new Map(loadBests());
   const kept = bests.get(songId);
   if (kept !== undefined && (play.grade < kept.grade || (play.grade === kept.grade && play.score <= kept.score))) {
-    return { best: kept, isNew: false };
+    return { best: kept, isNew: false, previous: kept };
   }
   const best = { grade: play.grade, score: play.score };
   bests.set(songId, best);
   saveBests(bests);
-  return { best, isNew: true };
+  return { best, isNew: true, previous: kept ?? null };
 }

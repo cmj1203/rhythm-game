@@ -61,6 +61,7 @@ type Screen =
       readonly source: ReadyScreen;
       readonly bestGrade: number;
       readonly isNewBest: boolean;
+      readonly previousBestGrade: number | null;
     })
   | (Session & { readonly kind: "over"; readonly path: Path; readonly at: number; readonly source: ReadyScreen });
 
@@ -485,7 +486,7 @@ async function boot(): Promise<void> {
         }
         // The song may still be playing its outro here; it keeps going under the result screen.
         if (finaleProgress(screen.path, songTime) >= 1) {
-          const { best, isNew } = recordBest(screen.song.id, screen.play);
+          const { best, isNew, previous } = recordBest(screen.song.id, screen.play);
           screen = {
             kind: "result",
             song: screen.song,
@@ -498,6 +499,7 @@ async function boot(): Promise<void> {
             source: screen.source,
             bestGrade: best.grade,
             isNewBest: isNew,
+            previousBestGrade: previous?.grade ?? null,
           };
           placeEndButtons();
           overButtons.hidden = false;
@@ -537,6 +539,7 @@ async function boot(): Promise<void> {
           difficulty: screen.difficulty,
           bestGrade: screen.bestGrade,
           isNewBest: screen.isNewBest,
+          previousBestGrade: screen.previousBestGrade,
           fade: Math.min(1, (performance.now() - screen.shownAt) / RESULT_FADE_MS),
         };
       default:

@@ -11,9 +11,10 @@ export type ResultFrame = {
   readonly pictureName: string;
   readonly title: string;
   readonly difficulty: string;
-  /** The song's best mark on this device, this play counted, and whether this play set it. */
+  /** The song's best mark on this device, this play counted, whether this play set it, and the mark before it. */
   readonly bestGrade: number;
   readonly isNewBest: boolean;
+  readonly previousBestGrade: number | null;
   readonly fade: number;
 };
 
@@ -55,7 +56,13 @@ function drawStats(painter: Painter, frame: ResultFrame, x: number, top: number,
     align: "right",
   });
   painter.text("·", { x, y: lineY }, { size: 15 * scale, color: COLOR.dim });
-  painter.text(frame.isNewBest ? "최고 기록" : `최고 ${frame.bestGrade}점`, { x: x + 14 * scale, y: lineY }, {
+  const bestText =
+    frame.isNewBest && frame.previousBestGrade !== null && play.grade > frame.previousBestGrade
+      ? `최고 기록 +${play.grade - frame.previousBestGrade}점`
+      : frame.isNewBest
+        ? "최고 기록"
+        : `최고 ${frame.bestGrade}점`;
+  painter.text(bestText, { x: x + 14 * scale, y: lineY }, {
     size: 15 * scale,
     color: frame.isNewBest ? JUDGEMENT_COLOR.perfect : COLOR.dim,
     weight: frame.isNewBest ? 700 : 400,
@@ -72,6 +79,14 @@ function drawStats(painter: Painter, frame: ResultFrame, x: number, top: number,
     });
     painter.text(String(play.counts[judgement]), { x: x + 20 * scale, y }, { size: 15 * scale, weight: 600, align: "left" });
   });
+  if (play.counts.miss === 0) {
+    painter.text("노 미스", { x: x + 52 * scale, y: top + 314 * scale }, {
+      size: 13 * scale,
+      weight: 700,
+      color: JUDGEMENT_COLOR.perfect,
+      align: "left",
+    });
+  }
 }
 
 export function drawResult(painter: Painter, frame: ResultFrame, size: Size): void {

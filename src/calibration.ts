@@ -14,6 +14,8 @@ const COUNTED_CLICKS = 12;
 /** A press further than this from every counted click is a stray and is left out. */
 const CATCH_S = 0.25;
 const ENOUGH_PRESSES = 8;
+/** First-guess cutoff for a stable run, to be validated on real devices. */
+const MAX_MAD_S = 0.04;
 const LAST_PRESS_WAIT_S = 0.8;
 const MAX_LAG_S = 0.3;
 
@@ -104,7 +106,11 @@ export class CalibrationScreen {
     this.stop();
     const lates = [...this.presses.values()].sort((a, b) => a - b);
     const middle = lates[lates.length >> 1];
-    if (lates.length < ENOUGH_PRESSES || middle === undefined) {
+    const mad =
+      middle === undefined
+        ? undefined
+        : lates.map((late) => Math.abs(late - middle)).sort((a, b) => a - b)[lates.length >> 1];
+    if (lates.length < ENOUGH_PRESSES || middle === undefined || mad === undefined || mad > MAX_MAD_S) {
       this.result.textContent = "다시 해 주세요";
       this.again.hidden = false;
       return;

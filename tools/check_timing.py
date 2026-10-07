@@ -76,11 +76,7 @@ def check_mp3(audio: Path, difficulty: mc.Level | None) -> tuple[str, dict[str, 
     grid = mc.build_grid(samples, percussive, envelope)
     accent = mc.step_accents(envelope, librosa.time_to_frames(grid.step_times, sr=mc.SAMPLE_RATE, hop_length=mc.HOP))
     end = mc.music_end(samples)
-    notes = [
-        float(grid.step_times[step])
-        for step in mc.select_steps(accent, mc.DIFFICULTIES[difficulty or mc.level_for(grid.bpm)])
-        if grid.step_times[step] <= end
-    ]
+    notes = mc.chart_notes(grid, envelope, accent, difficulty or mc.level_for(grid.bpm), end)
     unheard = set(mc.unheard_lead_in(samples, notes))
     notes = [time for time in notes if time not in unheard]
     result = timing(samples, notes, grid.bpm, float(grid.step_times[0]))

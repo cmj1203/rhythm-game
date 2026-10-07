@@ -24,6 +24,7 @@
 from __future__ import annotations
 
 import json
+import math
 from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
@@ -131,6 +132,25 @@ DIFFICULTIES: Final = {
 # all become notes too, so a quieter passage is not one long wait.
 FILL_AFTER_BEATS: Final = 2
 FILL_MIN_ACCENT: Final = 0.25
+# The game's crayon, as src/path.ts turns it, so that a chart can see where it slows down and speeds up.
+GAME_SAME_INTERVAL: Final = 1.06
+GAME_COMMON_SHARE: Final = 0.25
+GAME_FALLBACK_UNIT_S: Final = 0.5
+GAME_MAX_UNITS_PER_SWEEP: Final = 1.5
+GAME_FAST_RUN_MIN: Final = 6
+GAME_FAST_MAX_UNITS: Final = 0.5
+GAME_MIN_FAST_HALF_TURN_S: Final = 0.1
+
+# The waits the crayon slows down for are spread through the song by `spread_waits`.
+SPREAD_WINDOW_BEATS: Final = 16
+SPREAD_MAX_MOVED_SHARE: Final = 0.08
+SPREAD_MIN_GAIN: Final = 0.02
+SPREAD_MIN_GAPS: Final = 8
+SPREAD_MAX_UNIT_DRIFT: Final = 0.02
+# A note added there goes only where tools/check_timing.py would find it on a hit: the strongest moment of the
+# percussive envelope within HIT_SEARCH_FRAMES either side of it is within HIT_ON_TIME_S of it.
+HIT_SEARCH_FRAMES: Final = 6
+HIT_ON_TIME_S: Final = 0.025
 
 
 def level_for(bpm: float) -> Level:
@@ -321,6 +341,177 @@ def select_steps(accent: np.ndarray, difficulty: Difficulty) -> np.ndarray:
     return np.union1d(chosen, np.asarray(fill, dtype=int)).astype(int)
 
 
+def js_round(value: float) -> int:
+    """JavaScript's Math.round, as the game rounds: the nearest whole number, halves upward."""
+    whole = math.floor(value)
+    return whole + 1 if value - whole >= 0.5 else whole
+
+
+def straight_interval(times: list[float]) -> float:
+    """The game's straightInterval (src/path.ts): the longest interval that is still common in the chart."""
+    groups: list[list[float]] = []
+    gaps = sorted(later - earlier for earlier, later in zip(times, times[1:]))
+    for gap in gaps:
+        if groups and gap <= (groups[-1][0] / groups[-1][1]) * GAME_SAME_INTERVAL:
+            groups[-1][0] += gap
+            groups[-1][1] += 1
+        else:
+            groups.append([gap, 1])
+    if not groups:
+        return GAME_FALLBACK_UNIT_S
+    common = [group for group in groups if group[1] / len(gaps) >= GAME_COMMON_SHARE]
+    chosen = common or [max(groups, key=lambda group: group[1])]
+    return max(total / count for total, count in chosen)
+
+
+@dataclass(frozen=True, slots=True)
+class Pacing:
+    """How the game's crayon turns through each gap between notes: in `units` of `unit`, slowly, or twice as fast."""
+
+    unit: float
+    units: list[float]
+    slow: list[bool]
+    fast: list[bool]
+
+
+def pacing(times: list[float]) -> Pacing:
+    unit = straight_interval(times)
+    units = [max(0.25, js_round((later - earlier) / unit * 4) / 4) for earlier, later in zip(times, times[1:])]
+    fast = [False] * len(units)
+    if unit / 2 >= GAME_MIN_FAST_HALF_TURN_S:
+        run_start = 0
+        for i in range(len(units) + 1):
+            if i < len(units) and units[i] <= GAME_FAST_MAX_UNITS:
+                continue
+            if i - run_start >= GAME_FAST_RUN_MIN:
+                fast[run_start:i] = [True] * (i - run_start)
+            run_start = i + 1
+    return Pacing(unit, units, [count > GAME_MAX_UNITS_PER_SWEEP for count in units], fast)
+
+
+def wait_windows(steps: list[int], waits: list[bool]) -> dict[int, tuple[int, int]]:
+    """For each stretch of SPREAD_WINDOW_BEATS, in order: how many gaps start in it, and how many of them are waits."""
+    tally: dict[int, tuple[int, int]] = {}
+    for step, is_wait in zip(steps, waits):
+        window = step // (SPREAD_WINDOW_BEATS * STEPS_PER_BEAT)
+        gaps, count = tally.get(window, (0, 0))
+        tally[window] = (gaps + 1, count + int(is_wait))
+    return tally
+
+
+def unevenness(steps: list[int], waits: list[bool]) -> float:
+    """The coefficient of variation of the share of waits over the stretches with at least SPREAD_MIN_GAPS gaps."""
+    shares = [count / gaps for gaps, count in wait_windows(steps, waits).values() if gaps >= SPREAD_MIN_GAPS]
+    if not shares:
+        return 0.0
+    mean = sum(shares) / len(shares)
+    if mean == 0:
+        return 0.0
+    return math.sqrt(sum((share - mean) ** 2 for share in shares) / len(shares)) / mean
+
+
+def longest_plain(pace: Pacing) -> int:
+    """The most gaps in a row the crayon turns through at its usual speed, with no tile marked."""
+    run = longest = 0
+    for is_slow, is_fast in zip(pace.slow, pace.fast):
+        run = 0 if is_slow or is_fast else run + 1
+        longest = max(longest, run)
+    return longest
+
+
+def on_hits(envelope: np.ndarray, step_times: np.ndarray) -> list[bool]:
+    """For each grid step, whether a note there would land on a hit as tools/check_timing.py judges it."""
+    hits = []
+    for time in step_times:
+        frame = js_round(float(time) * SAMPLE_RATE / HOP)
+        low, high = max(0, frame - HIT_SEARCH_FRAMES), min(len(envelope), frame + HIT_SEARCH_FRAMES + 1)
+        peak = low + int(np.argmax(envelope[low:high])) if high > low else frame + HIT_SEARCH_FRAMES + 1
+        hits.append(abs(peak - frame) * HOP / SAMPLE_RATE <= HIT_ON_TIME_S)
+    return hits
+
+
+def spread_waits(steps: list[int], step_times: np.ndarray, accent: np.ndarray, hits: list[bool]) -> list[int]:
+    """`steps` with the waits the game's crayon slows down for (sky blue tiles) spread more evenly through the song.
+
+    A quiet stretch of a song is full of them and a busy one has none. In the stretch of SPREAD_WINDOW_BEATS most
+    over the song's share of waits, one wait is split by a note on the strongest hit inside it (on a beat or half
+    beat, with an accent of at least FILL_MIN_ACCENT, where `hits` has it on a hit) so that neither half is a wait; in the stretch most under, the
+    weakest note off the beat between two plain gaps is dropped so that they become one wait. Done in pairs, this
+    keeps the number of notes and of waits. At most SPREAD_MAX_MOVED_SHARE of the notes move, and the result is kept
+    only when the waits fall more evenly by at least SPREAD_MIN_GAIN, no run of unmarked tiles grows, and the
+    chart's usual gap stays within SPREAD_MAX_UNIT_DRIFT of what it was.
+    """
+    window = SPREAD_WINDOW_BEATS * STEPS_PER_BEAT
+    original = sorted(steps)
+    current = list(original)
+
+    def times_of(chosen: list[int]) -> list[float]:
+        return [float(step_times[step]) for step in chosen]
+
+    before = pacing(times_of(original))
+    for _ in range(int(SPREAD_MAX_MOVED_SHARE * len(original) / 2)):
+        pace = pacing(times_of(current))
+
+        def units_between(earlier: int, later: int, unit: float = pace.unit) -> float:
+            return max(0.25, js_round((float(step_times[later]) - float(step_times[earlier])) / unit * 4) / 4)
+
+        tally = wait_windows(current, pace.slow)
+        share = sum(count for _, count in tally.values()) / sum(gaps for gaps, _ in tally.values())
+        over = {key: count - share * gaps for key, (gaps, count) in tally.items()}
+
+        fill: int | None = None
+        for key in sorted((key for key in over if over[key] >= 1), key=lambda key: (-over[key], key)):
+            for i, is_wait in enumerate(pace.slow):
+                earlier, later = current[i], current[i + 1]
+                if not is_wait or earlier // window != key:
+                    continue
+                for step in range(earlier + 2 - earlier % 2, later, 2):
+                    if accent[step] < FILL_MIN_ACCENT or not hits[step]:
+                        continue
+                    if max(units_between(earlier, step), units_between(step, later)) > GAME_MAX_UNITS_PER_SWEEP:
+                        continue
+                    if fill is None or accent[step] > accent[fill]:
+                        fill = step
+            if fill is not None:
+                break
+
+        drop: int | None = None
+        for key in sorted((key for key in over if over[key] <= -1), key=lambda key: (over[key], key)):
+            for k in range(1, len(current) - 1):
+                step = current[k]
+                if step % STEPS_PER_BEAT == 0 or current[k - 1] // window != key:
+                    continue
+                if pace.slow[k - 1] or pace.slow[k] or pace.fast[k - 1] or pace.fast[k]:
+                    continue
+                if units_between(current[k - 1], current[k + 1]) <= GAME_MAX_UNITS_PER_SWEEP:
+                    continue
+                if drop is None or accent[step] < accent[current[drop]]:
+                    drop = k
+            if drop is not None:
+                break
+
+        if fill is None or drop is None:
+            break
+        dropped = current[drop]
+        current = sorted([step for step in current if step != dropped] + [fill])
+
+    after = pacing(times_of(current))
+    if (
+        unevenness(current, after.slow) > unevenness(original, before.slow) - SPREAD_MIN_GAIN
+        or longest_plain(after) > longest_plain(before)
+        or abs(after.unit / before.unit - 1) > SPREAD_MAX_UNIT_DRIFT
+    ):
+        return original
+    return current
+
+
+def chart_notes(grid: BeatGrid, envelope: np.ndarray, accent: np.ndarray, level: Level, end: float) -> list[float]:
+    """The notes of a chart at `level`: the steps `select_steps` picks up to `end`, with the waits spread out."""
+    steps = [int(step) for step in select_steps(accent, DIFFICULTIES[level]) if grid.step_times[step] <= end]
+    hits = on_hits(envelope, grid.step_times)
+    return [round(float(grid.step_times[step]), 4) for step in spread_waits(steps, grid.step_times, accent, hits)]
+
+
 def music_end(samples: np.ndarray) -> float:
     """The time after which the song never again comes within END_LEVEL_DB of its loudest moment."""
     rms = librosa.feature.rms(y=samples, frame_length=END_FRAME, hop_length=HOP)[0]
@@ -416,11 +607,7 @@ def main(
     accent = step_accents(envelope, step_frames)
     level = difficulty or level_for(grid.bpm)
     end = music_end(samples)
-    notes = [
-        round(float(grid.step_times[step]), 4)
-        for step in select_steps(accent, DIFFICULTIES[level])
-        if grid.step_times[step] <= end
-    ]
+    notes = chart_notes(grid, envelope, accent, level, end)
     unheard = set(unheard_lead_in(samples, notes))
     notes = [time for time in notes if time not in unheard]
     listed = difficulty or rated_level(notes, grid.bpm, float(grid.step_times[0]))

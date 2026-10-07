@@ -56,7 +56,7 @@ const MAX_UNITS_PER_SWEEP = 1.5;
  */
 const FAST_RUN_MIN = 6;
 const FAST_MAX_UNITS = 0.5;
-const MIN_FAST_HALF_TURN_S = 0.2;
+const MIN_FAST_HALF_TURN_S = 0.1;
 /** Steps of the usual length head in one of the eight compass directions, as on a board game. */
 const COMPASS_STEP = Math.PI / 4;
 /** How many steps in a row may go straight on before the road has to turn a corner. */

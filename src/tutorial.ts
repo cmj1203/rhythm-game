@@ -9,8 +9,8 @@ export type TutorialOptions = {
 };
 
 const MARKS = [
-  { kind: "fast", name: "큰 분홍 점", meaning: "노트가 촘촘한 구간입니다. 크레파스가 박자에 맞춰 두 배 빨리 돌고, 도는 원이 분홍색이 됩니다" },
-  { kind: "slow", name: "큰 하늘 점", meaning: "오래 기다리는 칸입니다. 크레파스가 천천히 돌고, 도는 원이 하늘색이 됩니다" },
+  { kind: "fast", name: "분홍 고리", meaning: "노트가 촘촘한 구간입니다. 크레파스가 박자에 맞춰 두 배 빨리 돌고, 도는 원이 분홍색이 됩니다" },
+  { kind: "slow", name: "하늘 고리", meaning: "오래 기다리는 칸입니다. 크레파스가 천천히 돌고, 도는 원이 하늘색이 됩니다" },
   { kind: "twirl", name: "보라 고리", meaning: "이 칸에서 크레파스가 도는 방향이 바뀝니다" },
 ] as const;
 

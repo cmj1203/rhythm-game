@@ -1,3 +1,4 @@
+import { loadBests } from "./best";
 import { DIFFICULTIES, type Difficulty, type SongSummary } from "./chart";
 import { element } from "./dom";
 
@@ -25,6 +26,8 @@ export class SongMenu {
   /** The difficulties that have songs, easiest first. */
   private readonly difficulties: readonly Difficulty[];
   private readonly rows: readonly HTMLLIElement[];
+  /** Each row's place for the song's best on this device. */
+  private readonly bestLabels: readonly HTMLElement[];
   private readonly tabs: ReadonlyMap<Difficulty, HTMLButtonElement>;
   private readonly credit = element("p", "credit");
   private readonly status = element("p", "status");
@@ -57,19 +60,25 @@ export class SongMenu {
     const list = element("ul", "songs");
     list.setAttribute("role", "listbox");
     list.setAttribute("aria-label", "곡 목록");
+    const bestLabels: HTMLElement[] = [];
     this.rows = songs.map((song, index) => {
       const row = element("li", "song");
       const noteCount = `노트 ${song.notes}개`;
+      const best = element("span", "song-best");
+      bestLabels.push(best);
+      const meta = element("span", "song-meta", `${Math.round(song.bpm)} BPM · ${formatDuration(song.duration)}`);
+      meta.append(best);
       row.setAttribute("role", "option");
       row.append(
         element("span", "song-title", song.title),
         element("span", "song-artist", song.artist === undefined ? noteCount : `${song.artist} · ${noteCount}`),
-        element("span", "song-meta", `${Math.round(song.bpm)} BPM · ${formatDuration(song.duration)}`),
+        meta,
       );
       row.addEventListener("click", () => this.select(index));
       row.addEventListener("dblclick", () => this.start());
       return row;
     });
+    this.bestLabels = bestLabels;
     list.append(...this.rows);
 
     const startButton = element("button", "start", "시작");
@@ -89,12 +98,14 @@ export class SongMenu {
       this.status,
       this.credit,
     );
+    this.showBests();
     this.refresh();
   }
 
   show(): void {
     this.options.root.hidden = false;
     this.setStatus("");
+    this.showBests();
   }
 
   hide(): void {
@@ -131,6 +142,15 @@ export class SongMenu {
       }
     }
     event.preventDefault();
+  }
+
+  private showBests(): void {
+    const bests = loadBests();
+    this.options.songs.forEach((song, index) => {
+      const best = bests.get(song.id);
+      const label = this.bestLabels[index];
+      if (label !== undefined) label.textContent = best === undefined ? "" : `최고 ${best.grade}점`;
+    });
   }
 
   /** The place in the list of the first song of `difficulty`, or -1 if there is none. */

@@ -151,7 +151,18 @@ body {
   align-self: center;
   font-size: 13px;
   font-variant-numeric: tabular-nums;
+  text-align: right;
   color: var(--dim);
+}
+
+.song-best {
+  display: block;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.song-best:empty {
+  display: none;
 }
 
 .difficulties {
@@ -616,29 +627,25 @@ body {
 .mark-icon {
   grid-row: 1 / span 2;
   justify-self: center;
-  width: 12px;
-  height: 12px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
+  background: currentColor;
+  box-shadow:
+    0 0 0 3px var(--surface),
+    0 0 0 5px currentColor;
 }
 
-.mark-slow,
-.mark-fast {
-  width: 20px;
-  height: 20px;
-  background: var(--sky);
+.mark-slow {
+  color: var(--sky);
 }
 
 .mark-fast {
-  background: var(--pink);
+  color: var(--pink);
 }
 
 .mark-twirl {
-  width: 8px;
-  height: 8px;
-  background: var(--violet);
-  box-shadow:
-    0 0 0 5px var(--surface),
-    0 0 0 8px var(--violet);
+  color: var(--violet);
 }
 
 .mark-name {

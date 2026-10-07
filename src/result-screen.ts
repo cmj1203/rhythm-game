@@ -11,6 +11,9 @@ export type ResultFrame = {
   readonly pictureName: string;
   readonly title: string;
   readonly difficulty: string;
+  /** The song's best mark on this device, this play counted, and whether this play set it. */
+  readonly bestGrade: number;
+  readonly isNewBest: boolean;
   readonly fade: number;
 };
 
@@ -45,9 +48,18 @@ function drawStats(painter: Painter, frame: ResultFrame, x: number, top: number,
   painter.text(`${frame.title}  ·  ${frame.difficulty}  ·  ${frame.pictureName}`, at(0), { size: 16 * scale, color: COLOR.dim });
   painter.text(`${play.grade}점`, at(80), { size: 104 * scale, weight: 800 });
   painter.text(play.score.toLocaleString("en-US"), at(160), { size: 34 * scale, weight: 700 });
-  painter.text(`최대 콤보 ${play.maxCombo}`, at(198), {
+  const lineY = top + 198 * scale;
+  painter.text(`최대 콤보 ${play.maxCombo}`, { x: x - 14 * scale, y: lineY }, {
     size: 15 * scale,
     color: COLOR.dim,
+    align: "right",
+  });
+  painter.text("·", { x, y: lineY }, { size: 15 * scale, color: COLOR.dim });
+  painter.text(frame.isNewBest ? "최고 기록" : `최고 ${frame.bestGrade}점`, { x: x + 14 * scale, y: lineY }, {
+    size: 15 * scale,
+    color: frame.isNewBest ? JUDGEMENT_COLOR.perfect : COLOR.dim,
+    weight: frame.isNewBest ? 700 : 400,
+    align: "left",
   });
 
   JUDGEMENTS.forEach((judgement, i) => {

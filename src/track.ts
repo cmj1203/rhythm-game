@@ -19,7 +19,7 @@ export type Feedback = JudgeEvent & { readonly at: number };
 
 /**
  * "ready" shows the road frozen at its first position until the player presses the start key; "over" shows it
- * frozen where a note went by unpressed, under the game over notice.
+ * frozen at the miss that ended the game, under the game over notice.
  */
 export type PlayingFrame = {
   readonly kind: "playing";
@@ -36,6 +36,9 @@ export type PlayingFrame = {
 export const BURST_S = 0.45;
 /** How far the frozen road is darkened behind the game over notice. */
 const GAME_OVER_SHADE = 0.6;
+/** Near a game over the screen's edges glow miss red, at most this strongly, fading out this share of its shorter side in. */
+const DANGER_OPACITY = 0.55;
+const DANGER_REACH = 0.2;
 /** How far apart tiles are on the screen at the usual camera distance: this share of its shorter side, within limits. */
 const TILE_SHARE = 0.11;
 const MIN_TILE_PX = 48;
@@ -57,6 +60,13 @@ const COMBO_TIERS = [10, 30, 60] as const;
 const COMBO_COLOR = [COLOR.text, COLOR.sky, COLOR.pink, JUDGEMENT_COLOR.perfect] as const;
 /** The radius of the ring on the tile to hit next, in tiles. */
 const TARGET_RADIUS = 0.27;
+/**
+ * The ring's stroke, in tiles but never thinner than `TARGET_MIN_WIDTH_PX`, with a dark edge this wide on each side
+ * so that it stays clear where the road ahead crosses itself under it.
+ */
+const TARGET_WIDTH = 0.05;
+const TARGET_MIN_WIDTH_PX = 3;
+const TARGET_EDGE_PX = 2;
 /** How long the crayon is, in tiles. */
 const CRAYON_LENGTH = 0.56;
 /** How much of the crayon lies ahead of the place where it rides its circle; the rest trails behind. */
@@ -77,11 +87,16 @@ const BURST_OPACITY = 0.7;
 const GLOW_REACH = 2.2;
 const GLOW_REACH_PER_TIER = 0.5;
 const PACE_COLOR = { normal: COLOR.text, fast: COLOR.pink, slow: COLOR.sky } as const satisfies Record<Pace, string>;
-/** The dot on each tile ahead, in tiles. A tile the crayon leaves fast or slowly gets a disc large enough to stand out. */
-const DOT_RADIUS = { normal: 0.11, fast: 0.2, slow: 0.2 } as const satisfies Record<Pace, number>;
-/** Where the crayon changes its way round, a plain violet ring of this radius and stroke width (tiles) circles the tile. */
-const TWIRL_RADIUS = 0.36;
-const TWIRL_WIDTH = 0.05;
+/** The dot on each tile ahead, in tiles. */
+const DOT_RADIUS = 0.11;
+/**
+ * A tile the crayon leaves fast or slowly, or where it changes its way round, gets a smaller dot in a ring of this
+ * radius and stroke width (tiles) instead, in the colour of what happens there. Where both happen, the ring is violet
+ * and the dot keeps the colour of the pace.
+ */
+const MARK_DOT_RADIUS = 0.07;
+const MARK_RING_RADIUS = 0.18;
+const MARK_RING_WIDTH = 0.05;
 
 /**
  * After the last note the camera pulls back until the whole embroidery fits where the result screen shows it.
@@ -142,13 +157,14 @@ function drawAhead(painter: Painter, { path, play }: PlayingFrame, view: View): 
     if (tile === undefined || sweep === undefined) continue;
     const center = toScreen(view, tile);
     ctx.globalAlpha = opacity * nearness(i - standing);
-    painter.circle(center, view.tileSize * DOT_RADIUS[sweep.pace]);
+    const isMarked = sweep.pace !== "normal" || sweep.isTwirl;
+    painter.circle(center, view.tileSize * (isMarked ? MARK_DOT_RADIUS : DOT_RADIUS));
     ctx.fillStyle = sweep.pace === "normal" && sweep.isTwirl ? COLOR.violet : PACE_COLOR[sweep.pace];
     ctx.fill();
-    if (sweep.isTwirl) {
-      painter.circle(center, view.tileSize * TWIRL_RADIUS);
-      ctx.strokeStyle = COLOR.violet;
-      ctx.lineWidth = Math.max(2, view.tileSize * TWIRL_WIDTH);
+    if (isMarked) {
+      painter.circle(center, view.tileSize * MARK_RING_RADIUS);
+      ctx.strokeStyle = sweep.isTwirl ? COLOR.violet : PACE_COLOR[sweep.pace];
+      ctx.lineWidth = Math.max(2, view.tileSize * MARK_RING_WIDTH);
       ctx.stroke();
     }
   }
@@ -156,9 +172,13 @@ function drawAhead(painter: Painter, { path, play }: PlayingFrame, view: View): 
 
   const target = path.tiles[standing + 1];
   if (target !== undefined) {
+    const width = Math.max(TARGET_MIN_WIDTH_PX, view.tileSize * TARGET_WIDTH);
     painter.circle(toScreen(view, target), view.tileSize * TARGET_RADIUS);
+    ctx.strokeStyle = COLOR.background;
+    ctx.lineWidth = width + TARGET_EDGE_PX * 2;
+    ctx.stroke();
     ctx.strokeStyle = COLOR.text;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = width;
     ctx.stroke();
   }
 }
@@ -312,9 +332,34 @@ export function drawPlaying(painter: Painter, frame: PlayingFrame, size: Size): 
   ctx.save();
   ctx.globalAlpha = 1 - finale;
   drawCircling(painter, frame, view);
+  drawDanger(painter, frame.play.danger, size);
   drawHud(painter, frame, size);
   ctx.restore();
   if (frame.phase === "over") drawGameOver(painter, size);
+}
+
+/** A red glow along every edge of the screen, as strong as `danger`: 0 is none, 1 is a game over. */
+function drawDanger(painter: Painter, danger: number, { width, height }: Size): void {
+  if (danger <= 0) return;
+  const { ctx } = painter;
+  const reach = Math.min(width, height) * DANGER_REACH;
+  // Each band: where its gradient runs from (the edge) and to, then the rectangle it fills.
+  const bands = [
+    [0, 0, 0, reach, 0, 0, width, reach],
+    [0, height, 0, height - reach, 0, height - reach, width, reach],
+    [0, 0, reach, 0, 0, 0, reach, height],
+    [width, 0, width - reach, 0, width - reach, 0, reach, height],
+  ] as const;
+  ctx.save();
+  ctx.globalAlpha *= DANGER_OPACITY * Math.min(1, danger);
+  for (const [fromX, fromY, toX, toY, x, y, w, h] of bands) {
+    const band = ctx.createLinearGradient(fromX, fromY, toX, toY);
+    band.addColorStop(0, JUDGEMENT_COLOR.miss);
+    band.addColorStop(1, `${JUDGEMENT_COLOR.miss}00`);
+    ctx.fillStyle = band;
+    ctx.fillRect(x, y, w, h);
+  }
+  ctx.restore();
 }
 
 /** The road dimmed behind the words "게임 오버", and nothing else. */

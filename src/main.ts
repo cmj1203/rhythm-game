@@ -1,5 +1,6 @@
 import { assertNever } from "./assert";
 import { countIn, decodingShift, LEAD_IN_S, SongPlayer, volumeFor } from "./audio";
+import { recordBest } from "./best";
 import { CalibrationScreen } from "./calibration";
 import { SettingsScreen } from "./settings";
 import {
@@ -53,7 +54,14 @@ type Screen =
       readonly source: ReadyScreen;
       feedback: Feedback | null;
     })
-  | (Session & { readonly kind: "result"; readonly path: Path; readonly shownAt: number; readonly source: ReadyScreen })
+  | (Session & {
+      readonly kind: "result";
+      readonly path: Path;
+      readonly shownAt: number;
+      readonly source: ReadyScreen;
+      readonly bestGrade: number;
+      readonly isNewBest: boolean;
+    })
   | (Session & { readonly kind: "over"; readonly path: Path; readonly at: number; readonly source: ReadyScreen });
 
 type ReadyScreen = Session & {
@@ -477,6 +485,7 @@ async function boot(): Promise<void> {
         }
         // The song may still be playing its outro here; it keeps going under the result screen.
         if (finaleProgress(screen.path, songTime) >= 1) {
+          const { best, isNew } = recordBest(screen.song.id, screen.play);
           screen = {
             kind: "result",
             song: screen.song,
@@ -487,6 +496,8 @@ async function boot(): Promise<void> {
             path: screen.path,
             shownAt: performance.now(),
             source: screen.source,
+            bestGrade: best.grade,
+            isNewBest: isNew,
           };
           placeEndButtons();
           overButtons.hidden = false;
@@ -524,6 +535,8 @@ async function boot(): Promise<void> {
           pictureName: screen.pictureName,
           title: screen.song.title,
           difficulty: screen.difficulty,
+          bestGrade: screen.bestGrade,
+          isNewBest: screen.isNewBest,
           fade: Math.min(1, (performance.now() - screen.shownAt) / RESULT_FADE_MS),
         };
       default:

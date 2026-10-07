@@ -1,5 +1,5 @@
 import { assertNever } from "./assert";
-import { decodingShift, LEAD_IN_S, SongPlayer, volumeFor } from "./audio";
+import { countIn, decodingShift, LEAD_IN_S, SongPlayer, volumeFor } from "./audio";
 import { CalibrationScreen } from "./calibration";
 import { SettingsScreen } from "./settings";
 import {
@@ -19,6 +19,7 @@ import { SongMenu } from "./menu";
 import type { Path } from "./path";
 import { sewingFor, sewingOf } from "./pictures";
 import { type Frame, Renderer } from "./render";
+import { resultButtonsAt } from "./result-screen";
 import { dyePath, planSections, type Section } from "./sections";
 import { TitleScreen } from "./title";
 import { BURST_S, type Feedback, finaleProgress } from "./track";
@@ -52,7 +53,7 @@ type Screen =
       readonly source: ReadyScreen;
       feedback: Feedback | null;
     })
-  | (Session & { readonly kind: "result"; readonly path: Path; readonly shownAt: number })
+  | (Session & { readonly kind: "result"; readonly path: Path; readonly shownAt: number; readonly source: ReadyScreen })
   | (Session & { readonly kind: "over"; readonly path: Path; readonly at: number; readonly source: ReadyScreen });
 
 type ReadyScreen = Session & {
@@ -61,6 +62,8 @@ type ReadyScreen = Session & {
   readonly buffer: AudioBuffer;
   readonly audioShift: number;
   readonly volume: number;
+  /** Song times of the clicks that count the beat in before the first note. */
+  readonly countIn: readonly number[];
 };
 type PlayingScreen = Extract<Screen, { kind: "playing" }>;
 
@@ -177,6 +180,7 @@ async function boot(): Promise<void> {
         buffer,
         audioShift: decodingShift(buffer, chart.anchors),
         volume: volumeFor(buffer),
+        countIn: countIn(chart.bpm, chart.offset, times[0] ?? 0),
       };
     } catch (error) {
       screen = { kind: "menu" };
@@ -267,7 +271,10 @@ async function boot(): Promise<void> {
 
   const startPlaying = (ready: ReadyScreen): void => {
     backCorner.hidden = true;
-    player.start(ready.buffer, ready.audioShift, ready.volume, query.has("tick") ? ready.play.times : []);
+    player.start(ready.buffer, ready.audioShift, ready.volume, [
+      ...ready.countIn,
+      ...(query.has("tick") ? ready.play.times : []),
+    ]);
     screen = {
       kind: "playing",
       song: ready.song,
@@ -284,11 +291,28 @@ async function boot(): Promise<void> {
   };
 
   /** The same song from the start, waiting for the start key, with nothing played yet. */
-  const playAgain = (over: Extract<Screen, { kind: "over" }>): void => {
+  const playAgain = (ended: Extract<Screen, { kind: "over" | "result" }>): void => {
+    // After a finished song its outro may still be playing.
+    player.stop();
     overButtons.hidden = true;
     backCorner.hidden = false;
-    screen = { ...over.source, play: new PlayState(over.play.times) };
+    screen = { ...ended.source, play: new PlayState(ended.play.times) };
   };
+
+  /** The game over places its buttons under its words; the result screen puts them under its numbers. */
+  const placeEndButtons = (): void => {
+    if (screen.kind !== "result") {
+      overButtons.classList.remove("result");
+      overButtons.style.removeProperty("left");
+      overButtons.style.removeProperty("top");
+      return;
+    }
+    const at = resultButtonsAt({ width: window.innerWidth, height: window.innerHeight });
+    overButtons.classList.add("result");
+    overButtons.style.left = `${at.x}px`;
+    overButtons.style.top = `${at.y}px`;
+  };
+  window.addEventListener("resize", placeEndButtons);
 
   const backButton = element("button", "start secondary", "곡 선택");
   backButton.type = "button";
@@ -303,10 +327,10 @@ async function boot(): Promise<void> {
   const listButton = element("button", "start secondary", "곡 선택");
   for (const button of [retryButton, listButton]) button.type = "button";
   retryButton.addEventListener("click", () => {
-    if (screen.kind === "over") playAgain(screen);
+    if (screen.kind === "over" || screen.kind === "result") playAgain(screen);
   });
   listButton.addEventListener("click", () => {
-    if (screen.kind === "over") backToMenu();
+    if (screen.kind === "over" || screen.kind === "result") backToMenu();
   });
   overButtons.append(retryButton, listButton);
 
@@ -388,8 +412,6 @@ async function boot(): Promise<void> {
         press(screen, event.timeStamp);
         return;
       case "result":
-        if (event.code === "Enter" || event.code === "Escape") backToMenu();
-        return;
       case "over":
         if (event.code === "Escape") backToMenu();
         else if (event.code === "Enter" && !(event.target instanceof HTMLButtonElement)) playAgain(screen);
@@ -408,10 +430,6 @@ async function boot(): Promise<void> {
     } else if (screen.kind === "tutorial" && !(event.target instanceof HTMLButtonElement)) {
       tutorial.press(event.timeStamp);
     }
-  });
-
-  window.addEventListener("click", () => {
-    if (screen.kind === "result") backToMenu();
   });
 
   const nextFrame = (): Frame => {
@@ -442,7 +460,6 @@ async function boot(): Promise<void> {
         while (screen.bursts[0] !== undefined && songTime - screen.bursts[0].at > BURST_S) screen.bursts.shift();
         if (screen.play.overAt !== null) {
           player.stop();
-          overButtons.hidden = false;
           screen = {
             kind: "over",
             song: screen.song,
@@ -454,6 +471,8 @@ async function boot(): Promise<void> {
             at: screen.play.overAt,
             source: screen.source,
           };
+          placeEndButtons();
+          overButtons.hidden = false;
           return nextFrame();
         }
         // The song may still be playing its outro here; it keeps going under the result screen.
@@ -467,7 +486,10 @@ async function boot(): Promise<void> {
             play: screen.play,
             path: screen.path,
             shownAt: performance.now(),
+            source: screen.source,
           };
+          placeEndButtons();
+          overButtons.hidden = false;
           return nextFrame();
         }
         return {

@@ -230,6 +230,20 @@ body {
   pointer-events: auto;
 }
 
+/* The result screen: the same two buttons under the numbers, centred on the point main.ts sets, fading in with them. */
+#over.result {
+  right: auto;
+  padding: 0;
+  transform: translateX(-50%);
+  animation: end-buttons-in 0.6s ease-out both;
+}
+
+@keyframes end-buttons-in {
+  from {
+    opacity: 0;
+  }
+}
+
 .start.secondary {
   background: var(--surface);
   color: var(--text);

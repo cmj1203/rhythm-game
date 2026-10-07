@@ -15,6 +15,29 @@ export type ResultFrame = {
 };
 
 const STATS_HEIGHT = 330;
+/** Room under the numbers for the 다시 하기 and 곡 선택 buttons main.ts lays over this screen (`.start` is about 50px tall). */
+const BUTTONS_GAP = 20;
+const BUTTONS_HEIGHT = 52;
+
+type StatsLayout = { readonly x: number; readonly top: number; readonly scale: number };
+
+/** Where the numbers go: beside the embroidery when wide, under it when narrow, leaving room for the buttons below. */
+function statsLayout(size: Size): StatsLayout {
+  const rect = clothRect(size);
+  const room = BUTTONS_GAP + BUTTONS_HEIGHT;
+  if (isWideLayout(size)) {
+    const scale = Math.min(1, (size.height * 0.9 - room) / STATS_HEIGHT);
+    return { x: (rect.x + rect.width + size.width) / 2, top: (size.height - STATS_HEIGHT * scale - room) / 2, scale };
+  }
+  const top = rect.y + rect.height + 28;
+  return { x: size.width / 2, top, scale: Math.min(1, (size.height - top - 16 - room) / STATS_HEIGHT) };
+}
+
+/** The point the buttons are centred on, at their top edge: just under the numbers. */
+export function resultButtonsAt(size: Size): { readonly x: number; readonly y: number } {
+  const { x, top, scale } = statsLayout(size);
+  return { x, y: top + STATS_HEIGHT * scale + BUTTONS_GAP };
+}
 
 function drawStats(painter: Painter, frame: ResultFrame, x: number, top: number, scale: number): void {
   const { play } = frame;
@@ -48,14 +71,7 @@ export function drawResult(painter: Painter, frame: ResultFrame, size: Size): vo
   const { ctx } = painter;
   ctx.save();
   ctx.globalAlpha = frame.fade;
-  if (isWideLayout(size)) {
-    const scale = Math.min(1, (size.height * 0.9) / STATS_HEIGHT);
-    const x = (rect.x + rect.width + size.width) / 2;
-    drawStats(painter, frame, x, (size.height - STATS_HEIGHT * scale) / 2, scale);
-  } else {
-    const top = rect.y + rect.height + 28;
-    const scale = Math.min(1, (size.height - top - 16) / STATS_HEIGHT);
-    drawStats(painter, frame, size.width / 2, top, scale);
-  }
+  const { x, top, scale } = statsLayout(size);
+  drawStats(painter, frame, x, top, scale);
   ctx.restore();
 }

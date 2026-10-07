@@ -1,4 +1,7 @@
 export const LEAD_IN_S = 3;
+/** The count-in clicks the beat up to the first note, from this long after the start key, and at most this many. */
+const COUNT_IN_FROM_S = 0.3;
+const COUNT_IN_MAX_BEATS = 8;
 const ANCHOR_LEVEL_S = 0.005;
 const ANCHOR_SEARCH_S = 0.06;
 const TICK_S = 0.03;
@@ -77,6 +80,22 @@ export function volumeFor(buffer: AudioBuffer): number {
   }
   if (peak === 0) return 1;
   return Math.min(SONG_RMS / Math.sqrt(squares / (buffer.length * buffer.numberOfChannels)), MAX_PEAK / peak);
+}
+
+/**
+ * Song times (negative during the lead-in) for a click on each beat before the first note, so that the player has
+ * the tempo before the first press: the beats of `bpm` counted from `offset`, from just after the start key up to
+ * a quarter beat before `firstNote` (a click on the note itself would sound like a hit), the last few of them.
+ */
+export function countIn(bpm: number, offset: number, firstNote: number): number[] {
+  const beat = 60 / bpm;
+  const times: number[] = [];
+  for (let k = Math.floor((firstNote - beat / 4 - offset) / beat); times.length < COUNT_IN_MAX_BEATS; k -= 1) {
+    const time = offset + k * beat;
+    if (time < COUNT_IN_FROM_S - LEAD_IN_S) break;
+    times.unshift(time);
+  }
+  return times;
 }
 
 export class SongPlayer {

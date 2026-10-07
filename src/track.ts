@@ -307,8 +307,6 @@ function drawHud(painter: Painter, frame: PlayingFrame, { width, height }: Size)
   }
   if (frame.phase === "ready") {
     painter.text("누르면 시작", { x, y: height * 0.2 }, { size: 28, weight: 800 });
-  } else if (songTime < 0) {
-    painter.text(String(Math.ceil(-songTime)), { x, y: height * 0.2 }, { size: 64, weight: 800 });
   }
   drawFeedback(painter, feedback, songTime, { x, y: height * 0.76 });
 }

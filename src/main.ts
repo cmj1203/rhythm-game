@@ -188,7 +188,7 @@ async function boot(): Promise<void> {
         buffer,
         audioShift: decodingShift(buffer, chart.anchors),
         volume: volumeFor(buffer),
-        countIn: countIn(chart.bpm, chart.offset, times[0] ?? 0),
+        countIn: countIn(chart.bpm, times),
       };
     } catch (error) {
       screen = { kind: "menu" };

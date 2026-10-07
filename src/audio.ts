@@ -1,7 +1,17 @@
 export const LEAD_IN_S = 3;
-/** The count-in clicks the beat up to the first note, from this long after the start key, and at most this many. */
+/** The count-in clicks up to the first note, from this long after the start key, at most this many times. */
 const COUNT_IN_FROM_S = 0.3;
-const COUNT_IN_MAX_BEATS = 8;
+const COUNT_IN_MAX_CLICKS = 8;
+/**
+ * It keeps to the rhythm of the notes in this many beats from the first: every half beat, beat or two beats,
+ * whichever of those (no shorter or longer than these) the notes keep to best. A note keeps to a click when it is
+ * within this share of the click spacing of it, at most `COUNT_IN_SLACK_S`.
+ */
+const COUNT_IN_OPENING_BEATS = 16;
+const COUNT_IN_SHORTEST_S = 0.18;
+const COUNT_IN_LONGEST_S = 1;
+const COUNT_IN_SLACK_SHARE = 0.2;
+const COUNT_IN_SLACK_S = 0.05;
 const ANCHOR_LEVEL_S = 0.005;
 const ANCHOR_SEARCH_S = 0.06;
 const TICK_S = 0.03;
@@ -82,16 +92,55 @@ export function volumeFor(buffer: AudioBuffer): number {
   return Math.min(SONG_RMS / Math.sqrt(squares / (buffer.length * buffer.numberOfChannels)), MAX_PEAK / peak);
 }
 
+/** Clicks every `every` seconds, one of them at `at`. */
+type Pulse = { readonly at: number; readonly every: number };
+
 /**
- * Song times (negative during the lead-in) for a click on each beat before the first note, so that the player has
- * the tempo before the first press: the beats of `bpm` counted from `offset`, from just after the start key up to
- * a quarter beat before `firstNote` (a click on the note itself would sound like a hit), the last few of them.
+ * How well the notes of `opening` keep to `pulse`, from 0 to 1: the harmonic mean of the share of the notes that
+ * fall on a click and the share of the clicks from the first note to the last that have a note on them.
  */
-export function countIn(bpm: number, offset: number, firstNote: number): number[] {
+function keeping(opening: readonly number[], { at, every }: Pulse): number {
+  const slack = Math.min(COUNT_IN_SLACK_S, every * COUNT_IN_SLACK_SHARE);
+  const first = opening[0] ?? at;
+  const last = opening[opening.length - 1] ?? at;
+  const onClick = opening.filter((time) => Math.abs(time - at - Math.round((time - at) / every) * every) <= slack);
+  let clicks = 0;
+  let heard = 0;
+  for (let k = Math.ceil((first - slack - at) / every); at + k * every <= last + slack; k += 1) {
+    clicks += 1;
+    if (opening.some((time) => Math.abs(time - at - k * every) <= slack)) heard += 1;
+  }
+  const notesShare = onClick.length / opening.length;
+  const clicksShare = clicks === 0 ? 0 : heard / clicks;
+  return notesShare + clicksShare === 0 ? 0 : (2 * notesShare * clicksShare) / (notesShare + clicksShare);
+}
+
+/**
+ * Song times (negative during the lead-in) for a click on each pulse of the opening before the first note, so that
+ * the clicks lead straight into it: the pulse (half beat, beat or two beats of `bpm`, lined up with one of the
+ * opening notes) those notes keep to best, from just after the start key up to a quarter pulse before the first
+ * note (a click on the note itself would sound like a hit), the last few of them. A busy opening clicks fast and a
+ * sparse one slowly.
+ */
+export function countIn(bpm: number, notes: readonly number[]): number[] {
+  const first = notes[0];
+  if (first === undefined) return [];
   const beat = 60 / bpm;
+  const opening = notes.filter((time) => time <= first + COUNT_IN_OPENING_BEATS * beat);
+  let best: { readonly pulse: Pulse; readonly score: number } | null = null;
+  // Longer pulses first, so that a tie keeps the calmer one.
+  for (const every of [beat * 2, beat, beat / 2]) {
+    if (every < COUNT_IN_SHORTEST_S || every > COUNT_IN_LONGEST_S) continue;
+    for (const at of opening) {
+      const score = keeping(opening, { at, every });
+      if (best === null || score > best.score) best = { pulse: { at, every }, score };
+    }
+  }
+  if (best === null) return [];
+  const { at, every } = best.pulse;
   const times: number[] = [];
-  for (let k = Math.floor((firstNote - beat / 4 - offset) / beat); times.length < COUNT_IN_MAX_BEATS; k -= 1) {
-    const time = offset + k * beat;
+  for (let k = Math.floor((first - every / 4 - at) / every); times.length < COUNT_IN_MAX_CLICKS; k -= 1) {
+    const time = at + k * every;
     if (time < COUNT_IN_FROM_S - LEAD_IN_S) break;
     times.unshift(time);
   }

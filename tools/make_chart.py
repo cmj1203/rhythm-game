@@ -57,6 +57,12 @@ LOCAL_FIT_HALF_WINDOW_BEATS: Final = 4
 # A gap this far, as a ratio, from the usual gap of its passage is a pause or a pickup rather than one beat.
 RUN_BREAK_RATIO: Final = 0.25
 RUN_TEMPO_WINDOW_BEATS: Final = 9
+# Tracked beats nearer each other than this share of a beat are one beat marked more than once, or a passage followed
+# at twice its tempo; the tracker does both now and then. Kept as beats, their four steps each would come a few
+# hundredths of a second apart: notes too close together to press one by one.
+CROWDED_BEAT_RATIO: Final = 0.6
+# The usual beat just then is the middle one of this many of the latest gaps between kept beats.
+CROWD_PERIOD_BEATS: Final = 8
 DOWNBEAT_MATCH_S: Final = 0.07
 # Even a "steady" recording drifts a few ms over minutes; a wide window follows that without adding jitter.
 STEADY_ALIGN_HALF_WINDOW_BEATS: Final = 16
@@ -219,14 +225,49 @@ def beat_runs(beats: np.ndarray) -> list[np.ndarray]:
     return np.split(np.arange(len(beats)), breaks)
 
 
+def drop_crowded_beats(beats: np.ndarray) -> np.ndarray:
+    """Of beats huddled closer than CROWDED_BEAT_RATIO of a beat, keep the one in time with the beats before it.
+
+    A beat that follows the last one kept too soon is dropped. Of beats that come one upon another, the one a whole
+    number of usual beats after the last one kept, or nearest to that, stays. So a beat marked twice stays once, and
+    a passage tracked at twice its tempo keeps every other beat.
+    """
+    period = float(np.median(np.diff(beats)))
+    kept = [float(beats[0])]
+    recent: list[float] = []
+    i = 1
+    while i < len(beats):
+        usual = float(np.median(recent[-CROWD_PERIOD_BEATS:])) if recent else period
+        if beats[i] - kept[-1] < CROWDED_BEAT_RATIO * usual:
+            i += 1
+            continue
+        huddle = [float(beats[i])]
+        i += 1
+        while i < len(beats) and beats[i] - huddle[0] < CROWDED_BEAT_RATIO * usual:
+            huddle.append(float(beats[i]))
+            i += 1
+        beats_on = [(beat - kept[-1]) / usual for beat in huddle]
+        chosen = huddle[int(np.argmin([abs(count - js_round(count)) for count in beats_on]))]
+        # A longer gap is a pause or beats the tracker skipped, and says nothing of how long a beat is.
+        if chosen - kept[-1] < period / CROWDED_BEAT_RATIO:
+            recent.append(chosen - kept[-1])
+        kept.append(chosen)
+    return np.asarray(kept)
+
+
 def smooth_locally(beats: np.ndarray) -> np.ndarray:
-    """Fit each beat to its neighbours, which evens out the tracker's coarse time steps without bridging a pause."""
+    """Fit each beat to its neighbours, which evens out the tracker's coarse time steps without bridging a pause.
+
+    A beat whose neighbours do not come at an even pace stays where it was tracked: where the tracker starts marking
+    every other beat, or the song ends in a long silence, a straight line through them would pull it off its beat.
+    """
     smoothed = beats.copy()
     for run in beat_runs(beats):
         for i in run:
             start = max(run[0], i - LOCAL_FIT_HALF_WINDOW_BEATS)
             end = min(run[-1], i + LOCAL_FIT_HALF_WINDOW_BEATS) + 1
-            if end - start >= 3:
+            gaps = np.diff(beats[start:end])
+            if end - start >= 3 and np.all(np.abs(gaps / np.median(gaps) - 1) <= RUN_BREAK_RATIO):
                 slope, intercept = np.polyfit(np.arange(start, end), beats[start:end], 1)
                 smoothed[i] = slope * i + intercept
     return smoothed
@@ -293,7 +334,7 @@ def build_grid(samples: np.ndarray, percussive: np.ndarray, envelope: np.ndarray
 
     steady = fit_steady_tempo(beats)
     if steady is None:
-        beats = smooth_locally(beats)
+        beats = smooth_locally(drop_crowded_beats(beats))
     else:
         period, offset = steady
         beats = np.arange(offset - period * np.floor(offset / period), len(percussive) / SAMPLE_RATE, period)

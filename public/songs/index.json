@@ -66,7 +66,7 @@
    "bpm": 90.0,
    "duration": 233.0,
    "difficulty": "easy",
-   "notes": 414,
+   "notes": 410,
    "artist": "Komiku",
    "credit": "\"Ancient Heavy Tech Donjon\" by Komiku (https://freemusicarchive.org/music/Komiku/Its_time_for_adventure__vol_5/Komiku_-_Its_time_for_adventure_vol_5_-_01_Ancient_Heavy_Tech_Donjon/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
@@ -76,7 +76,7 @@
    "bpm": 90.0,
    "duration": 217.391,
    "difficulty": "easy",
-   "notes": 317,
+   "notes": 314,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Andreas Theme\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -86,7 +86,7 @@
    "bpm": 100.0,
    "duration": 211.955,
    "difficulty": "easy",
-   "notes": 465,
+   "notes": 446,
    "artist": "Rolemusic",
    "credit": "\"Ants\" by Rolemusic (https://freemusicarchive.org/music/Rolemusic/Pop_Singles_Compilation_2014/02_rolemusic_-_ants/), licensed under CC BY 4.0 https://creativecommons.org/licenses/by/4.0/"
   },
@@ -403,10 +403,10 @@
   {
    "id": "friend-to-friend",
    "title": "Friend to friend",
-   "bpm": 129.83,
+   "bpm": 129.85,
    "duration": 163.462,
    "difficulty": "hard",
-   "notes": 530,
+   "notes": 534,
    "artist": "Loyalty Freak Music",
    "credit": "\"Friend to friend\" by Loyalty Freak Music (https://freemusicarchive.org/music/Loyalty_Freak_Music/INSTRUMENTAL_RB_BEATS_TO_SING_OR_RAP_ON/Loyalty_Freak_Music_-_INSTRUMENTAL_RB_BEATS_TO_SING_OR_RAP_ON_-_02_Friend_to_friend/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
@@ -586,7 +586,7 @@
    "bpm": 127.96,
    "duration": 185.678,
    "difficulty": "hard",
-   "notes": 722,
+   "notes": 701,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Laserpack\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -1016,7 +1016,7 @@
    "bpm": 139.9,
    "duration": 154.358,
    "difficulty": "hard",
-   "notes": 520,
+   "notes": 515,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Unholy Knight\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },

@@ -97,9 +97,11 @@ const FIT_ROUNDS = 24;
 const FIT_STRIDE = 0.8;
 /** A picture left unfinished shows more than a few last notes that have nothing left to sew. */
 const UNSEWN_PENALTY = 2;
-/** The camera follows the road as it runs this many seconds to either side of the moment, sampled this often. */
-const CAMERA_REACH_S = 0.6;
-const CAMERA_SAMPLES = 4;
+/**
+ * The camera looks at the road as it runs within this many seconds of the moment, the nearest moments weighing most
+ * and the furthest nothing. (It used to look at nine moments up to 0.6 s away; this reach rounds the corners as much.)
+ */
+const CAMERA_REACH_S = 0.75;
 
 function wrap(angle: number): number {
   const turned = ((angle + Math.PI) % TAU + TAU) % TAU;
@@ -370,8 +372,49 @@ export function orbiterAngle(sweep: Sweep, time: number): number {
   return sweep.startAngle + (sweep.angle * (time - sweep.startTime)) / (sweep.endTime - sweep.startTime);
 }
 
-/** Where along the road the music has got to at `time`, moving straight from tile to tile. */
-function roadAt(tiles: readonly Tile[], time: number): Point {
+/**
+ * A walk along the road, straight from tile to tile at the pace of the music, summed up over time, and that sum
+ * summed up again, as far as each tile. From these the walker's average place over any stretch of time comes at once.
+ */
+type RoadSums = {
+  readonly onceX: Float64Array;
+  readonly onceY: Float64Array;
+  readonly twiceX: Float64Array;
+  readonly twiceY: Float64Array;
+};
+
+const roadSums = new WeakMap<readonly Tile[], RoadSums>();
+
+function sumsOf(tiles: readonly Tile[]): RoadSums {
+  const known = roadSums.get(tiles);
+  if (known !== undefined) return known;
+  const sums = {
+    onceX: new Float64Array(tiles.length),
+    onceY: new Float64Array(tiles.length),
+    twiceX: new Float64Array(tiles.length),
+    twiceY: new Float64Array(tiles.length),
+  };
+  for (let i = 0; i + 1 < tiles.length; i++) {
+    const from = tiles[i];
+    const to = tiles[i + 1];
+    if (from === undefined || to === undefined) break;
+    const span = to.time - from.time;
+    const onceX = sums.onceX[i] ?? 0;
+    const onceY = sums.onceY[i] ?? 0;
+    sums.onceX[i + 1] = onceX + ((from.x + to.x) * span) / 2;
+    sums.onceY[i + 1] = onceY + ((from.y + to.y) * span) / 2;
+    sums.twiceX[i + 1] = (sums.twiceX[i] ?? 0) + onceX * span + ((2 * from.x + to.x) * span ** 2) / 6;
+    sums.twiceY[i + 1] = (sums.twiceY[i] ?? 0) + onceY * span + ((2 * from.y + to.y) * span ** 2) / 6;
+  }
+  roadSums.set(tiles, sums);
+  return sums;
+}
+
+/**
+ * The walker's place summed up twice over time, until `time`. Before the first tile and after the last, the walker
+ * stands still on it.
+ */
+function twiceSummedAt(tiles: readonly Tile[], sums: RoadSums, time: number): Point {
   let low = 0;
   let high = tiles.length - 1;
   while (low < high) {
@@ -380,28 +423,33 @@ function roadAt(tiles: readonly Tile[], time: number): Point {
     else high = middle - 1;
   }
   const from = tiles[low];
-  const to = tiles[low + 1];
   if (from === undefined) return { x: 0, y: 0 };
-  if (to === undefined) return from;
-  const progress = Math.min(1, Math.max(0, (time - from.time) / (to.time - from.time)));
-  return { x: from.x + (to.x - from.x) * progress, y: from.y + (to.y - from.y) * progress };
+  const to = tiles[low + 1] ?? from;
+  const since = time - from.time;
+  const span = to.time - from.time;
+  // What the steps toward the next tile add: nothing while the walker stands still.
+  const strides = since > 0 && span > 0 ? since ** 3 / (6 * span) : 0;
+  return {
+    x: (sums.twiceX[low] ?? 0) + (sums.onceX[low] ?? 0) * since + (from.x * since ** 2) / 2 + (to.x - from.x) * strides,
+    y: (sums.twiceY[low] ?? 0) + (sums.onceY[low] ?? 0) * since + (from.y * since ** 2) / 2 + (to.y - from.y) * strides,
+  };
 }
 
 /**
- * The camera glides along the road at the pace of the music, independent of what the player presses. It looks
- * at the road around `time` rather than at `time` alone, the moments nearest weighing most, so it sweeps through
- * the corners in one smooth curve instead of jerking at every tile.
+ * The camera glides along the road at the pace of the music, independent of what the player presses. It looks at
+ * the road around `time` rather than at `time` alone, the moments nearest weighing most, so it sweeps through the
+ * corners in one smooth curve. It weighs every moment within reach, not a few picked ones: with a few, the camera's
+ * speed jumped each time one of them passed a corner, and the screen shook where tiles are close and the road keeps
+ * bending. (The weights fall off evenly to nothing at the reach, which makes the average the second difference of
+ * the road summed up twice.)
  */
 export function cameraAt({ tiles }: Path, time: number): Point {
-  let x = 0;
-  let y = 0;
-  let total = 0;
-  for (let k = -CAMERA_SAMPLES; k <= CAMERA_SAMPLES; k++) {
-    const weight = CAMERA_SAMPLES + 1 - Math.abs(k);
-    const point = roadAt(tiles, time + (CAMERA_REACH_S * k) / CAMERA_SAMPLES);
-    x += point.x * weight;
-    y += point.y * weight;
-    total += weight;
-  }
-  return { x: x / total, y: y / total };
+  const sums = sumsOf(tiles);
+  const before = twiceSummedAt(tiles, sums, time - CAMERA_REACH_S);
+  const at = twiceSummedAt(tiles, sums, time);
+  const after = twiceSummedAt(tiles, sums, time + CAMERA_REACH_S);
+  return {
+    x: (before.x - 2 * at.x + after.x) / CAMERA_REACH_S ** 2,
+    y: (before.y - 2 * at.y + after.y) / CAMERA_REACH_S ** 2,
+  };
 }

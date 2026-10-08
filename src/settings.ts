@@ -19,7 +19,11 @@ export class SettingsScreen {
   constructor(private readonly options: SettingsOptions) {
     const calibrate = element("button", "start secondary settings-calibrate");
     calibrate.type = "button";
-    calibrate.append(element("span", "settings-name", "박자 맞추기"), this.lag);
+    calibrate.append(
+      element("span", "settings-name", "박자 맞추기"),
+      this.lag,
+      element("span", "settings-note", "기기에 맞게 박자를 조정할 수 있어요"),
+    );
     calibrate.addEventListener("click", () => options.onCalibrate());
     const close = element("button", "start", "닫기");
     close.type = "button";

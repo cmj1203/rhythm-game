@@ -343,8 +343,18 @@ body {
 
 .settings-calibrate {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
+  row-gap: 4px;
+}
+
+.settings-note {
+  flex-basis: 100%;
+  font-size: 13px;
+  font-weight: 400;
+  text-align: right;
+  color: var(--dim);
 }
 
 .settings-value {

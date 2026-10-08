@@ -9,11 +9,13 @@ export type CalibrationOptions = {
 };
 
 const CLICK_GAP_S = 0.6;
-const WARM_UP_CLICKS = 4;
-const COUNTED_CLICKS = 12;
-/** A press further than this from every counted click is a stray and is left out. */
+/** Clicks played in one run. Any of them may be pressed, so a player need not know when counting starts. */
+const CLICKS = 12;
+/** Presses that make a run: the dots on screen, lit one by one in the order the presses come. */
+const COUNTED_CLICKS = 8;
+/** A press further than this from every click is a stray and is left out. */
 const CATCH_S = 0.25;
-const ENOUGH_PRESSES = 8;
+const ENOUGH_PRESSES = 6;
 /** First-guess cutoff for a stable run, to be validated on real devices. */
 const MAX_MAD_S = 0.04;
 const LAST_PRESS_WAIT_S = 0.8;
@@ -29,7 +31,7 @@ export class CalibrationScreen {
   private readonly result = element("p", "calibration-result");
   private readonly again = element("button", "start secondary", "다시");
   private readonly keep = element("button", "start", "확인");
-  /** How late each counted click was pressed, by click; a click pressed twice keeps the first press. */
+  /** How late each click was pressed, by click; a click pressed twice keeps the first press. */
   private readonly presses = new Map<number, number>();
   private found: number | null = null;
   private finishTimer = 0;
@@ -79,10 +81,9 @@ export class CalibrationScreen {
     const at = this.options.player.heardTime(performanceMs);
     const click = Math.round(at / CLICK_GAP_S);
     const late = at - click * CLICK_GAP_S;
-    const counted = click - WARM_UP_CLICKS;
-    if (counted < 0 || counted >= COUNTED_CLICKS || Math.abs(late) > CATCH_S || this.presses.has(counted)) return;
-    this.presses.set(counted, late);
-    this.dots[counted]?.classList.add("pressed");
+    if (click < 0 || click >= CLICKS || Math.abs(late) > CATCH_S || this.presses.has(click)) return;
+    this.dots[this.presses.size]?.classList.add("pressed");
+    this.presses.set(click, late);
     if (this.presses.size === COUNTED_CLICKS) this.finish();
   }
 
@@ -94,7 +95,7 @@ export class CalibrationScreen {
     this.result.textContent = "";
     this.again.hidden = true;
     this.keep.hidden = true;
-    const times = Array.from({ length: WARM_UP_CLICKS + COUNTED_CLICKS }, (_, index) => index * CLICK_GAP_S);
+    const times = Array.from({ length: CLICKS }, (_, index) => index * CLICK_GAP_S);
     void this.options.player.unlock();
     this.options.player.startClicks(times);
     this.running = true;

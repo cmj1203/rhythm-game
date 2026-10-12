@@ -227,6 +227,11 @@ async function boot(): Promise<void> {
       calibration.show();
       screen = { kind: "calibration" };
     },
+    onResetLag: () => {
+      player.setLag(0);
+      localStorage.removeItem(LAG_KEY);
+      settings.setLag(0);
+    },
     onClose: () => {
       settings.hide();
       menu.show();

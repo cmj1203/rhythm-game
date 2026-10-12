@@ -219,6 +219,11 @@ body {
   opacity: 0.9;
 }
 
+.start:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
 /* Game over: two buttons under the words, which the canvas draws. Only the buttons take taps. */
 #over {
   position: fixed;

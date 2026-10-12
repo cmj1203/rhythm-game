@@ -7,11 +7,14 @@ export type SettingsOptions = {
   readonly onVolume: (share: number) => void;
   readonly lagMs: number;
   readonly onCalibrate: () => void;
+  /** The player wants the lag the timing check kept forgotten, back to none. */
+  readonly onResetLag: () => void;
   readonly onClose: () => void;
 };
 
 export class SettingsScreen {
   private readonly lag = element("span", "settings-value");
+  private readonly resetLag = element("button", "start secondary", "박자 초기화");
 
   constructor(private readonly options: SettingsOptions) {
     const calibrate = element("button", "start secondary settings-calibrate");
@@ -22,6 +25,8 @@ export class SettingsScreen {
       element("span", "settings-note", "기기에 맞게 박자를 조정할 수 있어요"),
     );
     calibrate.addEventListener("click", () => options.onCalibrate());
+    this.resetLag.type = "button";
+    this.resetLag.addEventListener("click", () => options.onResetLag());
     const close = element("button", "start", "닫기");
     close.type = "button";
     close.addEventListener("click", () => options.onClose());
@@ -31,12 +36,14 @@ export class SettingsScreen {
       element("h1", "menu-title", "설정"),
       volumeSlider(options.volume, options.onVolume),
       calibrate,
+      this.resetLag,
       close,
     );
   }
 
   setLag(ms: number): void {
     this.lag.textContent = `${ms > 0 ? "+" : ""}${ms}ms`;
+    this.resetLag.disabled = ms === 0;
   }
 
   show(): void {

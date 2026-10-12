@@ -28,6 +28,9 @@ body {
   display: block;
   width: 100vw;
   height: 100vh;
+  /* The picture is drawn for the part of the window that shows (window.innerHeight). `vh` is the height with a
+     phone browser's address bar hidden: while the bar showed, the picture was stretched and its bottom cut off. */
+  height: 100dvh;
 }
 
 /* The logo is drawn on the canvas, in the upper part of the screen; these words sit under it. */

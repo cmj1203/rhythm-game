@@ -115,9 +115,7 @@ async function boot(): Promise<void> {
   const overButtons = requireElement<HTMLElement>("#over");
   const backCorner = requireElement<HTMLElement>("#back");
   const player = new SongPlayer();
-  // A phone has its own volume buttons, so it gets no slider, and plays at the game's own level.
-  const hasVolumeSlider = !window.matchMedia("(pointer: coarse)").matches;
-  const volume = hasVolumeSlider ? savedVolume() : 1;
+  const volume = savedVolume();
   player.setVolume(volume);
   player.setLag(savedLag());
   const songs = await loadSongIndex();
@@ -218,7 +216,7 @@ async function boot(): Promise<void> {
 
   const settings = new SettingsScreen({
     root: requireElement<HTMLElement>("#settings"),
-    volume: hasVolumeSlider ? volume : null,
+    volume,
     onVolume: (share) => {
       player.setVolume(share);
       localStorage.setItem(VOLUME_KEY, String(share));

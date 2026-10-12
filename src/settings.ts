@@ -2,11 +2,8 @@ import { element } from "./dom";
 
 export type SettingsOptions = {
   readonly root: HTMLElement;
-  /**
-   * The volume chosen so far, as a share of full volume, and what to do when the player changes it. Null for no
-   * volume slider at all, as on a phone, which has its own volume buttons.
-   */
-  readonly volume: number | null;
+  /** The volume chosen so far, as a share of full volume, and what to do when the player changes it. */
+  readonly volume: number;
   readonly onVolume: (share: number) => void;
   readonly lagMs: number;
   readonly onCalibrate: () => void;
@@ -32,7 +29,7 @@ export class SettingsScreen {
 
     options.root.append(
       element("h1", "menu-title", "설정"),
-      ...(options.volume === null ? [] : [volumeSlider(options.volume, options.onVolume)]),
+      volumeSlider(options.volume, options.onVolume),
       calibrate,
       close,
     );

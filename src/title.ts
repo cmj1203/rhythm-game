@@ -18,7 +18,6 @@ export class TitleScreen {
     this.startButton = start;
     options.root.append(
       element("h1", "title-name", GAME_NAME),
-      element("p", "title-tagline", "키 하나로 그리는 리듬게임"),
       start,
 
     );

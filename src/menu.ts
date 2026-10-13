@@ -92,7 +92,7 @@ export class SongMenu {
     root.append(
       element("h1", "menu-title", "곡 선택"),
       tabs,
-      songs.length === 0 ? element("p", "empty", "곡이 없습니다. README의 곡 추가 방법을 따라 넣어 주세요.") : list,
+      songs.length === 0 ? element("p", "empty", "곡이 없습니다.") : list,
       startButton,
       settingsButton,
       this.status,

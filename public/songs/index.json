@@ -11,36 +11,6 @@
    "credit": "Music - \"8bit Dungeon Boss\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
-   "id": "a-wee-tipple",
-   "title": "A Wee Tipple",
-   "bpm": 119.98,
-   "duration": 147.174,
-   "difficulty": "normal",
-   "notes": 425,
-   "artist": "Scott Holmes Music",
-   "credit": "\"A Wee Tipple\" by Scott Holmes Music (https://freemusicarchive.org/music/Scott_Holmes/Music_For_Media_Vol_2/Scott_Holmes_-_03_-_A_Wee_Tipple_1169/), licensed under CC BY 4.0 https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
-   "id": "acoustic-rock",
-   "title": "Acoustic Rock",
-   "bpm": 130.0,
-   "duration": 166.896,
-   "difficulty": "hard",
-   "notes": 555,
-   "artist": "Jason Shaw",
-   "credit": "Music: \"Acoustic Rock\" by Jason Shaw, Audionautix.com. Licensed under Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
-   "id": "action-discovery",
-   "title": "Action Discovery",
-   "bpm": 98.07,
-   "duration": 100.114,
-   "difficulty": "normal",
-   "notes": 240,
-   "artist": "Komiku",
-   "credit": "\"Action Discovery\" by Komiku (https://freemusicarchive.org/music/Komiku/The_Binge_Watchers__Score_1/Komiku_-_The_Binge_Watchers_-_Score_1_-_12_Action_Discovery/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
-  },
-  {
    "id": "adventures-of-yuki",
    "title": "Adventures of Yuki Level 1",
    "bpm": 139.0,
@@ -61,66 +31,6 @@
    "credit": "Music - \"Aerosol of my Love\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
-   "id": "ancient-heavy-tech-donjon",
-   "title": "Ancient Heavy Tech Donjon",
-   "bpm": 90.0,
-   "duration": 233.0,
-   "difficulty": "easy",
-   "notes": 410,
-   "artist": "Komiku",
-   "credit": "\"Ancient Heavy Tech Donjon\" by Komiku (https://freemusicarchive.org/music/Komiku/Its_time_for_adventure__vol_5/Komiku_-_Its_time_for_adventure_vol_5_-_01_Ancient_Heavy_Tech_Donjon/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
-  },
-  {
-   "id": "andreas-theme",
-   "title": "Andreas Theme",
-   "bpm": 90.0,
-   "duration": 217.391,
-   "difficulty": "easy",
-   "notes": 314,
-   "artist": "Kevin MacLeod",
-   "credit": "Music - \"Andreas Theme\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
-   "id": "ants",
-   "title": "Ants",
-   "bpm": 100.0,
-   "duration": 211.955,
-   "difficulty": "easy",
-   "notes": 446,
-   "artist": "Rolemusic",
-   "credit": "\"Ants\" by Rolemusic (https://freemusicarchive.org/music/Rolemusic/Pop_Singles_Compilation_2014/02_rolemusic_-_ants/), licensed under CC BY 4.0 https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
-   "id": "aurea-carmina",
-   "title": "Aurea Carmina",
-   "bpm": 115.0,
-   "duration": 211.122,
-   "difficulty": "normal",
-   "notes": 569,
-   "artist": "Kevin MacLeod",
-   "credit": "Music - \"Aurea Carmina\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
-   "id": "b-3",
-   "title": "B-3",
-   "bpm": 120.0,
-   "duration": 186.044,
-   "difficulty": "normal",
-   "notes": 621,
-   "artist": "BoxCat Games",
-   "credit": "\"B-3\" by BoxCat Games (https://freemusicarchive.org/music/BoxCat_Games/Nameless_the_Hackers_RPG_Soundtrack/BoxCat_Games_-_Nameless-_the_Hackers_RPG_Soundtrack_-_04_B-3/). Licensed under CC BY 3.0 https://creativecommons.org/licenses/by/3.0/"
-  },
-  {
-   "id": "back-in-the-80s",
-   "title": "Back In The 80s",
-   "bpm": 120.0,
-   "duration": 239.953,
-   "difficulty": "easy",
-   "notes": 523,
-   "artist": "HoliznaCC0",
-   "credit": "\"Back In The 80s\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/power-pop/back-in-the-80s/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
-  },
-  {
    "id": "battle-of-the-void",
    "title": "Battle of the Void",
    "bpm": 97.0,
@@ -131,26 +41,6 @@
    "credit": "\"Battle of the Void\". Music by Marcelo Fernandez (http://www.marcelofernandezmusic.com), https://opengameart.org/content/battle-of-the-void. Licensed under Creative Commons Attribution (CC BY 3.0 on OpenGameArt, CC BY 4.0 in the author's notice)"
   },
   {
-   "id": "big-car-theft",
-   "title": "Big Car Theft",
-   "bpm": 135.0,
-   "duration": 163.892,
-   "difficulty": "hard",
-   "notes": 713,
-   "artist": "Jason Shaw",
-   "credit": "Music: \"Big Car Theft\" by Jason Shaw, Audionautix.com. Licensed under Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
-   "id": "big-love",
-   "title": "Big Love",
-   "bpm": 127.0,
-   "duration": 136.072,
-   "difficulty": "hard",
-   "notes": 529,
-   "artist": "1000 Handz",
-   "credit": "\"Big Love\" by 1000 Handz (https://freemusicarchive.org/music/1000-handz/cc-by-free-to-use-dancehouse-instrumentals/big-love-2/). Licensed under CC BY 4.0 https://creativecommons.org/licenses/by/4.0/ Attribution: Please credit '1000Handz.com' in the video description to use claim free"
-  },
-  {
    "id": "blippy-trance",
    "title": "Blippy Trance",
    "bpm": 100.0,
@@ -159,16 +49,6 @@
    "notes": 202,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Blippy Trance\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
-   "id": "boss-2-too-powerful-for-you-run",
-   "title": "Boss 2 : Too powerful for you, run !",
-   "bpm": 95.0,
-   "duration": 115.947,
-   "difficulty": "easy",
-   "notes": 200,
-   "artist": "Komiku",
-   "credit": "\"Boss 2 : Too powerful for you, run !\" by Komiku (https://freemusicarchive.org/music/Komiku/ULTRA_PERSON_VOL2/Komiku_-_ULTRA_PERSON_VOL2_-_04_Boss_2_-_Too_powerful_for_you_run_/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
   {
    "id": "boss-3-this-is-the-time-to-glisten",
@@ -221,26 +101,6 @@
    "credit": "Music - \"Carnivale Intrigue\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
-   "id": "cloud-dancer",
-   "title": "Cloud Dancer",
-   "bpm": 107.0,
-   "duration": 219.873,
-   "difficulty": "normal",
-   "notes": 535,
-   "artist": "Kevin MacLeod",
-   "credit": "Music - \"Cloud Dancer\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
-   "id": "club-seamus",
-   "title": "Club Seamus",
-   "bpm": 112.0,
-   "duration": 145.789,
-   "difficulty": "easy",
-   "notes": 356,
-   "artist": "Kevin MacLeod",
-   "credit": "Music - \"Club Seamus\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
    "id": "coffee",
    "title": "Coffee",
    "bpm": 96.67,
@@ -271,16 +131,6 @@
    "credit": "Music - \"Cretaceous Dawn\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
-   "id": "delay-rock",
-   "title": "Delay Rock",
-   "bpm": 112.0,
-   "duration": 178.991,
-   "difficulty": "normal",
-   "notes": 512,
-   "artist": "Kevin MacLeod",
-   "credit": "Music - \"Delay Rock\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
    "id": "desert-of-lost-souls",
    "title": "Desert of Lost Souls",
    "bpm": 134.0,
@@ -289,16 +139,6 @@
    "notes": 703,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Desert of Lost Souls\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
-   "id": "drama",
-   "title": "Drama",
-   "bpm": 115.0,
-   "duration": 210.745,
-   "difficulty": "normal",
-   "notes": 587,
-   "artist": "HoliznaCC0",
-   "credit": "\"Drama\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/power-pop/drama/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
   {
    "id": "dubakupado",
@@ -339,46 +179,6 @@
    "notes": 418,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Fantasia Fantasia\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
-   "id": "fat-caps",
-   "title": "Fat Caps",
-   "bpm": 109.0,
-   "duration": 178.469,
-   "difficulty": "normal",
-   "notes": 522,
-   "artist": "Jason Shaw",
-   "credit": "\"Fat Caps\" by Jason Shaw (https://freemusicarchive.org/music/Jason_Shaw/Audionautix_Tech_Urban_Dance/TU-FatCaps/). Licensed under CC BY 3.0 https://creativecommons.org/licenses/by/3.0/"
-  },
-  {
-   "id": "fearless-first",
-   "title": "Fearless First",
-   "bpm": 92.0,
-   "duration": 195.709,
-   "difficulty": "easy",
-   "notes": 324,
-   "artist": "Kevin MacLeod",
-   "credit": "Music - \"Fearless First\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
-   "id": "feel-good-rock",
-   "title": "Feel Good Rock",
-   "bpm": 131.0,
-   "duration": 131.709,
-   "difficulty": "hard",
-   "notes": 536,
-   "artist": "Jason Shaw",
-   "credit": "Music: \"Feel Good Rock\" by Jason Shaw, Audionautix.com. Licensed under Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
-   "id": "flutey-funk",
-   "title": "Flutey Funk",
-   "bpm": 90.0,
-   "duration": 214.727,
-   "difficulty": "easy",
-   "notes": 281,
-   "artist": "Kevin MacLeod",
-   "credit": "Music - \"Flutey Funk\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "forever-believe",
@@ -441,16 +241,6 @@
    "credit": "\"Funky Pop\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/power-pop/funky-pop/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
   {
-   "id": "game-boi-1",
-   "title": "Game BOI 1",
-   "bpm": 90.0,
-   "duration": 165.937,
-   "difficulty": "easy",
-   "notes": 317,
-   "artist": "HoliznaCC0",
-   "credit": "\"Game BOI 1\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/gamer-soundtrack-game-boi/game-boi-1/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
-  },
-  {
    "id": "game-travel-1",
    "title": "Game Travel 1",
    "bpm": 93.1,
@@ -491,46 +281,6 @@
    "credit": "Music - \"Groundwork\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
-   "id": "highlight-reel",
-   "title": "Highlight Reel",
-   "bpm": 90.06,
-   "duration": 175.923,
-   "difficulty": "easy",
-   "notes": 278,
-   "artist": "Kevin MacLeod",
-   "credit": "Music - \"Highlight Reel\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
-   "id": "humble",
-   "title": "Humble",
-   "bpm": 130.01,
-   "duration": 162.482,
-   "difficulty": "hard",
-   "notes": 571,
-   "artist": "1000 Handz",
-   "credit": "\"Humble\" by 1000 Handz (https://freemusicarchive.org/music/1000-handz/cc-by-free-to-use-dancehouse-instrumentals/humble/). Licensed under CC BY 4.0 https://creativecommons.org/licenses/by/4.0/ Attribution: Please credit '1000Handz.com' in the video description to use claim free"
-  },
-  {
-   "id": "impact-allegretto",
-   "title": "Impact Allegretto",
-   "bpm": 120.0,
-   "duration": 182.073,
-   "difficulty": "normal",
-   "notes": 514,
-   "artist": "Kevin MacLeod",
-   "credit": "Music - \"Impact Allegretto\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
-   "id": "jaunty-gumption",
-   "title": "Jaunty Gumption",
-   "bpm": 146.0,
-   "duration": 118.413,
-   "difficulty": "hard",
-   "notes": 550,
-   "artist": "Kevin MacLeod",
-   "credit": "Music - \"Jaunty Gumption\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
    "id": "jenifer-the-game",
    "title": "Jenifer The Game",
    "bpm": 120.0,
@@ -551,36 +301,6 @@
    "credit": "\"Jupiter\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/interstellar-pop-songs/jupiter/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
   {
-   "id": "kicking-bullies",
-   "title": "Kicking bullies",
-   "bpm": 120.0,
-   "duration": 129.106,
-   "difficulty": "normal",
-   "notes": 398,
-   "artist": "Komiku",
-   "credit": "\"Kicking bullies\" by Komiku (https://freemusicarchive.org/music/Komiku/THE_GIRL_WITH_THE_BASEBALL_BAT/Komiku_-_THE_GIRL_WITH_THE_BASEBALL_BAT_-_06_Kicking_bullies/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
-  },
-  {
-   "id": "kumasi-groove",
-   "title": "Kumasi Groove",
-   "bpm": 110.0,
-   "duration": 222.604,
-   "difficulty": "normal",
-   "notes": 535,
-   "artist": "Kevin MacLeod",
-   "credit": "Music - \"Kumasi Groove\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
-   "id": "lagoa-v2",
-   "title": "Lagoa v2",
-   "bpm": 130.0,
-   "duration": 193.907,
-   "difficulty": "hard",
-   "notes": 570,
-   "artist": "Kevin MacLeod",
-   "credit": "Music - \"Lagoa v2\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
    "id": "laserpack",
    "title": "Laserpack",
    "bpm": 127.96,
@@ -591,16 +311,6 @@
    "credit": "Music - \"Laserpack\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
-   "id": "level-11-high-risk-infiltration",
-   "title": "Level 11 : High risk infiltration",
-   "bpm": 140.0,
-   "duration": 124.429,
-   "difficulty": "hard",
-   "notes": 455,
-   "artist": "Komiku",
-   "credit": "\"Level 11 : High risk infiltration\" by Komiku (https://freemusicarchive.org/music/Komiku/ULTRA_PERSON_VOL4/Komiku_-_ULTRA_PERSON_VOL4_-_05_Level_11_-_High_risk_infiltration/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
-  },
-  {
    "id": "level-4-first-infiltration-in-unresponsible-tech",
    "title": "Level 4 : First infiltration in Unresponsible Tech",
    "bpm": 143.01,
@@ -609,16 +319,6 @@
    "notes": 602,
    "artist": "Komiku",
    "credit": "\"Level 4 : First infiltration in Unresponsible Tech\" by Komiku (https://freemusicarchive.org/music/Komiku/ULTRA_PERSON_VOL2/Komiku_-_ULTRA_PERSON_VOL2_-_01_Level_4_-_First_infiltration_in_Unresponsible_Tech/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
-  },
-  {
-   "id": "level-8-find-a-way",
-   "title": "Level 8 : Find a way",
-   "bpm": 129.93,
-   "duration": 111.769,
-   "difficulty": "hard",
-   "notes": 391,
-   "artist": "Komiku",
-   "credit": "\"Level 8 : Find a way\" by Komiku (https://freemusicarchive.org/music/Komiku/ULTRA_PERSON_VOL3/Komiku_-_ULTRA_PERSON_VOL3_-_05_Level_8_-_Find_a_way/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
   {
    "id": "looking-for-ammunition",
@@ -639,56 +339,6 @@
    "notes": 450,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Loopster\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
-   "id": "make-funk",
-   "title": "Make Funk",
-   "bpm": 99.0,
-   "duration": 163.009,
-   "difficulty": "easy",
-   "notes": 305,
-   "artist": "HoliznaCC0",
-   "credit": "\"Make Funk\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/bassic/make-funk/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
-  },
-  {
-   "id": "menace",
-   "title": "Menace",
-   "bpm": 120.0,
-   "duration": 225.459,
-   "difficulty": "normal",
-   "notes": 625,
-   "artist": "Tomasz Kucza",
-   "credit": "\"Menace\" by Tomasz Kucza / magory.net (https://opengameart.org/content/menace-fast-gothic-metal-track). Licensed under CC BY 4.0 https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
-   "id": "midnight-sun",
-   "title": "Midnight Sun",
-   "bpm": 114.99,
-   "duration": 214.053,
-   "difficulty": "normal",
-   "notes": 529,
-   "artist": "Josh Woodward",
-   "credit": "Music - \"Midnight Sun\" by Josh Woodward. Free download: https://www.joshwoodward.com/"
-  },
-  {
-   "id": "mini-boss",
-   "title": "Mini Boss",
-   "bpm": 112.5,
-   "duration": 221.833,
-   "difficulty": "normal",
-   "notes": 617,
-   "artist": "HoliznaCC0",
-   "credit": "\"Mini Boss\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/retro-gamer-soundtrack/mini-boss/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
-  },
-  {
-   "id": "mt-fox-shop",
-   "title": "Mt Fox Shop",
-   "bpm": 110.0,
-   "duration": 194.142,
-   "difficulty": "normal",
-   "notes": 503,
-   "artist": "BoxCat Games",
-   "credit": "\"Mt Fox Shop\" by BoxCat Games (https://freemusicarchive.org/music/BoxCat_Games/Nameless_the_Hackers_RPG_Soundtrack/BoxCat_Games_-_Nameless-_the_Hackers_RPG_Soundtrack_-_02_Mt_Fox_Shop/). Licensed under CC BY 3.0 https://creativecommons.org/licenses/by/3.0/"
   },
   {
    "id": "mutant-club",
@@ -741,16 +391,6 @@
    "credit": "\"Pensive Adventure\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/retro-gamer-soundtrack/pensive-adventure/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
   {
-   "id": "pilot-error",
-   "title": "Pilot Error",
-   "bpm": 112.05,
-   "duration": 155.611,
-   "difficulty": "normal",
-   "notes": 523,
-   "artist": "Kevin MacLeod",
-   "credit": "Music - \"Pilot Error\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
    "id": "pookatori-and-friends",
    "title": "Pookatori and Friends",
    "bpm": 124.0,
@@ -759,16 +399,6 @@
    "notes": 815,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Pookatori and Friends\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
-   "id": "prepare-to-fight",
-   "title": "Prepare to fight",
-   "bpm": 120.01,
-   "duration": 123.0,
-   "difficulty": "normal",
-   "notes": 319,
-   "artist": "Basil",
-   "credit": "\"Prepare to fight\" by Basil (https://opengameart.org/content/prepare-to-fight), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
   {
    "id": "protofunk",
@@ -781,16 +411,6 @@
    "credit": "Music - \"Protofunk\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
-   "id": "psychedelic-crater",
-   "title": "Psychedelic Crater",
-   "bpm": 120.0,
-   "duration": 200.072,
-   "difficulty": "hard",
-   "notes": 659,
-   "artist": "Kevin MacLeod",
-   "credit": "Music - \"Psychedelic Crater\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
    "id": "punk-rock-metal",
    "title": "Punk Rock Metal Background Music",
    "bpm": 110.0,
@@ -799,46 +419,6 @@
    "notes": 295,
    "artist": "madworldgames",
    "credit": "\"Punk Rock Metal Background Music\" by madworldgames (https://opengameart.org/content/punk-rock-metal-background-music), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
-  },
-  {
-   "id": "radio-rock",
-   "title": "Radio Rock",
-   "bpm": 110.0,
-   "duration": 177.241,
-   "difficulty": "normal",
-   "notes": 519,
-   "artist": "Jason Shaw",
-   "credit": "Music: \"Radio Rock\" by Jason Shaw, Audionautix.com. Licensed under Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
-   "id": "raving-energy-faster",
-   "title": "Raving Energy (faster)",
-   "bpm": 134.0,
-   "duration": 243.644,
-   "difficulty": "hard",
-   "notes": 1236,
-   "artist": "Kevin MacLeod",
-   "credit": "Music - \"Raving Energy (faster)\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
-   "id": "release",
-   "title": "Release",
-   "bpm": 156.0,
-   "duration": 230.528,
-   "difficulty": "normal",
-   "notes": 740,
-   "artist": "Josh Woodward",
-   "credit": "Music - \"Release\" by Josh Woodward. Free download: https://www.joshwoodward.com/"
-  },
-  {
-   "id": "retro-soundtrack",
-   "title": "Retro Soundtrack",
-   "bpm": 139.9,
-   "duration": 157.657,
-   "difficulty": "hard",
-   "notes": 699,
-   "artist": "HoliznaCC0",
-   "credit": "\"Retro Soundtrack\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/power-pop/retro-soundtrack/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
   {
    "id": "rubix-cube",
@@ -869,16 +449,6 @@
    "notes": 887,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Show Your Moves\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
-   "id": "southern-gothic",
-   "title": "Southern Gothic",
-   "bpm": 126.15,
-   "duration": 147.2,
-   "difficulty": "hard",
-   "notes": 398,
-   "artist": "Kevin MacLeod",
-   "credit": "Music - \"Southern Gothic\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "special-spotlight",
@@ -919,16 +489,6 @@
    "notes": 214,
    "artist": "HoliznaCC0",
    "credit": "\"Sunny Afternoon\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/chiptunes/sunny-afternoon/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
-  },
-  {
-   "id": "swansong",
-   "title": "Swansong",
-   "bpm": 85.0,
-   "duration": 261.507,
-   "difficulty": "easy",
-   "notes": 419,
-   "artist": "Josh Woodward",
-   "credit": "Music - \"Swansong\" by Josh Woodward. Free download: https://www.joshwoodward.com/"
   },
   {
    "id": "tafi-maradi-no-voice",
@@ -991,36 +551,6 @@
    "credit": "\"To fight a spell by dancing\" by Komiku (https://freemusicarchive.org/music/Komiku/Helice_Awesome_Dance_Adventure_/to-fight-a-spell-by-dancing/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
   {
-   "id": "together-we-are-stronger",
-   "title": "Together we are stronger",
-   "bpm": 90.0,
-   "duration": 192.0,
-   "difficulty": "easy",
-   "notes": 373,
-   "artist": "Komiku",
-   "credit": "\"Together we are stronger\" by Komiku (https://freemusicarchive.org/music/Komiku/Poupis_incredible_adventures_/Komiku_-_Poupis_incredible_adventures__-_59_Together_we_are_stronger/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
-  },
-  {
-   "id": "transition",
-   "title": "Transition",
-   "bpm": 140.0,
-   "duration": 114.364,
-   "difficulty": "hard",
-   "notes": 515,
-   "artist": "Jason Shaw",
-   "credit": "Music: \"Transition\" by Jason Shaw, Audionautix.com. Licensed under Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
-   "id": "unholy-knight",
-   "title": "Unholy Knight",
-   "bpm": 139.9,
-   "duration": 154.358,
-   "difficulty": "hard",
-   "notes": 515,
-   "artist": "Kevin MacLeod",
-   "credit": "Music - \"Unholy Knight\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
    "id": "video-games",
    "title": "Video Games",
    "bpm": 95.0,
@@ -1039,16 +569,6 @@
    "notes": 621,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Voltaic\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
-   "id": "voxel-revolution",
-   "title": "Voxel Revolution",
-   "bpm": 122.13,
-   "duration": 129.907,
-   "difficulty": "hard",
-   "notes": 427,
-   "artist": "Kevin MacLeod",
-   "credit": "Music - \"Voxel Revolution\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "wallpaper",
@@ -1079,16 +599,6 @@
    "notes": 782,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Your Call\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
-   "id": "zap-beat",
-   "title": "Zap Beat",
-   "bpm": 98.0,
-   "duration": 117.603,
-   "difficulty": "easy",
-   "notes": 205,
-   "artist": "Kevin MacLeod",
-   "credit": "Music - \"Zap Beat\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   }
  ]
 }

@@ -69,6 +69,11 @@ body {
   white-space: nowrap;
 }
 
+#title .title-tagline {
+  font-size: 16px;
+  color: var(--dim);
+}
+
 #title .start {
   width: min(320px, 100%);
   margin-top: 16px;

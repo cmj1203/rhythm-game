@@ -19,12 +19,14 @@
 #    Options: --artist "Name", --credit "attribution text the music license requires",
 #             --difficulty easy|normal|hard (without it the tempo decides)
 #    The first run downloads PyTorch and the beat-tracking model, which takes a few minutes.
+# 3. Self-test (synthetic swing and straight songs, never played): uv run tools/make_chart.py --self-test
 # ──────────────────
 
 from __future__ import annotations
 
 import json
 import math
+import sys
 from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
@@ -37,6 +39,7 @@ from beat_this.inference import Audio2Beats
 from rich.console import Console
 from rich.table import Table
 from scipy.ndimage import median_filter, percentile_filter
+from scipy.signal import butter, sosfilt
 
 SAMPLE_RATE: Final = 22050
 HOP: Final = 256
@@ -80,6 +83,16 @@ ENVELOPE_PEAK_FRAMES: Final = 4
 LOCAL_LEVEL_WINDOW_STEPS: Final = 65
 LOCAL_LEVEL_PERCENTILE: Final = 80
 MIN_STRENGTH: Final = 0.04
+# On a 3- or 6-step grid (a swing or triplet song) each place in the beat is measured against the usual strength of the
+# same place over the same 16 beats: the parts of a swing groove come back at fixed places, so a swung hit is judged
+# against itself, not against a brighter part elsewhere in the beat (a low kick next to a hi-hat makes a much weaker
+# onset envelope at the same loudness). That level is never under PLACE_LEVEL_FLOOR of the section's own level, so a
+# place with only faint sound in it does not turn into notes.
+# proposed, unvalidated - todo 9 gate review: NORMAL kept the swung hit or not depending on how it was synthesised.
+PLACE_LEVEL_WINDOW_BEATS: Final = LOCAL_LEVEL_WINDOW_STEPS // STEPS_PER_BEAT + 1
+PLACE_LEVEL_FLOOR: Final = 0.5
+# beats_to_the_ends carries a 3- or 6-step grid past the tracked beats at the pace of this many beats at either end.
+EDGE_PACE_BEATS: Final = 8
 
 # The music has ended once it stays this far below its loudest; the faint hits of a fade-out after that are no notes.
 END_LEVEL_DB: Final = -30.0
@@ -166,8 +179,8 @@ HIT_ON_TIME_S: Final = 0.025
 # 123 ms on average (Repp 2006). The stricter 0.18 s would drop many more notes, and the owner keeps note counts
 # (2026-10-07), so a too-close note is moved to a free half-beat step before it is dropped.
 MIN_NOTE_GAP_S: Final = 0.125
-# A note is moved no further than this many steps (two beats).
-GAP_MAX_MOVE_STEPS: Final = 2 * STEPS_PER_BEAT
+# A note is moved no further than this many beats.
+GAP_MAX_MOVE_BEATS: Final = 2
 # When the gap guard would leave a song fewer than this share of its previous chart's notes, the song keeps its runs
 # of tight notes and only lone too-close pairs are resolved (owner decision 2026-10-14).
 MIN_KEPT_SHARE: Final = 0.96
@@ -198,6 +211,7 @@ class BeatGrid:
     bpm: float
     is_steady: bool
     step_times: np.ndarray
+    steps_per_beat: int = STEPS_PER_BEAT
 
 
 class NoBeatError(Exception):
@@ -392,18 +406,54 @@ def build_grid(samples: np.ndarray, percussive: np.ndarray, envelope: np.ndarray
         beats = np.arange(offset - period * np.floor(offset / period), len(percussive) / SAMPLE_RATE, period)
 
     beats = align_to_attacks(fold_tempo(beats, downbeats, envelope), percussive, is_steady=steady is not None)
-    steps = np.arange((len(beats) - 1) * STEPS_PER_BEAT + 1) / STEPS_PER_BEAT
+    return grid_on_beats(beats, is_steady=steady is not None)
+
+
+def grid_on_beats(beats: np.ndarray, *, is_steady: bool, steps_per_beat: int = STEPS_PER_BEAT) -> BeatGrid:
+    steps = np.arange((len(beats) - 1) * steps_per_beat + 1) / steps_per_beat
     return BeatGrid(
         bpm=60.0 / float(np.median(np.diff(beats))),
-        is_steady=steady is not None,
+        is_steady=is_steady,
         step_times=np.interp(steps, np.arange(len(beats)), beats),
+        steps_per_beat=steps_per_beat,
     )
 
 
-def step_accents(envelope: np.ndarray, step_frames: np.ndarray) -> np.ndarray:
+def chart_grid(samples: np.ndarray, percussive: np.ndarray, envelope: np.ndarray) -> BeatGrid:
+    """`build_grid`, split into 3 (triplet) or 6 (mixed) steps per beat instead of 4 when the song's off-beat hits sit
+    on thirds of a beat, as tools/screen/grid.py decides it: a swung off-beat falls 50-100 ms from every quarter step.
+    """
+    # Imported here, not at the top: tools/screen/core.py imports this file, and screen.grid needs only numpy/librosa.
+    from screen.grid import grid_steps_per_beat, strong_onsets
+
+    grid = build_grid(samples, percussive, envelope)
+    beats = grid.step_times[::STEPS_PER_BEAT]
+    steps_per_beat = grid_steps_per_beat(strong_onsets(percussive, envelope), beats)
+    if steps_per_beat == STEPS_PER_BEAT:
+        return grid
+    beats = beats_to_the_ends(beats, len(samples) / SAMPLE_RATE)
+    return grid_on_beats(beats, is_steady=grid.is_steady, steps_per_beat=steps_per_beat)
+
+
+def beats_to_the_ends(beats: np.ndarray, duration: float) -> np.ndarray:
+    """`beats` carried on a beat at a time, at the pace of their first and last EDGE_PACE_BEATS, back to the start of
+    the song and on past its end.
+
+    The tracker often leaves the first and last seconds without beats, so the swung hits there would have no step. Only
+    3- and 6-step grids are carried on: a quarter grid stays as tracked, so the charts of straight songs do not move.
+    """
+    first = float(np.median(np.diff(beats[: EDGE_PACE_BEATS + 1])))
+    last = float(np.median(np.diff(beats[-EDGE_PACE_BEATS - 1 :])))
+    before = beats[0] - first * np.arange(math.floor(beats[0] / first), 0, -1)
+    after = beats[-1] + last * np.arange(1, math.ceil((duration - beats[-1]) / last) + 1)
+    return np.concatenate([before, beats, after])
+
+
+def step_accents(envelope: np.ndarray, step_frames: np.ndarray, steps_per_beat: int = STEPS_PER_BEAT) -> np.ndarray:
     """How strongly the percussive envelope stands out at each grid step, relative to its section.
 
-    Around 1 is a typical strong hit of that section; 0 means nothing audible happens there.
+    Around 1 is a typical strong hit of that section; 0 means nothing audible happens there. On a 3- or 6-step grid a
+    step is measured against the usual strength of its own place in the beat in that section (`PLACE_LEVEL_FLOOR`).
     """
     normalized = envelope / (float(np.percentile(envelope, 99)) or 1.0)
     windows = np.lib.stride_tricks.sliding_window_view(
@@ -411,25 +461,46 @@ def step_accents(envelope: np.ndarray, step_frames: np.ndarray) -> np.ndarray:
     )
     strength = windows[np.minimum(step_frames, len(windows) - 1)].max(axis=1)
     level = percentile_filter(strength, LOCAL_LEVEL_PERCENTILE, size=LOCAL_LEVEL_WINDOW_STEPS, mode="nearest")
+    if steps_per_beat != STEPS_PER_BEAT:
+        place_level = np.empty_like(strength)
+        for place in range(steps_per_beat):
+            place_level[place::steps_per_beat] = percentile_filter(
+                strength[place::steps_per_beat], LOCAL_LEVEL_PERCENTILE, size=PLACE_LEVEL_WINDOW_BEATS, mode="nearest"
+            )
+        level = np.maximum(place_level, PLACE_LEVEL_FLOOR * level)
 
     return np.where(strength >= MIN_STRENGTH, strength / np.maximum(level, MIN_STRENGTH), 0.0)
 
 
-def select_steps(accent: np.ndarray, difficulty: Difficulty) -> np.ndarray:
-    step = np.arange(len(accent))
+def half_beat_steps(steps_per_beat: int) -> frozenset[int]:
+    """The steps within a beat charted like a half beat: the half beat of a 4- or 6-step grid, and the 1/3 and 2/3
+    points of a 3- or 6-step grid, where a swung off-beat falls (osu!taiko ranks swing 1/3 like straight 1/2)."""
+    half = {steps_per_beat // 2} if steps_per_beat % 2 == 0 else set()
+    thirds = {steps_per_beat // 3, 2 * steps_per_beat // 3} if steps_per_beat % 3 == 0 else set()
+    return frozenset(half | thirds)
+
+
+def on_beat_or_half(step: int, steps_per_beat: int) -> bool:
+    within = step % steps_per_beat
+    return within == 0 or within in half_beat_steps(steps_per_beat)
+
+
+def select_steps(accent: np.ndarray, difficulty: Difficulty, steps_per_beat: int = STEPS_PER_BEAT) -> np.ndarray:
+    spb = steps_per_beat
+    within = np.arange(len(accent)) % spb
     minimum = np.where(
-        step % STEPS_PER_BEAT == 0,
+        within == 0,
         difficulty.on_beat,
-        np.where(step % 2 == 0, difficulty.on_half_beat, difficulty.off_beat),
+        np.where(np.isin(within, list(half_beat_steps(spb))), difficulty.on_half_beat, difficulty.off_beat),
     )
     chosen = np.flatnonzero(accent >= minimum)
-    bounds = np.concatenate([[-STEPS_PER_BEAT], chosen, [len(accent)]])
+    bounds = np.concatenate([[-spb], chosen, [len(accent)]])
     fill = [
         beat
         for before, after in zip(bounds[:-1], bounds[1:])
-        if after - before > FILL_AFTER_BEATS * STEPS_PER_BEAT
-        for beat in range((before // STEPS_PER_BEAT + 1) * STEPS_PER_BEAT, after, STEPS_PER_BEAT)
-        if beat - before >= STEPS_PER_BEAT and after - beat >= STEPS_PER_BEAT and accent[beat] >= FILL_MIN_ACCENT
+        if after - before > FILL_AFTER_BEATS * spb
+        for beat in range((before // spb + 1) * spb, after, spb)
+        if beat - before >= spb and after - beat >= spb and accent[beat] >= FILL_MIN_ACCENT
     ]
     return np.union1d(chosen, np.asarray(fill, dtype=int)).astype(int)
 
@@ -482,19 +553,22 @@ def pacing(times: list[float]) -> Pacing:
     return Pacing(unit, units, [count > GAME_MAX_UNITS_PER_SWEEP for count in units], fast)
 
 
-def wait_windows(steps: list[int], waits: list[bool]) -> dict[int, tuple[int, int]]:
+def wait_windows(
+    steps: list[int], waits: list[bool], steps_per_beat: int = STEPS_PER_BEAT
+) -> dict[int, tuple[int, int]]:
     """For each stretch of SPREAD_WINDOW_BEATS, in order: how many gaps start in it, and how many of them are waits."""
     tally: dict[int, tuple[int, int]] = {}
     for step, is_wait in zip(steps, waits):
-        window = step // (SPREAD_WINDOW_BEATS * STEPS_PER_BEAT)
+        window = step // (SPREAD_WINDOW_BEATS * steps_per_beat)
         gaps, count = tally.get(window, (0, 0))
         tally[window] = (gaps + 1, count + int(is_wait))
     return tally
 
 
-def unevenness(steps: list[int], waits: list[bool]) -> float:
+def unevenness(steps: list[int], waits: list[bool], steps_per_beat: int = STEPS_PER_BEAT) -> float:
     """The coefficient of variation of the share of waits over the stretches with at least SPREAD_MIN_GAPS gaps."""
-    shares = [count / gaps for gaps, count in wait_windows(steps, waits).values() if gaps >= SPREAD_MIN_GAPS]
+    windows = wait_windows(steps, waits, steps_per_beat)
+    shares = [count / gaps for gaps, count in windows.values() if gaps >= SPREAD_MIN_GAPS]
     if not shares:
         return 0.0
     mean = sum(shares) / len(shares)
@@ -523,7 +597,13 @@ def on_hits(envelope: np.ndarray, step_times: np.ndarray) -> list[bool]:
     return hits
 
 
-def spread_waits(steps: list[int], step_times: np.ndarray, accent: np.ndarray, hits: list[bool]) -> list[int]:
+def spread_waits(
+    steps: list[int],
+    step_times: np.ndarray,
+    accent: np.ndarray,
+    hits: list[bool],
+    steps_per_beat: int = STEPS_PER_BEAT,
+) -> list[int]:
     """`steps` with the waits the game's crayon slows down for (sky blue tiles) spread more evenly through the song.
 
     A quiet stretch of a song is full of them and a busy one has none. In the stretch of SPREAD_WINDOW_BEATS most
@@ -534,7 +614,8 @@ def spread_waits(steps: list[int], step_times: np.ndarray, accent: np.ndarray, h
     only when the waits fall more evenly by at least SPREAD_MIN_GAIN, no run of unmarked tiles grows, and the
     chart's usual gap stays within SPREAD_MAX_UNIT_DRIFT of what it was.
     """
-    window = SPREAD_WINDOW_BEATS * STEPS_PER_BEAT
+    spb = steps_per_beat
+    window = SPREAD_WINDOW_BEATS * spb
     original = sorted(steps)
     current = list(original)
 
@@ -548,7 +629,7 @@ def spread_waits(steps: list[int], step_times: np.ndarray, accent: np.ndarray, h
         def units_between(earlier: int, later: int, unit: float = pace.unit) -> float:
             return max(0.25, js_round((float(step_times[later]) - float(step_times[earlier])) / unit * 4) / 4)
 
-        tally = wait_windows(current, pace.slow)
+        tally = wait_windows(current, pace.slow, spb)
         share = sum(count for _, count in tally.values()) / sum(gaps for gaps, _ in tally.values())
         over = {key: count - share * gaps for key, (gaps, count) in tally.items()}
 
@@ -558,8 +639,8 @@ def spread_waits(steps: list[int], step_times: np.ndarray, accent: np.ndarray, h
                 earlier, later = current[i], current[i + 1]
                 if not is_wait or earlier // window != key:
                     continue
-                for step in range(earlier + 2 - earlier % 2, later, 2):
-                    if accent[step] < FILL_MIN_ACCENT or not hits[step]:
+                for step in range(earlier + 1, later):
+                    if not on_beat_or_half(step, spb) or accent[step] < FILL_MIN_ACCENT or not hits[step]:
                         continue
                     if max(units_between(earlier, step), units_between(step, later)) > GAME_MAX_UNITS_PER_SWEEP:
                         continue
@@ -572,7 +653,7 @@ def spread_waits(steps: list[int], step_times: np.ndarray, accent: np.ndarray, h
         for key in sorted((key for key in over if over[key] <= -1), key=lambda key: (over[key], key)):
             for k in range(1, len(current) - 1):
                 step = current[k]
-                if step % STEPS_PER_BEAT == 0 or current[k - 1] // window != key:
+                if step % spb == 0 or current[k - 1] // window != key:
                     continue
                 if pace.slow[k - 1] or pace.slow[k] or pace.fast[k - 1] or pace.fast[k]:
                     continue
@@ -590,7 +671,7 @@ def spread_waits(steps: list[int], step_times: np.ndarray, accent: np.ndarray, h
 
     after = pacing(times_of(current))
     if (
-        unevenness(current, after.slow) > unevenness(original, before.slow) - SPREAD_MIN_GAIN
+        unevenness(current, after.slow, spb) > unevenness(original, before.slow, spb) - SPREAD_MIN_GAIN
         or longest_plain(after) > longest_plain(before)
         or abs(after.unit / before.unit - 1) > SPREAD_MAX_UNIT_DRIFT
     ):
@@ -599,13 +680,20 @@ def spread_waits(steps: list[int], step_times: np.ndarray, accent: np.ndarray, h
 
 
 def space_notes(
-    steps: list[int], step_times: np.ndarray, accent: np.ndarray, hits: list[bool], end: float, *, keep_runs: bool = False
+    steps: list[int],
+    step_times: np.ndarray,
+    accent: np.ndarray,
+    hits: list[bool],
+    end: float,
+    *,
+    keep_runs: bool = False,
+    steps_per_beat: int = STEPS_PER_BEAT,
 ) -> list[int]:
     """`steps` with no two notes closer than MIN_NOTE_GAP_S (as written to the chart, rounded to 4 decimals).
 
     Of the first too-close pair, the note with the weaker accent (the one off the beat when they tie, else the later
-    one) moves to the nearest free half-beat step, within GAP_MAX_MOVE_STEPS, that lies on a hit (`hits`), is no later
-    than `end` and keeps MIN_NOTE_GAP_S from the notes either side. It is dropped only when there is no such step.
+    one) moves to the nearest free beat or half-beat step (`half_beat_steps`), within GAP_MAX_MOVE_BEATS, that lies
+    on a hit (`hits`), is no later than `end` and keeps MIN_NOTE_GAP_S from the notes either side. It is dropped only when there is no such step.
     Every pass removes one too-close pair and makes none, so it ends.
 
     With `keep_runs`, the notes of a run (3 or more in a row, each closer than MIN_NOTE_GAP_S to the next) stay as
@@ -614,13 +702,17 @@ def space_notes(
     def time_of(step: int) -> float:
         return round(float(step_times[step]), 4)
 
+    spb = steps_per_beat
+
     def strength(step: int) -> tuple[float, bool]:
-        return float(accent[step]), step % STEPS_PER_BEAT == 0
+        return float(accent[step]), step % spb == 0
 
     def fits(step: int, rest: list[int]) -> bool:
-        if step < 0 or step >= len(step_times) or step % 2 != 0 or not hits[step] or step_times[step] > end:
+        if step < 0 or step >= len(step_times) or not on_beat_or_half(step, spb):
             return False
-        near = [other for other in rest if abs(other - step) <= 2 * STEPS_PER_BEAT]
+        if not hits[step] or step_times[step] > end:
+            return False
+        near = [other for other in rest if abs(other - step) <= 2 * spb]
         return step not in rest and all(abs(time_of(step) - time_of(other)) >= MIN_NOTE_GAP_S for other in near)
 
     current = sorted(steps)
@@ -633,7 +725,8 @@ def space_notes(
         weak, strong = sorted(close, key=strength)
         for mover in (weak, strong):
             rest = [step for step in current if step != mover]
-            candidates = (mover + sign * distance for distance in range(1, GAP_MAX_MOVE_STEPS + 1) for sign in (-1, 1))
+            reach = GAP_MAX_MOVE_BEATS * spb
+            candidates = (mover + sign * distance for distance in range(1, reach + 1) for sign in (-1, 1))
             target = next((step for step in candidates if fits(step, rest)), None)
             if target is not None:
                 current = sorted([*rest, target])
@@ -673,11 +766,18 @@ def chart_notes(
 ) -> list[float]:
     """The notes of a chart at `level`: the steps `select_steps` picks up to `end`, with the waits spread out, and
     kept MIN_NOTE_GAP_S apart by `space_notes` (leaving runs of tight notes alone with `keep_runs`)."""
+    spb = grid.steps_per_beat
     hits = on_hits(envelope, grid.step_times)
-    steps = [int(step) for step in select_steps(accent, DIFFICULTIES[level]) if grid.step_times[step] <= end]
-    steps = space_notes(steps, grid.step_times, accent, hits, end, keep_runs=keep_runs)
+    steps = [int(step) for step in select_steps(accent, DIFFICULTIES[level], spb) if grid.step_times[step] <= end]
+    steps = space_notes(steps, grid.step_times, accent, hits, end, keep_runs=keep_runs, steps_per_beat=spb)
     steps = space_notes(
-        spread_waits(steps, grid.step_times, accent, hits), grid.step_times, accent, hits, end, keep_runs=keep_runs
+        spread_waits(steps, grid.step_times, accent, hits, spb),
+        grid.step_times,
+        accent,
+        hits,
+        end,
+        keep_runs=keep_runs,
+        steps_per_beat=spb,
     )
     return [round(float(grid.step_times[step]), 4) for step in steps]
 
@@ -771,10 +871,10 @@ def main(
     duration = len(samples) / SAMPLE_RATE
     percussive = librosa.effects.percussive(samples)
     envelope = librosa.onset.onset_strength(y=percussive, sr=SAMPLE_RATE, hop_length=HOP)
-    grid = build_grid(samples, percussive, envelope)
+    grid = chart_grid(samples, percussive, envelope)
 
     step_frames = librosa.time_to_frames(grid.step_times, sr=SAMPLE_RATE, hop_length=HOP)
-    accent = step_accents(envelope, step_frames)
+    accent = step_accents(envelope, step_frames, grid.steps_per_beat)
     level = difficulty or level_for(grid.bpm)
     end = music_end(samples)
     out = audio.with_name("chart.json")
@@ -819,10 +919,127 @@ def main(
     console = Console()
     console.print(table)
     kept = f", kept {report['kept']:.1%} of the previous {len(previous)} notes" if previous else ", no previous chart"
+    console.print(f"grid: {grid.steps_per_beat}")
     console.print(f"gap guard: {report['mode']}{kept}")
     console.print(f"[green]wrote[/green] {out}")
     console.print(f"[green]updated[/green] {index_path}")
 
 
+# ─── self-test: uv run tools/make_chart.py --self-test (synthetic songs made in memory, never played) ───
+
+# Plan todo 9: a 2:1 swing, a hit on the beat and an equally loud one 2/3 of a beat later. Every hit of it gets a note
+# within ON_NOTE_S at NORMAL and HARD on the triplet grid; the old quarter grid gives the swung hits almost none.
+SWING_SHARE: Final = 2 / 3
+ON_NOTE_S: Final = 0.025
+SWING_MIN_COVERED: Final = 0.9
+QUARTER_MAX_COVERED: Final = 0.1
+# Notes with no hit within ON_NOTE_S: the empty third of the beat must not fill up.
+STRAY_MAX_SHARE: Final = 0.05
+# (beat sound, swung sound, BPM, seconds): different timbres, so the result does not hang on one synthesis.
+SWING_SONGS: Final = (
+    ("sweep_kick", "noise_hat", 100.0, 40.0),
+    ("lowpass_kick", "tone_hat", 100.0, 40.0),
+    ("lowpass_kick", "noise_hat", 100.0, 40.0),
+    ("sweep_kick", "noise_hat", 100.0, 60.0),
+    ("sweep_kick", "noise_hat", 120.0, 40.0),
+)
+
+
+def test_sound(kind: str) -> np.ndarray:
+    """One hit, scaled to a peak of 1 so that every kind is equally loud."""
+    t = np.arange(round((0.15 if kind.endswith("kick") else 0.08) * SAMPLE_RATE)) / SAMPLE_RATE
+    noise = np.random.default_rng(len(kind)).standard_normal(len(t))
+    match kind:
+        case "sweep_kick":
+            frequency = 50 + 100 * np.exp(-t * 30)
+            sound = np.sin(2 * np.pi * np.cumsum(frequency) / SAMPLE_RATE) * np.exp(-t * 25)
+        case "lowpass_kick":
+            sound = sosfilt(butter(4, 800, "low", fs=SAMPLE_RATE, output="sos"), noise) * np.exp(-t * 30)
+        case "noise_hat":
+            sound = noise * np.exp(-t * 80)
+        case "tone_hat":
+            sound = np.sin(2 * np.pi * 8000 * t) * np.exp(-t * 90)
+        case _:
+            raise ValueError(kind)
+    return sound / np.abs(sound).max()
+
+
+def test_song(beat_kind: str, swung_kind: str, bpm: float, seconds: float, share: float) -> tuple[np.ndarray, dict]:
+    """The signal and the times of its two streams of hits: on the beat, and `share` of a beat after it."""
+    beats = np.arange(0.0, seconds - 0.1, 60 / bpm)
+    swung = beats + share * 60 / bpm
+    swung = swung[swung < seconds - 0.1]
+    signal = np.zeros(round(seconds * SAMPLE_RATE))
+    for kind, times in ((beat_kind, beats), (swung_kind, swung)):
+        sound = test_sound(kind)
+        for time in times:
+            start = round(time * SAMPLE_RATE)
+            end = min(len(signal), start + len(sound))
+            signal[start:end] += sound[: end - start]
+    return (signal / np.abs(signal).max() * 0.5).astype(np.float32), {"beat": beats, "swung": swung}
+
+
+def charted(samples: np.ndarray, grid_of, level: Level) -> tuple[BeatGrid, list[float]]:
+    """The notes `main` would write at `level` (without the previous-chart comparison), on the grid `grid_of` makes."""
+    percussive = librosa.effects.percussive(samples)
+    envelope = librosa.onset.onset_strength(y=percussive, sr=SAMPLE_RATE, hop_length=HOP)
+    grid = grid_of(samples, percussive, envelope)
+    frames = librosa.time_to_frames(grid.step_times, sr=SAMPLE_RATE, hop_length=HOP)
+    accent = step_accents(envelope, frames, grid.steps_per_beat)
+    notes = chart_notes(grid, envelope, accent, level, music_end(samples))
+    unheard = set(unheard_lead_in(samples, notes))
+    return grid, [time for time in notes if time not in unheard]
+
+
+def covered(notes: list[float], times: np.ndarray) -> float:
+    """The share of `times` with a note within ON_NOTE_S."""
+    if not notes:
+        return 0.0
+    return float(np.mean(np.abs(np.asarray(notes)[None, :] - times[:, None]).min(axis=1) <= ON_NOTE_S))
+
+
+def off_the_beat(grid: BeatGrid, streams: dict) -> str:
+    """The stream further from the tracked beats: the tracker may put the beat on either of the two."""
+    beats = grid.step_times[:: grid.steps_per_beat]
+    return max(streams, key=lambda name: float(np.median(np.abs(beats[None, :] - streams[name][:, None]).min(axis=1))))
+
+
+def self_test() -> int:
+    failed = 0
+    for beat_kind, swung_kind, bpm, seconds in SWING_SONGS:
+        samples, streams = test_song(beat_kind, swung_kind, bpm, seconds, SWING_SHARE)
+        for level in (Level.NORMAL, Level.HARD):
+            grid, notes = charted(samples, chart_grid, level)
+            quarter, quarter_notes = charted(samples, build_grid, level)
+            off = off_the_beat(quarter, streams)
+            shares = {name: covered(notes, times) for name, times in streams.items()}
+            old = covered(quarter_notes, streams[off])
+            stray = 1 - covered(sorted(np.concatenate(list(streams.values()))), np.asarray(notes))
+            ok = (
+                grid.steps_per_beat == 3
+                and min(shares.values()) >= SWING_MIN_COVERED
+                and old <= QUARTER_MAX_COVERED
+                and stray <= STRAY_MAX_SHARE
+            )
+            failed += not ok
+            print(
+                f"{'PASS' if ok else 'FAIL'} swing {beat_kind}+{swung_kind} {bpm:.0f} BPM {seconds:.0f}s {level.value}: "
+                f"grid {grid.steps_per_beat}, covered beat {shares['beat']:.3f} swung {shares['swung']:.3f}, "
+                f"quarter grid covers the off-beat {off} stream {old:.3f}, notes on no hit {stray:.3f}"
+            )
+    for beat_kind, swung_kind, bpm, seconds in SWING_SONGS[:2]:
+        samples, _ = test_song(beat_kind, swung_kind, bpm, seconds, 1 / 2)
+        for level in (Level.NORMAL, Level.HARD):
+            grid, notes = charted(samples, chart_grid, level)
+            quarter, quarter_notes = charted(samples, build_grid, level)
+            ok = grid.steps_per_beat == STEPS_PER_BEAT and notes == quarter_notes
+            failed += not ok
+            print(f"{'PASS' if ok else 'FAIL'} straight {beat_kind}+{swung_kind} {level.value}: grid {grid.steps_per_beat}, notes unchanged {notes == quarter_notes}")
+    print(f"{failed} failing")
+    return 1 if failed else 0
+
+
 if __name__ == "__main__":
+    if sys.argv[1:] == ["--self-test"]:
+        raise SystemExit(self_test())
     typer.run(main)

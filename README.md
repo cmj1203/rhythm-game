@@ -139,6 +139,8 @@ pnpm dev       # 터미널에 나오는 http://localhost:5173 주소를 브라�
    uv run tools/check_variety.py <곡-id>
    ```
 
+   곡 검사 기록(`screening/summary.md`): `uv run tools/screen_songs.py <곡-id>`
+
 4. 그림을 고르고 화면을 검사한다. `pnpm dev`를 켠 채로 다른 터미널에서 실행한다. 그림 고르기는 그림이 아직 없는 곡에만, 남은 그림 가운데 가장 잘 맞는 것을 골라 `public/songs/pictures.json`에 적는다. 화면 검사는 모든 곡의 크레파스 빠르기, 그림이 마지막 노트에 끝나는지, 완만한 꺾임 연속, 그림 겹침을 보고, 하나라도 걸리면 FAIL을 찍는다.
 
    ```bash

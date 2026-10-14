@@ -15,7 +15,8 @@
 #   uv run tools/check_timing.py                     every song in public/songs
 #   uv run tools/check_timing.py circles lagoa-v2    only these songs
 #   uv run tools/check_timing.py --mp3 new.mp3 --difficulty normal
-#        a song not in the game yet: charts it in memory as tools/make_chart.py would, and checks that chart
+#        a song not in the game yet: charts it in memory as tools/make_chart.py would (same 4-, 3- or 6-step grid),
+#        and checks that chart
 # A chart passes when at least 80% of its notes land within 25 ms of a hit in the music, and no note comes after
 # the music has ended. Exits with 1 when any chart fails.
 # ──────────────────
@@ -73,20 +74,21 @@ def check_mp3(audio: Path, difficulty: mc.Level | None) -> tuple[str, dict[str, 
     samples, _ = librosa.load(audio, sr=mc.SAMPLE_RATE, mono=True)
     percussive = librosa.effects.percussive(samples)
     envelope = librosa.onset.onset_strength(y=percussive, sr=mc.SAMPLE_RATE, hop_length=mc.HOP)
-    grid = mc.build_grid(samples, percussive, envelope)
-    accent = mc.step_accents(envelope, librosa.time_to_frames(grid.step_times, sr=mc.SAMPLE_RATE, hop_length=mc.HOP))
+    grid = mc.chart_grid(samples, percussive, envelope)
+    step_frames = librosa.time_to_frames(grid.step_times, sr=mc.SAMPLE_RATE, hop_length=mc.HOP)
+    accent = mc.step_accents(envelope, step_frames, grid.steps_per_beat)
     end = mc.music_end(samples)
     notes = mc.chart_notes(grid, envelope, accent, difficulty or mc.level_for(grid.bpm), end)
     unheard = set(mc.unheard_lead_in(samples, notes))
     notes = [time for time in notes if time not in unheard]
     result = timing(samples, notes, grid.bpm, float(grid.step_times[0]))
     listed = difficulty or mc.rated_level(notes, grid.bpm, float(grid.step_times[0]))
-    return f"{audio} ({listed.value}, {grid.bpm:.1f} BPM, {len(notes)} notes)", result
+    return f"{audio} ({listed.value}, {grid.bpm:.1f} BPM, {len(notes)} notes, grid {grid.steps_per_beat})", result
 
 
 def main(
     songs: list[str] | None = typer.Argument(None, help="song ids; every song when left out"),
-    mp3: Path | None = typer.Option(None, help="check an mp3 that is not in the game yet"),
+    mp3: Path | None = typer.Option(None, exists=True, dir_okay=False, help="check an mp3 that is not in the game yet"),
     difficulty: mc.Level | None = typer.Option(None, help="with --mp3: the difficulty to chart it at"),
 ) -> None:
     if mp3 is not None:

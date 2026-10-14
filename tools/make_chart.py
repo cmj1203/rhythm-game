@@ -168,6 +168,9 @@ HIT_ON_TIME_S: Final = 0.025
 MIN_NOTE_GAP_S: Final = 0.125
 # A note is moved no further than this many steps (two beats).
 GAP_MAX_MOVE_STEPS: Final = 2 * STEPS_PER_BEAT
+# When the gap guard would leave a song fewer than this share of its previous chart's notes, the song keeps its runs
+# of tight notes and only lone too-close pairs are resolved (owner decision 2026-10-14).
+MIN_KEPT_SHARE: Final = 0.96
 
 
 def level_for(bpm: float) -> Level:
@@ -595,13 +598,18 @@ def spread_waits(steps: list[int], step_times: np.ndarray, accent: np.ndarray, h
     return current
 
 
-def space_notes(steps: list[int], step_times: np.ndarray, accent: np.ndarray, hits: list[bool], end: float) -> list[int]:
+def space_notes(
+    steps: list[int], step_times: np.ndarray, accent: np.ndarray, hits: list[bool], end: float, *, keep_runs: bool = False
+) -> list[int]:
     """`steps` with no two notes closer than MIN_NOTE_GAP_S (as written to the chart, rounded to 4 decimals).
 
     Of the first too-close pair, the note with the weaker accent (the one off the beat when they tie, else the later
     one) moves to the nearest free half-beat step, within GAP_MAX_MOVE_STEPS, that lies on a hit (`hits`), is no later
     than `end` and keeps MIN_NOTE_GAP_S from the notes either side. It is dropped only when there is no such step.
     Every pass removes one too-close pair and makes none, so it ends.
+
+    With `keep_runs`, the notes of a run (3 or more in a row, each closer than MIN_NOTE_GAP_S to the next) stay as
+    they are, and only too-close pairs standing alone are resolved.
     """
     def time_of(step: int) -> float:
         return round(float(step_times[step]), 4)
@@ -617,8 +625,9 @@ def space_notes(steps: list[int], step_times: np.ndarray, accent: np.ndarray, hi
 
     current = sorted(steps)
     while True:
-        pairs = zip(current[:-1], current[1:])
-        close = next(((a, b) for a, b in pairs if time_of(b) - time_of(a) < MIN_NOTE_GAP_S), None)
+        tight = [time_of(b) - time_of(a) < MIN_NOTE_GAP_S for a, b in zip(current[:-1], current[1:])]
+        in_run = [keep_runs and ((i > 0 and tight[i - 1]) or (i + 1 < len(tight) and tight[i + 1])) for i in range(len(tight))]
+        close = next(((current[i], current[i + 1]) for i in range(len(tight)) if tight[i] and not in_run[i]), None)
         if close is None:
             return current
         weak, strong = sorted(close, key=strength)
@@ -639,9 +648,12 @@ def space_notes(steps: list[int], step_times: np.ndarray, accent: np.ndarray, hi
             current.remove(max((weak, strong), key=lambda step: (crowding(step), -strength(step)[0])))
 
 
-def gap_report(notes_before: list[float], notes_after: list[float]) -> dict[str, float | int]:
+def gap_report(
+    notes_before: list[float], notes_after: list[float], *, mode: str = "strict", previous: int | None = None
+) -> dict[str, float | int | str | None]:
     """How `space_notes` changed a chart: its smallest gap before, the gaps under MIN_NOTE_GAP_S before, and the notes
-    that moved (gone from one time, new at another) and the ones deleted (gone with no new note for them)."""
+    that moved (gone from one time, new at another) and the ones deleted (gone with no new note for them); also the
+    guard's `mode` (strict or run_exempt) and the share `kept` of the `previous` chart's note count, if there was one."""
     gaps = np.diff(np.asarray(notes_before, dtype=float))
     gone = set(notes_before) - set(notes_after)
     new = set(notes_after) - set(notes_before)
@@ -651,16 +663,22 @@ def gap_report(notes_before: list[float], notes_after: list[float]) -> dict[str,
         "n_before_lt_125": int((gaps < MIN_NOTE_GAP_S).sum()),
         "moved": moved,
         "deleted": len(gone) - moved,
+        "mode": mode,
+        "kept": round(len(notes_after) / previous, 4) if previous else None,
     }
 
 
-def chart_notes(grid: BeatGrid, envelope: np.ndarray, accent: np.ndarray, level: Level, end: float) -> list[float]:
+def chart_notes(
+    grid: BeatGrid, envelope: np.ndarray, accent: np.ndarray, level: Level, end: float, *, keep_runs: bool = False
+) -> list[float]:
     """The notes of a chart at `level`: the steps `select_steps` picks up to `end`, with the waits spread out, and
-    kept MIN_NOTE_GAP_S apart by `space_notes`."""
+    kept MIN_NOTE_GAP_S apart by `space_notes` (leaving runs of tight notes alone with `keep_runs`)."""
     hits = on_hits(envelope, grid.step_times)
     steps = [int(step) for step in select_steps(accent, DIFFICULTIES[level]) if grid.step_times[step] <= end]
-    steps = space_notes(steps, grid.step_times, accent, hits, end)
-    steps = space_notes(spread_waits(steps, grid.step_times, accent, hits), grid.step_times, accent, hits, end)
+    steps = space_notes(steps, grid.step_times, accent, hits, end, keep_runs=keep_runs)
+    steps = space_notes(
+        spread_waits(steps, grid.step_times, accent, hits), grid.step_times, accent, hits, end, keep_runs=keep_runs
+    )
     return [round(float(grid.step_times[step]), 4) for step in steps]
 
 
@@ -759,9 +777,20 @@ def main(
     accent = step_accents(envelope, step_frames)
     level = difficulty or level_for(grid.bpm)
     end = music_end(samples)
-    notes = chart_notes(grid, envelope, accent, level, end)
-    unheard = set(unheard_lead_in(samples, notes))
-    notes = [time for time in notes if time not in unheard]
+    out = audio.with_name("chart.json")
+    previous = json.loads(out.read_text(encoding="utf-8"))["notes"] if out.exists() else None
+
+    def heard_notes(keep_runs: bool) -> list[float]:
+        charted = chart_notes(grid, envelope, accent, level, end, keep_runs=keep_runs)
+        unheard = set(unheard_lead_in(samples, charted))
+        return [time for time in charted if time not in unheard]
+
+    # Strict spacing, unless it would cost the song more than 1 - MIN_KEPT_SHARE of its previous chart's notes.
+    notes = heard_notes(keep_runs=False)
+    mode = "strict"
+    if previous and len(notes) < MIN_KEPT_SHARE * len(previous):
+        notes, mode = heard_notes(keep_runs=True), "run_exempt"
+    report = gap_report(previous or [], notes, mode=mode, previous=len(previous) if previous else None)
     listed = difficulty or rated_level(notes, grid.bpm, float(grid.step_times[0]))
 
     chart = {
@@ -778,7 +807,6 @@ def main(
     for key, value in (("artist", artist), ("credit", credit)):
         if value:
             chart[key] = value
-    out = audio.with_name("chart.json")
     out.write_text(json.dumps(chart, ensure_ascii=False, indent=1), encoding="utf-8")
     index_path = write_song_index(audio.parent.parent)
 
@@ -790,6 +818,8 @@ def main(
     table.add_row(listed.value, str(len(notes)), f"{len(notes) / duration:.2f}")
     console = Console()
     console.print(table)
+    kept = f", kept {report['kept']:.1%} of the previous {len(previous)} notes" if previous else ", no previous chart"
+    console.print(f"gap guard: {report['mode']}{kept}")
     console.print(f"[green]wrote[/green] {out}")
     console.print(f"[green]updated[/green] {index_path}")
 

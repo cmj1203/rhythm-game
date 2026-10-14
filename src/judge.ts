@@ -41,6 +41,11 @@ export class PlayState {
   maxCombo = 0;
   /** The judgement of each note so far, in note order. The finished embroidery is drawn from it. */
   readonly history: Judgement[] = [];
+  /** Misses that came after a press (too early or too late), and misses of notes no press was made for. */
+  missPressed = 0;
+  missUnpressed = 0;
+  /** The highest the strain has been during this play. */
+  private peakStrain = 0;
   /** The song time of the miss that ended the game, or null while it goes on. */
   overAt: number | null = null;
   private nextIndex = 0;
@@ -56,6 +61,10 @@ export class PlayState {
   /** How many notes are already judged, which is also the index of the tile the ball stands on. */
   get resolvedCount(): number {
     return this.nextIndex;
+  }
+
+  get maxStrain(): number {
+    return this.peakStrain;
   }
 
   /** How near the game is to over: 0 with no misses left to make up for, 1 at a game over. */
@@ -99,7 +108,10 @@ export class PlayState {
       this.nextIndex += 1;
       // Strictly after: the press that hit the note before belongs to that note, not to this one.
       const wasPressedFor = this.lastPressAt !== null && this.lastPressAt > this.turnStart;
+      if (wasPressedFor) this.missPressed += 1;
+      else this.missUnpressed += 1;
       this.strain += wasPressedFor ? PRESSED_MISS_STRAIN : UNPRESSED_MISS_STRAIN;
+      this.peakStrain = Math.max(this.peakStrain, this.strain);
       this.turnStart = time + MAX_WINDOW_S;
       if (this.strain >= OVER_STRAIN) {
         this.overAt = this.turnStart;

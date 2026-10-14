@@ -16,6 +16,7 @@ import { element } from "./dom";
 import { DrawingLoadError } from "./drawing";
 import { loadIntro } from "./intro";
 import { PlayState } from "./judge";
+import { recordPlay, today } from "./playlog";
 import { SongMenu } from "./menu";
 import type { Path } from "./path";
 import { sewingFor, sewingOf } from "./pictures";
@@ -103,6 +104,24 @@ function savedVolume(): number {
 }
 
 const LAG_KEY = "livecanvas.lagMs";
+
+/** One finished or failed play, as the device-only play statistics keep it. */
+function logPlay(songId: string, difficulty: Difficulty, play: PlayState, gameOver: boolean): void {
+  recordPlay({
+    songId,
+    day: today(),
+    difficulty,
+    notes: play.times.length,
+    perfect: play.counts.perfect,
+    great: play.counts.great,
+    good: play.counts.good,
+    missPressed: play.missPressed,
+    missUnpressed: play.missUnpressed,
+    maxStrain: play.maxStrain,
+    gameOver,
+    lagMs: Math.round(savedLag() * 1000),
+  });
+}
 
 /** The lag the timing check found last time, in seconds; none if it was never kept. */
 function savedLag(): number {
@@ -472,6 +491,7 @@ async function boot(): Promise<void> {
         while (screen.bursts[0] !== undefined && songTime - screen.bursts[0].at > BURST_S) screen.bursts.shift();
         if (screen.play.overAt !== null) {
           player.stop();
+          logPlay(screen.song.id, screen.difficulty, screen.play, true);
           screen = {
             kind: "over",
             song: screen.song,
@@ -489,6 +509,7 @@ async function boot(): Promise<void> {
         }
         // The song may still be playing its outro here; it keeps going under the result screen.
         if (finaleProgress(screen.path, songTime) >= 1) {
+          logPlay(screen.song.id, screen.difficulty, screen.play, false);
           const { best, isNew, previous } = recordBest(screen.song.id, screen.play);
           screen = {
             kind: "result",

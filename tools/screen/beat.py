@@ -1,9 +1,14 @@
 # Beat clarity (essentia multifeature confidence) and folded beat stability: warnings for the owner's ears, never fails.
 from __future__ import annotations
 
+import importlib.util
 import math
 import os
+import subprocess
+import sys
+import tempfile
 from collections.abc import Callable
+from pathlib import Path
 from typing import Any, Final
 
 import numpy as np
@@ -17,7 +22,6 @@ CLARITY_MIN_CONFIDENCE: Final = 1.5
 # The research bench measured confidence at this loudness and at 44.1 kHz; the threshold comes from that bench.
 CLARITY_LOUDNESS_LUFS: Final = -12.9
 ESSENTIA_SAMPLE_RATE: Final = 44100
-# Run-to-run jitter of the confidence was up to 0.0036, so 2 decimals keep the result byte-identical.
 CLARITY_DECIMALS: Final = 2
 # proposed, unvalidated - share of 12 s windows whose folded inter-beat intervals vary by at most 10%
 STABLE_MIN_SHARE: Final = 0.8
@@ -36,24 +40,49 @@ THRESHOLDS: Final[dict[str, float]] = {
 }
 
 
-def essentia_confidence(ctx: Context) -> float | None:
-    if os.environ.get(NO_ESSENTIA_ENV) == "1":
+# RhythmExtractor2013 carries state from one call to the next inside a process: ruby-4 gave 2.0797 in a fresh process
+# or after special-spotlight, and 2.0854 after protofunk or after itself, with the same input and the same beats. Pool
+# workers take songs in no fixed order, so each song is measured in a new interpreter that runs only this script.
+ESSENTIA_SCRIPT: Final = f"""
+import sys
+import numpy as np
+import essentia
+import essentia.standard as es
+essentia.log.infoActive = False
+essentia.log.warningActive = False
+mono = np.load(sys.argv[1])
+native_sr = int(sys.argv[2])
+if native_sr != {ESSENTIA_SAMPLE_RATE}:
+    mono = es.Resample(inputSampleRate=native_sr, outputSampleRate={ESSENTIA_SAMPLE_RATE})(mono)
+_, _, confidence, _, _ = es.RhythmExtractor2013(method="multifeature")(mono)
+print(repr(float(confidence)))
+"""
+
+
+def raw_essentia_confidence(ctx: Context) -> float | None:
+    if os.environ.get(NO_ESSENTIA_ENV) == "1" or importlib.util.find_spec("essentia") is None:
         return None
-    try:
-        import essentia
-        import essentia.standard as es
-    except ImportError:
-        return None
-    essentia.log.infoActive = False
-    essentia.log.warningActive = False
     mono = ctx.channels.mean(axis=0).astype(np.float32)
     lufs = core.integrated_lufs(ctx.channels, ctx.native_sr)
     if math.isfinite(lufs):
         mono = (mono * 10 ** ((CLARITY_LOUDNESS_LUFS - lufs) / 20)).astype(np.float32)
-    if ctx.native_sr != ESSENTIA_SAMPLE_RATE:
-        mono = es.Resample(inputSampleRate=ctx.native_sr, outputSampleRate=ESSENTIA_SAMPLE_RATE)(mono)
-    _, _, confidence, _, _ = es.RhythmExtractor2013(method="multifeature")(mono)
-    return round(float(confidence), CLARITY_DECIMALS)
+    with tempfile.TemporaryDirectory() as folder:
+        signal = Path(folder) / "mono.npy"
+        np.save(signal, mono)
+        done = subprocess.run(
+            [sys.executable, "-c", ESSENTIA_SCRIPT, str(signal), str(ctx.native_sr)],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    if done.returncode != 0:
+        raise RuntimeError(f"essentia process exited {done.returncode}: {done.stderr.strip()[-500:]}")
+    return float(done.stdout.strip().splitlines()[-1])
+
+
+def essentia_confidence(ctx: Context) -> float | None:
+    confidence = raw_essentia_confidence(ctx)
+    return None if confidence is None else round(confidence, CLARITY_DECIMALS)
 
 
 def check_beat_clarity(ctx: Context, report: Report) -> None:

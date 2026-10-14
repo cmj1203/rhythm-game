@@ -47,6 +47,10 @@ MIN_BEATS: Final = 8
 # (a waltz) is left as it is, because half its beats would not be a beat of the music.
 MIN_BEAT_PERIOD_S: Final = 0.4
 MAX_BEAT_PERIOD_S: Final = 0.8
+# A song whose beat period is this near a fold boundary would be charted at half or twice the tempo if it were
+# a little faster or slower, so two songs of almost the same tempo can chart an octave apart (148 and 152 BPM).
+FOLD_NEAR_RATIO: Final = 0.1
+FOLD_WINDOW_BEATS: Final = 8
 NEVER: Final = float("inf")
 
 STEADY_INLIER_RESIDUAL_S: Final = 0.035
@@ -280,6 +284,51 @@ def smooth_locally(beats: np.ndarray) -> np.ndarray:
     return smoothed
 
 
+def is_in_three(beats: np.ndarray, downbeats: np.ndarray) -> bool:
+    """True when most bars are three or six beats long, as in a waltz: every other beat would cut across them."""
+    if len(downbeats) < 2:
+        return False
+    bar_lengths = np.diff(np.abs(downbeats[:, None] - beats[None, :]).argmin(axis=1))
+    return bool((bar_lengths[bar_lengths > 0] % 3 == 0).mean() > 0.5)
+
+
+def fold_octaves(period: float, *, three: bool) -> int:
+    """How often fold_tempo halves (+1 each) or doubles (-1 each) the tempo of beats this far apart."""
+    octaves = 0
+    while period < MIN_BEAT_PERIOD_S and not three:
+        period *= 2
+        octaves += 1
+    while period >= MAX_BEAT_PERIOD_S:
+        period /= 2
+        octaves -= 1
+    return octaves
+
+
+def fold_report(beats: np.ndarray, downbeats: np.ndarray, envelope: np.ndarray) -> dict[str, int | bool | float]:
+    """How fold_tempo treats these beats, and how close the song is to being folded another way.
+
+    factor: octaves fold_tempo moved the tempo, +1 per halving and -1 per doubling. three: the song is in three,
+    so it is never halved. period_s: the median beat period before folding. near_boundary: a period 10% off would
+    fold differently, so a song just a little faster or slower is charted at half or twice the tempo. cross_share:
+    share of 8-beat windows whose own period would fold differently from the whole song.
+    """
+    period = float(np.median(np.diff(beats)))
+    three = is_in_three(beats, downbeats)
+    folded = fold_tempo(beats, downbeats, envelope)
+    factor = round(math.log2(float(np.median(np.diff(folded))) / period))
+    starts = range(0, len(beats) - FOLD_WINDOW_BEATS, FOLD_WINDOW_BEATS)
+    windows = [beats[i : i + FOLD_WINDOW_BEATS + 1] for i in starts]
+    crossing = [fold_octaves(float(np.median(np.diff(window))), three=three) != factor for window in windows]
+    return {
+        "factor": factor,
+        "three": three,
+        "period_s": period,
+        "near_boundary": fold_octaves(period / (1 + FOLD_NEAR_RATIO), three=three)
+        != fold_octaves(period / (1 - FOLD_NEAR_RATIO), three=three),
+        "cross_share": float(np.mean(crossing)) if crossing else 0.0,
+    }
+
+
 def fold_tempo(beats: np.ndarray, downbeats: np.ndarray, envelope: np.ndarray) -> np.ndarray:
     def mean_strength(times: np.ndarray) -> float:
         frames = librosa.time_to_frames(times, sr=SAMPLE_RATE, hop_length=HOP)
@@ -297,14 +346,7 @@ def fold_tempo(beats: np.ndarray, downbeats: np.ndarray, envelope: np.ndarray) -
             return even
         return max(even, odd, key=lambda half: (bar_starts(half), mean_strength(half)))
 
-    def is_in_three() -> bool:
-        """True when most bars are three or six beats long, as in a waltz: every other beat would cut across them."""
-        if len(downbeats) < 2:
-            return False
-        bar_lengths = np.diff(np.abs(downbeats[:, None] - beats[None, :]).argmin(axis=1))
-        return bool((bar_lengths[bar_lengths > 0] % 3 == 0).mean() > 0.5)
-
-    while np.median(np.diff(beats)) < MIN_BEAT_PERIOD_S and not is_in_three():
+    while np.median(np.diff(beats)) < MIN_BEAT_PERIOD_S and not is_in_three(beats, downbeats):
         halved = np.concatenate([main_half(beats[run]) for run in beat_runs(beats)])
         if len(halved) == len(beats):
             break

@@ -1,4 +1,11 @@
 import { element } from "./dom";
+import { loadPlaylog } from "./playlog";
+
+/**
+ * How long the export's address stays valid after the click: Firefox and Safari start a download only after the
+ * click handler returns, and an address revoked by then downloads nothing.
+ */
+const DOWNLOAD_URL_LIFETIME_MS = 1000;
 
 export type SettingsOptions = {
   readonly root: HTMLElement;
@@ -27,6 +34,9 @@ export class SettingsScreen {
     calibrate.addEventListener("click", () => options.onCalibrate());
     this.resetLag.type = "button";
     this.resetLag.addEventListener("click", () => options.onResetLag());
+    const exportLog = element("button", "start secondary", "기록 내보내기");
+    exportLog.type = "button";
+    exportLog.addEventListener("click", () => downloadPlaylog());
     const close = element("button", "start", "닫기");
     close.type = "button";
     close.addEventListener("click", () => options.onClose());
@@ -37,6 +47,7 @@ export class SettingsScreen {
       volumeSlider(options.volume, options.onVolume),
       calibrate,
       this.resetLag,
+      exportLog,
       close,
     );
   }
@@ -53,6 +64,19 @@ export class SettingsScreen {
   hide(): void {
     this.options.root.hidden = true;
   }
+}
+
+/** Hands the plays this browser kept to the player as the file `livecanvas-playlog.json`. */
+function downloadPlaylog(): void {
+  const blob = new Blob([JSON.stringify(loadPlaylog())], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = "livecanvas-playlog.json";
+  document.body.append(anchor);
+  anchor.click();
+  anchor.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), DOWNLOAD_URL_LIFETIME_MS);
 }
 
 /** "음량", a slider from 0 to 100% starting at `share`, and the percentage it is at. */

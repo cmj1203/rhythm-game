@@ -6,7 +6,7 @@
    "bpm": 134.0,
    "duration": 172.008,
    "difficulty": "hard",
-   "notes": 686,
+   "notes": 659,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"8bit Dungeon Boss\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -16,7 +16,7 @@
    "bpm": 139.0,
    "duration": 126.013,
    "difficulty": "hard",
-   "notes": 550,
+   "notes": 549,
    "artist": "playgb.com",
    "credit": "\"Adventures of Yuki Level 1\" by playgb.com (https://opengameart.org/content/adventures-of-yuki-level-1-music). Licensed under CC BY 4.0 https://creativecommons.org/licenses/by/4.0/"
   },
@@ -26,7 +26,7 @@
    "bpm": 100.0,
    "duration": 141.819,
    "difficulty": "easy",
-   "notes": 239,
+   "notes": 238,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Aerosol of my Love\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -36,7 +36,7 @@
    "bpm": 97.0,
    "duration": 162.116,
    "difficulty": "easy",
-   "notes": 305,
+   "notes": 309,
    "artist": "Marcelo Fernandez",
    "credit": "\"Battle of the Void\". Music by Marcelo Fernandez (http://www.marcelofernandezmusic.com), https://opengameart.org/content/battle-of-the-void. Licensed under Creative Commons Attribution (CC BY 3.0 on OpenGameArt, CC BY 4.0 in the author's notice)"
   },
@@ -56,7 +56,7 @@
    "bpm": 90.0,
    "duration": 161.0,
    "difficulty": "easy",
-   "notes": 269,
+   "notes": 272,
    "artist": "Komiku",
    "credit": "\"Boss 3 : This is the time to glisten\" by Komiku (https://freemusicarchive.org/music/Komiku/ULTRA_PERSON_VOL2/Komiku_-_ULTRA_PERSON_VOL2_-_08_Boss_3_-_This_is_the_time_to_glisten/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
@@ -66,7 +66,7 @@
    "bpm": 140.0,
    "duration": 204.069,
    "difficulty": "hard",
-   "notes": 695,
+   "notes": 687,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Breakdown\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -76,7 +76,7 @@
    "bpm": 117.0,
    "duration": 170.318,
    "difficulty": "normal",
-   "notes": 478,
+   "notes": 482,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"C-Funk\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -86,17 +86,17 @@
    "bpm": 120.02,
    "duration": 104.0,
    "difficulty": "hard",
-   "notes": 352,
+   "notes": 350,
    "artist": "Komiku",
    "credit": "\"Captain Glouglou contest\" by Komiku (https://freemusicarchive.org/music/Komiku/Helice_Awesome_Dance_Adventure_/captain-glouglou-contest/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
   {
    "id": "carnivale-intrigue",
    "title": "Carnivale Intrigue",
-   "bpm": 94.99,
+   "bpm": 95.0,
    "duration": 199.654,
    "difficulty": "easy",
-   "notes": 337,
+   "notes": 336,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Carnivale Intrigue\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -106,7 +106,7 @@
    "bpm": 96.67,
    "duration": 174.483,
    "difficulty": "easy",
-   "notes": 384,
+   "notes": 382,
    "artist": "Josh Woodward",
    "credit": "\"Coffee\" by Josh Woodward (https://www.joshwoodward.com/song/Coffee), licensed under CC BY 4.0 https://creativecommons.org/licenses/by/4.0/"
   },
@@ -116,7 +116,7 @@
    "bpm": 123.85,
    "duration": 255.493,
    "difficulty": "hard",
-   "notes": 772,
+   "notes": 765,
    "artist": "Broke For Free",
    "credit": "\"Covered In Oil\" by Broke For Free (https://freemusicarchive.org/music/Broke_For_Free/Slam_Funk/Broke_For_Free_-_Slam_Funk_-_10_Covered_In_Oil), licensed under CC BY 3.0 https://creativecommons.org/licenses/by/3.0/"
   },
@@ -126,7 +126,7 @@
    "bpm": 96.09,
    "duration": 245.064,
    "difficulty": "easy",
-   "notes": 436,
+   "notes": 424,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Cretaceous Dawn\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -136,7 +136,7 @@
    "bpm": 134.0,
    "duration": 180.95,
    "difficulty": "hard",
-   "notes": 703,
+   "notes": 669,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Desert of Lost Souls\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -146,7 +146,7 @@
    "bpm": 115.0,
    "duration": 212.924,
    "difficulty": "normal",
-   "notes": 591,
+   "notes": 583,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Dubakupado\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -156,7 +156,7 @@
    "bpm": 117.0,
    "duration": 190.824,
    "difficulty": "normal",
-   "notes": 526,
+   "notes": 523,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Electro Cabello\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -166,7 +166,7 @@
    "bpm": 120.0,
    "duration": 188.056,
    "difficulty": "normal",
-   "notes": 512,
+   "notes": 515,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Enter the Party\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -176,7 +176,7 @@
    "bpm": 118.0,
    "duration": 151.589,
    "difficulty": "normal",
-   "notes": 418,
+   "notes": 413,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Fantasia Fantasia\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -186,7 +186,7 @@
    "bpm": 120.99,
    "duration": 162.351,
    "difficulty": "normal",
-   "notes": 484,
+   "notes": 475,
    "artist": "Jason Shaw",
    "credit": "\"Forever Believe\" by Jason Shaw (https://freemusicarchive.org/music/Jason_Shaw/Audionautix_Tech_Urban_Dance/TU-ForeverBelieve/). Licensed under CC BY 3.0 https://creativecommons.org/licenses/by/3.0/"
   },
@@ -196,7 +196,7 @@
    "bpm": 134.0,
    "duration": 204.251,
    "difficulty": "hard",
-   "notes": 835,
+   "notes": 758,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Freddy's Menagerie\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -206,7 +206,7 @@
    "bpm": 129.85,
    "duration": 163.462,
    "difficulty": "hard",
-   "notes": 534,
+   "notes": 527,
    "artist": "Loyalty Freak Music",
    "credit": "\"Friend to friend\" by Loyalty Freak Music (https://freemusicarchive.org/music/Loyalty_Freak_Music/INSTRUMENTAL_RB_BEATS_TO_SING_OR_RAP_ON/Loyalty_Freak_Music_-_INSTRUMENTAL_RB_BEATS_TO_SING_OR_RAP_ON_-_02_Friend_to_friend/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
@@ -216,7 +216,7 @@
    "bpm": 101.0,
    "duration": 201.456,
    "difficulty": "easy",
-   "notes": 379,
+   "notes": 374,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Funkorama\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -226,7 +226,7 @@
    "bpm": 115.0,
    "duration": 239.02,
    "difficulty": "normal",
-   "notes": 644,
+   "notes": 640,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Funky Chunk\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -235,8 +235,8 @@
    "title": "Funky Pop",
    "bpm": 120.99,
    "duration": 142.753,
-   "difficulty": "hard",
-   "notes": 437,
+   "difficulty": "normal",
+   "notes": 430,
    "artist": "HoliznaCC0",
    "credit": "\"Funky Pop\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/power-pop/funky-pop/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
@@ -246,7 +246,7 @@
    "bpm": 93.1,
    "duration": 116.737,
    "difficulty": "normal",
-   "notes": 286,
+   "notes": 283,
    "artist": "HoliznaCC0",
    "credit": "\"Game Travel 1\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/retro-gamer-soundtrack/game-travel-1/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
@@ -256,7 +256,7 @@
    "bpm": 135.0,
    "duration": 209.842,
    "difficulty": "hard",
-   "notes": 783,
+   "notes": 748,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Getting it Done\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -266,7 +266,7 @@
    "bpm": 100.0,
    "duration": 177.816,
    "difficulty": "easy",
-   "notes": 381,
+   "notes": 382,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Glitter Blast\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -286,7 +286,7 @@
    "bpm": 120.0,
    "duration": 209.0,
    "difficulty": "hard",
-   "notes": 768,
+   "notes": 761,
    "artist": "Komiku",
    "credit": "\"Jenifer The Game\" by Komiku (https://freemusicarchive.org/music/Komiku/Poupis_incredible_adventures_/Komiku_-_Poupis_incredible_adventures__-_28_Jenifer_The_Game/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
@@ -296,7 +296,7 @@
    "bpm": 90.0,
    "duration": 135.937,
    "difficulty": "easy",
-   "notes": 281,
+   "notes": 279,
    "artist": "HoliznaCC0",
    "credit": "\"Jupiter\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/interstellar-pop-songs/jupiter/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
@@ -306,7 +306,7 @@
    "bpm": 127.96,
    "duration": 185.678,
    "difficulty": "hard",
-   "notes": 701,
+   "notes": 692,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Laserpack\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -316,7 +316,7 @@
    "bpm": 143.01,
    "duration": 135.176,
    "difficulty": "hard",
-   "notes": 602,
+   "notes": 599,
    "artist": "Komiku",
    "credit": "\"Level 4 : First infiltration in Unresponsible Tech\" by Komiku (https://freemusicarchive.org/music/Komiku/ULTRA_PERSON_VOL2/Komiku_-_ULTRA_PERSON_VOL2_-_01_Level_4_-_First_infiltration_in_Unresponsible_Tech/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
@@ -326,7 +326,7 @@
    "bpm": 120.0,
    "duration": 100.0,
    "difficulty": "normal",
-   "notes": 340,
+   "notes": 334,
    "artist": "Ragnar Random",
    "credit": "\"Wandering Around Looking for Ammunition\" by Ragnar Random (https://opengameart.org/content/fakebit-chiptune-music-pack), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
@@ -336,7 +336,7 @@
    "bpm": 108.0,
    "duration": 182.282,
    "difficulty": "normal",
-   "notes": 450,
+   "notes": 455,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Loopster\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -346,7 +346,7 @@
    "bpm": 139.99,
    "duration": 130.657,
    "difficulty": "hard",
-   "notes": 523,
+   "notes": 519,
    "artist": "HoliznaCC0",
    "credit": "\"Mutant Club\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/power-pop/mutant-club/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
@@ -356,7 +356,7 @@
    "bpm": 115.0,
    "duration": 159.713,
    "difficulty": "normal",
-   "notes": 418,
+   "notes": 417,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"No Frills Comparsa\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -373,10 +373,10 @@
   {
    "id": "occupy-the-dance-floor",
    "title": "Occupy The Dance Floor",
-   "bpm": 135.97,
+   "bpm": 136.0,
    "duration": 170.109,
    "difficulty": "hard",
-   "notes": 742,
+   "notes": 743,
    "artist": "Jason Shaw",
    "credit": "Music: \"Occupy The Dance Floor\" by Jason Shaw, Audionautix.com. Licensed under Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/"
   },
@@ -386,7 +386,7 @@
    "bpm": 95.07,
    "duration": 222.265,
    "difficulty": "normal",
-   "notes": 433,
+   "notes": 431,
    "artist": "HoliznaCC0",
    "credit": "\"Pensive Adventure\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/retro-gamer-soundtrack/pensive-adventure/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
@@ -396,7 +396,7 @@
    "bpm": 124.0,
    "duration": 247.798,
    "difficulty": "hard",
-   "notes": 815,
+   "notes": 811,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Pookatori and Friends\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -406,7 +406,7 @@
    "bpm": 113.2,
    "duration": 182.387,
    "difficulty": "normal",
-   "notes": 636,
+   "notes": 635,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Protofunk\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -416,7 +416,7 @@
    "bpm": 110.0,
    "duration": 113.871,
    "difficulty": "normal",
-   "notes": 295,
+   "notes": 291,
    "artist": "madworldgames",
    "credit": "\"Punk Rock Metal Background Music\" by madworldgames (https://opengameart.org/content/punk-rock-metal-background-music), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
@@ -426,7 +426,7 @@
    "bpm": 89.99,
    "duration": 223.269,
    "difficulty": "easy",
-   "notes": 349,
+   "notes": 346,
    "artist": "Jason Shaw",
    "credit": "Music: \"Rubix Cube\" by Jason Shaw, Audionautix.com. Licensed under Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/"
   },
@@ -436,7 +436,7 @@
    "bpm": 86.0,
    "duration": 158.329,
    "difficulty": "easy",
-   "notes": 305,
+   "notes": 291,
    "artist": "HoliznaCC0",
    "credit": "\"Ruby 4\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/ruby-chiptunes/ruby-4/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
@@ -446,7 +446,7 @@
    "bpm": 136.0,
    "duration": 215.353,
    "difficulty": "hard",
-   "notes": 887,
+   "notes": 872,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Show Your Moves\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -456,7 +456,7 @@
    "bpm": 126.0,
    "duration": 192.444,
    "difficulty": "hard",
-   "notes": 661,
+   "notes": 650,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Special Spotlight\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -466,7 +466,7 @@
    "bpm": 114.0,
    "duration": 172.696,
    "difficulty": "normal",
-   "notes": 509,
+   "notes": 507,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Street Party\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -476,7 +476,7 @@
    "bpm": 102.0,
    "duration": 209.476,
    "difficulty": "easy",
-   "notes": 400,
+   "notes": 404,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Sunday Dub\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -486,7 +486,7 @@
    "bpm": 100.0,
    "duration": 115.153,
    "difficulty": "easy",
-   "notes": 214,
+   "notes": 212,
    "artist": "HoliznaCC0",
    "credit": "\"Sunny Afternoon\" by HoliznaCC0 (https://freemusicarchive.org/music/holiznacc0/chiptunes/sunny-afternoon/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
@@ -496,7 +496,7 @@
    "bpm": 133.0,
    "duration": 158.856,
    "difficulty": "hard",
-   "notes": 561,
+   "notes": 554,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Tafi Maradi no voice\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -506,7 +506,7 @@
    "bpm": 124.0,
    "duration": 228.441,
    "difficulty": "normal",
-   "notes": 695,
+   "notes": 694,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Tech Live\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -516,27 +516,27 @@
    "bpm": 100.0,
    "duration": 57.6,
    "difficulty": "easy",
-   "notes": 127,
+   "notes": 124,
    "artist": "Komiku",
    "credit": "\"The adventure\" by Komiku (https://freemusicarchive.org/music/Komiku/Poupis_incredible_adventures_/Komiku_-_Poupis_incredible_adventures__-_22_The_adventure/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
   {
    "id": "the-final-road",
    "title": "The Final Road",
-   "bpm": 115.11,
+   "bpm": 114.89,
    "duration": 127.304,
    "difficulty": "normal",
-   "notes": 406,
+   "notes": 400,
    "artist": "Visager",
    "credit": "\"The Final Road\" by Visager (https://freemusicarchive.org/music/Visager/Songs_From_An_Unmade_World/Visager_-_Songs_from_an_Unmade_World_-_11_The_Final_Road/). Licensed under CC BY 4.0 https://creativecommons.org/licenses/by/4.0/"
   },
   {
    "id": "the-road-we-use-to-travel",
    "title": "The road we use to travel when we were kids",
-   "bpm": 130.08,
+   "bpm": 129.88,
    "duration": 140.308,
    "difficulty": "hard",
-   "notes": 482,
+   "notes": 491,
    "artist": "Komiku",
    "credit": "\"The road we use to travel when we were kids\" by Komiku (https://freemusicarchive.org/music/Komiku/Tale_on_the_Late/Komiku_-_Tale_on_the_Late_-_03_The_road_we_use_to_travel_when_we_were_kids/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
@@ -546,7 +546,7 @@
    "bpm": 100.0,
    "duration": 115.2,
    "difficulty": "easy",
-   "notes": 227,
+   "notes": 224,
    "artist": "Komiku",
    "credit": "\"To fight a spell by dancing\" by Komiku (https://freemusicarchive.org/music/Komiku/Helice_Awesome_Dance_Adventure_/to-fight-a-spell-by-dancing/), licensed under CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/"
   },
@@ -566,7 +566,7 @@
    "bpm": 120.0,
    "duration": 196.075,
    "difficulty": "normal",
-   "notes": 621,
+   "notes": 615,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Voltaic\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -576,7 +576,7 @@
    "bpm": 93.0,
    "duration": 220.056,
    "difficulty": "easy",
-   "notes": 361,
+   "notes": 359,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Wallpaper\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -586,7 +586,7 @@
    "bpm": 140.0,
    "duration": 198.06,
    "difficulty": "normal",
-   "notes": 623,
+   "notes": 610,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Wretched Destroyer\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
@@ -596,7 +596,7 @@
    "bpm": 120.0,
    "duration": 224.052,
    "difficulty": "normal",
-   "notes": 782,
+   "notes": 775,
    "artist": "Kevin MacLeod",
    "credit": "Music - \"Your Call\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   }

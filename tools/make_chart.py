@@ -163,6 +163,10 @@ GAME_MAX_UNITS_PER_SWEEP: Final = 1.5
 GAME_FAST_RUN_MIN: Final = 6
 GAME_FAST_MAX_UNITS: Final = 0.5
 GAME_MIN_FAST_HALF_TURN_S: Final = 0.1
+# Gaps are rounded to quarters of the usual length, or to twelfths on a 3- or 6-step grid (src/path.ts
+# `roundingSteps`, which tells such a chart by its gaps).
+GAME_QUARTERS: Final = 4
+GAME_TWELFTHS: Final = 12
 
 # The waits the crayon slows down for are spread through the song by `spread_waits`.
 SPREAD_WINDOW_BEATS: Final = 16
@@ -536,11 +540,18 @@ class Pacing:
     units: list[float]
     slow: list[bool]
     fast: list[bool]
+    steps: int
 
 
-def pacing(times: list[float]) -> Pacing:
+def road_units(gap: float, unit: float, steps: int) -> float:
+    """`gap` in usual lengths `unit`, rounded to 1/`steps` as src/path.ts lays it."""
+    return max(0.25, js_round(gap / unit * steps) / steps)
+
+
+def pacing(times: list[float], steps_per_beat: int = STEPS_PER_BEAT) -> Pacing:
     unit = straight_interval(times)
-    units = [max(0.25, js_round((later - earlier) / unit * 4) / 4) for earlier, later in zip(times, times[1:])]
+    steps = GAME_QUARTERS if steps_per_beat == STEPS_PER_BEAT else GAME_TWELFTHS
+    units = [road_units(later - earlier, unit, steps) for earlier, later in zip(times, times[1:])]
     fast = [False] * len(units)
     if unit / 2 >= GAME_MIN_FAST_HALF_TURN_S:
         run_start = 0
@@ -550,7 +561,7 @@ def pacing(times: list[float]) -> Pacing:
             if i - run_start >= GAME_FAST_RUN_MIN:
                 fast[run_start:i] = [True] * (i - run_start)
             run_start = i + 1
-    return Pacing(unit, units, [count > GAME_MAX_UNITS_PER_SWEEP for count in units], fast)
+    return Pacing(unit, units, [count > GAME_MAX_UNITS_PER_SWEEP for count in units], fast, steps)
 
 
 def wait_windows(
@@ -622,12 +633,12 @@ def spread_waits(
     def times_of(chosen: list[int]) -> list[float]:
         return [float(step_times[step]) for step in chosen]
 
-    before = pacing(times_of(original))
+    before = pacing(times_of(original), spb)
     for _ in range(int(SPREAD_MAX_MOVED_SHARE * len(original) / 2)):
-        pace = pacing(times_of(current))
+        pace = pacing(times_of(current), spb)
 
-        def units_between(earlier: int, later: int, unit: float = pace.unit) -> float:
-            return max(0.25, js_round((float(step_times[later]) - float(step_times[earlier])) / unit * 4) / 4)
+        def units_between(earlier: int, later: int, unit: float = pace.unit, steps: int = pace.steps) -> float:
+            return road_units(float(step_times[later]) - float(step_times[earlier]), unit, steps)
 
         tally = wait_windows(current, pace.slow, spb)
         share = sum(count for _, count in tally.values()) / sum(gaps for gaps, _ in tally.values())
@@ -669,7 +680,7 @@ def spread_waits(
         dropped = current[drop]
         current = sorted([step for step in current if step != dropped] + [fill])
 
-    after = pacing(times_of(current))
+    after = pacing(times_of(current), spb)
     if (
         unevenness(current, after.slow, spb) > unevenness(original, before.slow, spb) - SPREAD_MIN_GAIN
         or longest_plain(after) > longest_plain(before)

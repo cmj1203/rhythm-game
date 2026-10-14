@@ -57,6 +57,15 @@ const MAX_UNITS_PER_SWEEP = 1.5;
 const FAST_RUN_MIN = 6;
 const FAST_MAX_UNITS = 0.5;
 const MIN_FAST_HALF_TURN_S = 0.1;
+/**
+ * Gaps are rounded to quarters of the usual length, or to twelfths in a chart made on thirds of a beat (a swing or
+ * triplet song, tools/make_chart.py `chart_grid`): such a chart has a gap within `GRID_MATCH_S` of a third of the
+ * usual length (or a multiple of it) that is not also a quarter of it. Straight songs keep quarters, so their roads
+ * do not move. tools/make_chart.py `pacing` rounds the same way.
+ */
+const QUARTERS = 4;
+const TWELFTHS = 12;
+const GRID_MATCH_S = 0.001;
 /** Steps of the usual length head in one of the eight compass directions, as on a board game. */
 const COMPASS_STEP = Math.PI / 4;
 /** How many steps in a row may go straight on before the road has to turn a corner. */
@@ -137,12 +146,30 @@ function straightInterval(times: readonly number[]): number {
   return lengths.length > 0 ? Math.max(...lengths) : FALLBACK_UNIT_S;
 }
 
+/** How many steps a usual-length gap is rounded to: `TWELFTHS` in a chart made on thirds of a beat, else `QUARTERS`. */
+function roundingSteps(times: readonly number[], unit: number): number {
+  for (let i = 1; i < times.length; i++) {
+    const gap = (times[i] ?? 0) - (times[i - 1] ?? 0);
+    const thirds = Math.round((gap / unit) * 3);
+    const quarters = Math.round((gap / unit) * 4);
+    if (
+      thirds % 3 !== 0 &&
+      Math.abs(gap - (thirds * unit) / 3) <= GRID_MATCH_S &&
+      Math.abs(gap - (quarters * unit) / 4) > GRID_MATCH_S
+    ) {
+      return TWELFTHS;
+    }
+  }
+  return QUARTERS;
+}
+
 /** A road laid along one guide. `shortfall` is how much of the guide was left over; negative = tiles left over. */
 type Attempt = { readonly path: Path; readonly shortfall: number };
 
 function lay(times: readonly number[], unit: number, guide: Guide, course: Course): Attempt {
   const first = times[0] ?? 0;
-  const unitsOf = (gap: number): number => Math.max(0.25, Math.round((gap / unit) * 4) / 4);
+  const steps = roundingSteps(times, unit);
+  const unitsOf = (gap: number): number => Math.max(0.25, Math.round((gap / unit) * steps) / steps);
   // fast[i]: the gap after note i lies in a busy stretch, which the ball turns through twice as fast.
   const fast = times.slice(1).map(() => false);
   if (unit / 2 >= MIN_FAST_HALF_TURN_S) {

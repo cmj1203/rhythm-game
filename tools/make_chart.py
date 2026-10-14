@@ -158,6 +158,13 @@ SPREAD_MAX_UNIT_DRIFT: Final = 0.02
 HIT_SEARCH_FRAMES: Final = 6
 HIT_ON_TIME_S: Final = 0.025
 
+# Notes nearer each other than this are hard to press one by one: a person keeps 1:1 sync with a beat down to about
+# 123 ms on average (Repp 2006). The stricter 0.18 s would drop many more notes, and the owner keeps note counts
+# (2026-10-07), so a too-close note is moved to a free half-beat step before it is dropped.
+MIN_NOTE_GAP_S: Final = 0.125
+# A note is moved no further than this many steps (two beats).
+GAP_MAX_MOVE_STEPS: Final = 2 * STEPS_PER_BEAT
+
 
 def level_for(bpm: float) -> Level:
     if bpm < EASY_BELOW_BPM:
@@ -546,11 +553,73 @@ def spread_waits(steps: list[int], step_times: np.ndarray, accent: np.ndarray, h
     return current
 
 
+def space_notes(steps: list[int], step_times: np.ndarray, accent: np.ndarray, hits: list[bool], end: float) -> list[int]:
+    """`steps` with no two notes closer than MIN_NOTE_GAP_S (as written to the chart, rounded to 4 decimals).
+
+    Of the first too-close pair, the note with the weaker accent (the one off the beat when they tie, else the later
+    one) moves to the nearest free half-beat step, within GAP_MAX_MOVE_STEPS, that lies on a hit (`hits`), is no later
+    than `end` and keeps MIN_NOTE_GAP_S from the notes either side. It is dropped only when there is no such step.
+    Every pass removes one too-close pair and makes none, so it ends.
+    """
+    def time_of(step: int) -> float:
+        return round(float(step_times[step]), 4)
+
+    def strength(step: int) -> tuple[float, bool]:
+        return float(accent[step]), step % STEPS_PER_BEAT == 0
+
+    def fits(step: int, rest: list[int]) -> bool:
+        if step < 0 or step >= len(step_times) or step % 2 != 0 or not hits[step] or step_times[step] > end:
+            return False
+        near = [other for other in rest if abs(other - step) <= 2 * STEPS_PER_BEAT]
+        return step not in rest and all(abs(time_of(step) - time_of(other)) >= MIN_NOTE_GAP_S for other in near)
+
+    current = sorted(steps)
+    while True:
+        pairs = zip(current[:-1], current[1:])
+        close = next(((a, b) for a, b in pairs if time_of(b) - time_of(a) < MIN_NOTE_GAP_S), None)
+        if close is None:
+            return current
+        weak, strong = sorted(close, key=strength)
+        for mover in (weak, strong):
+            rest = [step for step in current if step != mover]
+            candidates = (mover + sign * distance for distance in range(1, GAP_MAX_MOVE_STEPS + 1) for sign in (-1, 1))
+            target = next((step for step in candidates if fits(step, rest)), None)
+            if target is not None:
+                current = sorted([*rest, target])
+                break
+        else:
+            # Neither can move: drop the one in the most too-close pairs (a note between two others), else the weaker.
+            def crowding(step: int) -> int:
+                k = current.index(step)
+                around = current[max(k - 1, 0) : k + 2]
+                return sum(1 for other in around if other != step and abs(time_of(other) - time_of(step)) < MIN_NOTE_GAP_S)
+
+            current.remove(max((weak, strong), key=lambda step: (crowding(step), -strength(step)[0])))
+
+
+def gap_report(notes_before: list[float], notes_after: list[float]) -> dict[str, float | int]:
+    """How `space_notes` changed a chart: its smallest gap before, the gaps under MIN_NOTE_GAP_S before, and the notes
+    that moved (gone from one time, new at another) and the ones deleted (gone with no new note for them)."""
+    gaps = np.diff(np.asarray(notes_before, dtype=float))
+    gone = set(notes_before) - set(notes_after)
+    new = set(notes_after) - set(notes_before)
+    moved = min(len(gone), len(new))
+    return {
+        "min_before": float(gaps.min()) if len(gaps) > 0 else 0.0,
+        "n_before_lt_125": int((gaps < MIN_NOTE_GAP_S).sum()),
+        "moved": moved,
+        "deleted": len(gone) - moved,
+    }
+
+
 def chart_notes(grid: BeatGrid, envelope: np.ndarray, accent: np.ndarray, level: Level, end: float) -> list[float]:
-    """The notes of a chart at `level`: the steps `select_steps` picks up to `end`, with the waits spread out."""
-    steps = [int(step) for step in select_steps(accent, DIFFICULTIES[level]) if grid.step_times[step] <= end]
+    """The notes of a chart at `level`: the steps `select_steps` picks up to `end`, with the waits spread out, and
+    kept MIN_NOTE_GAP_S apart by `space_notes`."""
     hits = on_hits(envelope, grid.step_times)
-    return [round(float(grid.step_times[step]), 4) for step in spread_waits(steps, grid.step_times, accent, hits)]
+    steps = [int(step) for step in select_steps(accent, DIFFICULTIES[level]) if grid.step_times[step] <= end]
+    steps = space_notes(steps, grid.step_times, accent, hits, end)
+    steps = space_notes(spread_waits(steps, grid.step_times, accent, hits), grid.step_times, accent, hits, end)
+    return [round(float(grid.step_times[step]), 4) for step in steps]
 
 
 def music_end(samples: np.ndarray) -> float:

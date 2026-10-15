@@ -10,6 +10,21 @@ export {};
 
 const GAME_URL = process.env["GAME_URL"] ?? "http://localhost:5173/";
 
+// Always a headless shell: without a path Bun would open the desktop Chrome app.
+// Install it with `bunx playwright install chromium-headless-shell`, or point CHROME_HEADLESS_SHELL at one.
+function headlessShell(): string {
+  const fromEnv = process.env["CHROME_HEADLESS_SHELL"];
+  if (fromEnv !== undefined) return fromEnv;
+  const cache = `${process.env["HOME"]}/Library/Caches/ms-playwright`;
+  const found = [...new Bun.Glob("chromium_headless_shell-*/chrome-headless-shell-*/chrome-headless-shell").scanSync(cache)].sort();
+  const newest = found.at(-1);
+  if (newest === undefined) {
+    console.error(`no chrome-headless-shell under ${cache}; install it or set CHROME_HEADLESS_SHELL`);
+    process.exit(2);
+  }
+  return `${cache}/${newest}`;
+}
+
 const script = `(async () => {
   const { loadSongIndex, loadPicturePins } = await import("/src/chart.ts");
   const pictures = await import("/src/pictures.ts");
@@ -39,7 +54,7 @@ type Row = {
   emptyEnd: number;
 };
 
-const view = new Bun.WebView({ backend: { type: "chrome", argv: ["--mute-audio"], url: false }, width: 800, height: 600 });
+const view = new Bun.WebView({ headless: true, backend: { type: "chrome", path: headlessShell(), argv: ["--mute-audio"], url: false }, width: 800, height: 600 });
 let failed = 0;
 try {
   await view.navigate(GAME_URL);

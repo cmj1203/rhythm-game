@@ -5,7 +5,7 @@
 - 곡 수: 129 (검사 버전 3baa0b1c5d76)
 - ok 102 · flag 27 · fail 0
 
-## 제안 명단 (90곡)
+## 제안 명단 (89곡)
 
 기준: 판정 ok 이고 반복 50% 미만, 또는 decisions.json keep. keep false 는 뺌.
 
@@ -63,7 +63,6 @@
 - level-8-find-a-way — Level 8 : Find a way
 - make-funk — Make Funk
 - menace — Menace
-- midnight-sun — Midnight Sun
 - mini-boss — Mini Boss
 - mutant-club — Mutant Club
 - no-frills-comparsa — No Frills Comparsa
@@ -181,7 +180,7 @@
 | magic-bottle-town | flag | 박 간격이 고르지 않음 0.0 | - | 음량 맞추기 5.442 | - | 반복 구간 비율 0.605 |
 | make-funk | ok | - | - | 음량 맞추기 -8.777, 최대 음량 초과 0.531 | - | 반복 구간 비율 0.317 |
 | menace | ok | - | - | 음량 맞추기 -4.842, 최대 음량 초과 -0.127 | 노트 간격 125ms 미만 0.124 | 반복 구간 비율 0.398 |
-| midnight-sun | ok | - | 라이선스 확인 필요 | 음량 맞추기 -5.496, 최대 음량 초과 0.321, 뒤 무음 자르기 1.703 | - | 반복 구간 비율 0.01 |
+| midnight-sun | ok (drop) | - | 라이선스 확인 필요 | 음량 맞추기 -5.496, 최대 음량 초과 0.321, 뒤 무음 자르기 1.703 | - | 반복 구간 비율 0.01 |
 | mini-boss | ok | - | - | 음량 맞추기 -5.082, 최대 음량 초과 0.616 | - | 반복 구간 비율 0.455 |
 | mountain-emperor | flag | 폰 스피커에서 박이 약함 0.708 | - | 최대 음량 초과 -0.427 | - | 반복 구간 비율 0.5 |
 | mt-fox-shop | flag | 소리가 깎여 있음 214.173 | - | 음량 맞추기 -7.972, 최대 음량 초과 3.29, 뒤 무음 자르기 0.792 | - | 반복 구간 비율 0.333 |

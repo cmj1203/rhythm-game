@@ -8,6 +8,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tools",
+    "test": "bun test",
     "chart": "uv run tools/make_chart.py"
   },
   "devDependencies": {

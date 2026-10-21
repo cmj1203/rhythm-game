@@ -1,4 +1,4 @@
-import { COLOR, JUDGEMENT_COLOR, type Painter, type Point, type Size } from "./canvas";
+import { COLOR, JUDGEMENT_COLOR, mixColors, type Painter, type Point, type Size } from "./canvas";
 import { drawCrayon } from "./crayon";
 import {
   blendViews,
@@ -14,8 +14,14 @@ import {
 import type { JudgeEvent, PlayState } from "./judge";
 import { cameraAt, orbiterAngle, type Pace, type Path } from "./path";
 import { poseAt, type Section } from "./sections";
+import { aheadClarity, aheadEnd, drawPhraseBound, laterPasses, phraseBounds } from "./road-view";
+import { beatsBetween } from "./tempo";
+import { drawTempoMark } from "./tempo-mark";
+import { standingAt } from "./walking-crayon";
+import { drawWalkingCrayon, type HitOnCrayon } from "./walking-crayon-draw";
 
-export type Feedback = JudgeEvent & { readonly at: number };
+/** `accent`: a big moment of the song, whose hit gives the screen a kick. */
+export type Feedback = JudgeEvent & { readonly at: number; readonly accent: boolean };
 
 /**
  * "ready" shows the road frozen at its first position until the player presses the start key; "over" shows it
@@ -87,17 +93,58 @@ const BURST_OPACITY = 0.7;
 const GLOW_REACH = 2.2;
 const GLOW_REACH_PER_TIER = 0.5;
 const PACE_COLOR = { normal: COLOR.text, fast: COLOR.pink, slow: COLOR.sky } as const satisfies Record<Pace, string>;
-/** The dot on each tile ahead, in tiles. */
-const DOT_RADIUS = 0.11;
 /**
- * A tile the crayon leaves fast or slowly, or where it changes its way round, gets a smaller dot in a ring of this
- * radius and stroke width (tiles) instead, in the colour of what happens there. Where both happen, the ring is violet
- * and the dot keeps the colour of the pace.
+ * Tile markers in tiles, with the minimum stroke in pixels. Picture roads keep their original sizes;
+ * rhythm roads use the smaller markers. A marked tile gets a smaller dot inside its ring.
  */
-const MARK_DOT_RADIUS = 0.07;
-const MARK_RING_RADIUS = 0.18;
-const MARK_RING_WIDTH = 0.05;
+const MARKERS = {
+  picture: { dot: 0.11, markedDot: 0.07, ring: 0.18, width: 0.05, minWidth: 2 },
+  rhythm: { dot: 0.07, markedDot: 0.055, ring: 0.14, width: 0.035, minWidth: 1.5 },
+} as const;
 const REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)");
+/**
+ * Hit effects spring: they start `amount` past their size, swing back a little past it the other way, and settle,
+ * within `SPRING_S`. `springAt` is that swing, 1 at the hit.
+ */
+const SPRING_HZ = 9;
+const SPRING_DECAY_S = 0.045;
+const SPRING_S = 0.22;
+/** The judgement pops out this much bigger. */
+const POP = 0.25;
+/** On a rhythm road the screen keeps still, but for the hit of a big moment it pulls in this much and lets go. */
+const KICK_ZOOM = 0.02;
+/**
+ * A hit swells the crayon's landed end this much wider at most, by judgement: up within `SWELL_UP_S` of the landing,
+ * gone by `SWELL_S`. It also lights that end up white, this strongly, fading out within `FLASH_S`.
+ */
+const SWELL = { perfect: 0.2, great: 0.14, good: 0.08, miss: 0 } as const;
+const SWELL_UP_S = 0.016;
+const SWELL_S = 0.06;
+const FLASH = { perfect: 1, great: 0.6, good: 0.3, miss: 0 } as const;
+const FLASH_S = 0.04;
+/** On rhythm roads a marker ring fades out over this long after landing. */
+const MARK_FADE_S = 0.06;
+/** On rhythm roads the rings and dots ahead are mixed toward the background. */
+const MARK_STRENGTH = 0.7;
+const DOT_STRENGTH = 0.6;
+/** On a rhythm road the combo number springs out this much bigger at a hit. */
+const COMBO_POP = 0.3;
+/** A hit's ring sticks at its first size this long before it lets go and spreads. */
+const RING_HOLD_S = 0.04;
+/**
+ * On a rhythm road the tile the crayon lands on is stamped: white at first, cooling to the judgement colour within
+ * `STAMP_WHITE_S`, gone by `STAMP_S`, as strong as the judgement. Chalk dust flies off it, more for a better hit.
+ * A missed tile is dimmed instead.
+ */
+const STAMP_STRENGTH = { perfect: 1, great: 0.55, good: 0.3, miss: 0 } as const;
+const STAMP_WHITE_S = 0.1;
+const STAMP_S = 0.35;
+const STAMP_RADIUS = 0.3;
+const DUST_BY_JUDGEMENT = { perfect: 14, great: 8, good: 3, miss: 0 } as const;
+const DUST_S = 0.3;
+const DUST_REACH = 0.75;
+const DUST_SIZE = 0.07;
+const MISS_DIM = 0.55;
 
 /**
  * After the last note the camera pulls back until the whole embroidery fits where the result screen shows it.
@@ -116,6 +163,49 @@ function hitPulse({ feedback, songTime }: PlayingFrame): number {
   return age < 0 || age > PULSE_S ? 0 : 1 - age / PULSE_S;
 }
 
+function springAt(ageS: number): number {
+  if (ageS < 0 || ageS > SPRING_S) return 0;
+  return Math.exp(-ageS / SPRING_DECAY_S) * Math.cos(2 * Math.PI * SPRING_HZ * ageS);
+}
+
+function lastHit(bursts: readonly Feedback[]): Feedback | undefined {
+  for (let i = bursts.length - 1; i >= 0; i--) {
+    const burst = bursts[i];
+    if (burst !== undefined && burst.judgement !== "miss") return burst;
+  }
+  return undefined;
+}
+
+/** The spring of the last hit of a big moment on a rhythm road; 0 otherwise. */
+function kickAt({ bursts, path, songTime }: PlayingFrame): number {
+  if (REDUCED_MOTION.matches || path.rhythm === undefined) return 0;
+  const last = lastHit(bursts);
+  return last?.accent === true ? springAt(songTime - last.at) : 0;
+}
+
+/**
+ * What the last hit does to the crayon, from when it lands (or the press, if that came later): the end standing on
+ * the tile it landed on swells and settles, and lights up and fades. Null once that is over.
+ */
+function hitOnCrayon({ bursts, path, songTime }: PlayingFrame): HitOnCrayon | null {
+  const last = lastHit(bursts);
+  if (last === undefined) return null;
+  const age = songTime - Math.max(last.at, path.tiles[last.index + 1]?.time ?? last.at);
+  if (age < 0 || age >= SWELL_S) return null;
+  const rise = age <= SWELL_UP_S ? age / SWELL_UP_S : (SWELL_S - age) / (SWELL_S - SWELL_UP_S);
+  return {
+    landing: last.index + 1,
+    swell: SWELL[last.judgement] * rise,
+    flash: age > FLASH_S ? 0 : FLASH[last.judgement] * (1 - age / FLASH_S),
+  };
+}
+
+/** How much bigger the combo number is right now on a rhythm road: it springs out at each hit. */
+function comboPop({ bursts, songTime }: PlayingFrame): number {
+  const last = lastHit(bursts);
+  return REDUCED_MOTION.matches || last === undefined ? 0 : COMBO_POP * springAt(songTime - last.at);
+}
+
 function comboTier(combo: number): number {
   return COMBO_TIERS.filter((atLeast) => combo >= atLeast).length;
 }
@@ -125,7 +215,7 @@ function followView({ width, height }: Size, frame: PlayingFrame): View {
   const shorter = Math.min(width, height);
   const tileSize = Math.min(MAX_TILE_PX, Math.max(MIN_TILE_PX, shorter * TILE_SHARE));
   return {
-    tileSize: tileSize * pose.zoom,
+    tileSize: tileSize * pose.zoom * (1 + KICK_ZOOM * kickAt(frame)),
     camera: cameraAt(frame.path, frame.songTime),
     anchor: { x: width / 2 + pose.slide * shorter, y: height * 0.52 },
     angle: pose.tilt,
@@ -146,28 +236,61 @@ function nearness(steps: number): number {
 }
 
 /** The road still to sew, with the rhythm markers on its tiles and a ring on the tile to hit next. */
-function drawAhead(painter: Painter, { path, play }: PlayingFrame, view: View): void {
+function drawAhead(painter: Painter, { path, play, songTime }: PlayingFrame, view: View): void {
   const { ctx } = painter;
   const opacity = ctx.globalAlpha;
-  const standing = play.resolvedCount;
-  const end = Math.min(path.tiles.length - 1, standing + TILES_AHEAD);
-  drawGuide(painter, path, view, standing, end, nearness);
+  const isRhythm = path.rhythm !== undefined;
+  const markers = isRhythm ? MARKERS.rhythm : MARKERS.picture;
+  const standing = isRhythm ? standingAt(path.tiles, songTime) : play.resolvedCount;
+  const end = path.rhythm === undefined
+    ? Math.min(path.tiles.length - 1, standing + TILES_AHEAD)
+    : aheadEnd({ ...path, rhythm: path.rhythm }, standing, songTime);
+  const clarity = isRhythm ? (steps: number): number => aheadClarity(steps, end - standing) : nearness;
+  const later = path.rhythm === undefined ? new Set<number>() : laterPasses({ ...path, rhythm: path.rhythm }, standing, end);
+  drawGuide(painter, path, view, standing, end, clarity);
 
   for (let i = standing; i <= end; i++) {
     const tile = path.tiles[i];
     const sweep = path.sweeps[i];
-    if (tile === undefined || sweep === undefined) continue;
+    if (tile === undefined || sweep === undefined || later.has(i)) continue;
     const center = toScreen(view, tile);
-    ctx.globalAlpha = opacity * nearness(i - standing);
+    ctx.globalAlpha = opacity * clarity(i - standing);
     const isMarked = sweep.pace !== "normal" || sweep.isTwirl;
-    painter.circle(center, view.tileSize * (isMarked ? MARK_DOT_RADIUS : DOT_RADIUS));
-    ctx.fillStyle = sweep.pace === "normal" && sweep.isTwirl ? COLOR.violet : PACE_COLOR[sweep.pace];
+    painter.circle(center, view.tileSize * (isMarked ? markers.markedDot : markers.dot));
+    const marker = sweep.isTwirl ? COLOR.violet : PACE_COLOR[sweep.pace];
+    const dot = isRhythm
+      ? (sweep.pace !== "normal" && sweep.isTwirl ? PACE_COLOR[sweep.pace] : COLOR.text)
+      : (sweep.pace === "normal" ? marker : PACE_COLOR[sweep.pace]);
+    ctx.fillStyle = isRhythm ? mixColors(COLOR.background, dot, DOT_STRENGTH) : dot;
     ctx.fill();
     if (isMarked) {
-      painter.circle(center, view.tileSize * MARK_RING_RADIUS);
-      ctx.strokeStyle = sweep.isTwirl ? COLOR.violet : PACE_COLOR[sweep.pace];
-      ctx.lineWidth = Math.max(2, view.tileSize * MARK_RING_WIDTH);
-      ctx.stroke();
+      const landed = isRhythm && i === standing ? Math.min(1, Math.max(0, (songTime - tile.time) / MARK_FADE_S)) : 0;
+      painter.circle(center, view.tileSize * markers.ring);
+      ctx.strokeStyle = isRhythm ? mixColors(marker, COLOR.background, 1 - MARK_STRENGTH + MARK_STRENGTH * landed) : marker;
+      ctx.lineWidth = Math.max(markers.minWidth, view.tileSize * markers.width);
+      if (landed < 1) ctx.stroke();
+    }
+    const tempoMark = path.rhythm?.marks[i];
+    const next = path.tiles[i + 1];
+    if (tempoMark !== undefined && tempoMark !== null && next !== undefined) {
+      drawTempoMark(painter, tempoMark, {
+        at: center,
+        angle: Math.atan2(next.y - tile.y, next.x - tile.x) + view.angle,
+        size: view.tileSize,
+      });
+    }
+  }
+  if (path.rhythm !== undefined) {
+    for (const { tile: index, kind } of phraseBounds({ ...path, rhythm: path.rhythm })) {
+      const tile = path.tiles[index];
+      if (tile === undefined || index > end || later.has(index)) continue;
+      const passed = Math.max(0, beatsBetween(path.rhythm.tempo, tile.time, songTime));
+      if (passed >= 1) continue;
+      const other = path.tiles[kind === "open" ? index - 1 : index + 1] ?? path.tiles[kind === "open" ? index + 1 : index - 1];
+      if (other === undefined) continue;
+      const along = kind === "open" ? Math.atan2(tile.y - other.y, tile.x - other.x) : Math.atan2(other.y - tile.y, other.x - tile.x);
+      ctx.globalAlpha = opacity * (index >= standing ? clarity(index - standing) : 1) * (1 - passed);
+      drawPhraseBound(painter, kind, toScreen(view, tile), along + view.angle, view.tileSize);
     }
   }
   ctx.globalAlpha = opacity;
@@ -190,6 +313,10 @@ function drawAhead(painter: Painter, { path, play }: PlayingFrame, view: View): 
  * behind the beat, so the moment to press is when its point touches the ring on the tile to hit next.
  */
 function drawCircling(painter: Painter, frame: PlayingFrame, view: View): void {
+  if (frame.path.rhythm !== undefined) {
+    drawWalkingCrayon(painter, frame, view, hitOnCrayon(frame));
+    return;
+  }
   const { ctx } = painter;
   const { path, play, songTime } = frame;
   const standing = play.resolvedCount;
@@ -233,19 +360,26 @@ function drawCircling(painter: Painter, frame: PlayingFrame, view: View): void {
 function drawBursts(painter: Painter, { bursts, path, play, songTime }: PlayingFrame, view: View): void {
   const { ctx } = painter;
   const tier = comboTier(play.combo);
+  const isRhythm = path.rhythm !== undefined;
   for (const burst of bursts) {
     const tile = path.tiles[burst.index + 1];
     const age = (songTime - burst.at) / BURST_S;
     if (tile === undefined || age < 0 || age > 1) continue;
+    if (burst.judgement === "miss" && !isRhythm) continue;
 
     const center = toScreen(view, tile);
+    if (isRhythm) {
+      drawLanding(painter, burst, songTime - burst.at, center, view.tileSize);
+      if (burst.judgement === "miss") continue;
+    }
     const color = JUDGEMENT_COLOR[burst.judgement];
     const radius = view.tileSize * 0.4;
     ctx.save();
     ctx.globalAlpha = BURST_OPACITY * (1 - age);
-    painter.circle(center, radius * (REDUCED_MOTION.matches ? 1 : 1 + 0.9 * easeOut(age)));
+    const held = isRhythm ? Math.max(0, (songTime - burst.at - RING_HOLD_S) / (BURST_S - RING_HOLD_S)) : age;
+    painter.circle(center, radius * (REDUCED_MOTION.matches ? 1 : 1 + (isRhythm ? 1.1 : 0.9) * easeOut(held)));
     ctx.strokeStyle = color;
-    ctx.lineWidth = radius * 0.16 * (REDUCED_MOTION.matches ? 1 : 1 - age);
+    ctx.lineWidth = radius * (isRhythm ? 0.24 : 0.16) * (REDUCED_MOTION.matches ? 1 : 1 - age);
     ctx.stroke();
     if (!REDUCED_MOTION.matches && tier >= 2) {
       painter.circle(center, radius * (1 + 1.7 * easeOut(age)));
@@ -254,7 +388,8 @@ function drawBursts(painter: Painter, { bursts, path, play, songTime }: PlayingF
       ctx.stroke();
     }
 
-    const count = REDUCED_MOTION.matches ? 0 : SPARKLES_BY_JUDGEMENT[burst.judgement] + 2 * tier;
+    // A rhythm road's chalk dust takes the place of the sparkles.
+    const count = REDUCED_MOTION.matches || isRhythm ? 0 : SPARKLES_BY_JUDGEMENT[burst.judgement] + 2 * tier;
     for (let i = 0; i < count; i++) {
       const direction = (i / count) * Math.PI * 2 + burst.index * 0.7;
       const distance = radius * (1.2 + (1.8 + 0.5 * tier) * easeOut(age));
@@ -269,6 +404,54 @@ function drawBursts(painter: Painter, { bursts, path, play, songTime }: PlayingF
   }
 }
 
+/** A rhythm road's tile `ageS` after it was hit or missed: the stamp and chalk dust of a hit, or a missed tile dimmed. */
+function drawLanding(painter: Painter, { judgement, index }: Feedback, ageS: number, center: Point, size: number): void {
+  const { ctx } = painter;
+  ctx.save();
+  if (judgement === "miss") {
+    const fade = 1 - ageS / BURST_S;
+    ctx.globalAlpha *= MISS_DIM * fade;
+    painter.circle(center, size * STAMP_RADIUS);
+    ctx.fillStyle = COLOR.background;
+    ctx.fill();
+    painter.circle(center, size * STAMP_RADIUS * (REDUCED_MOTION.matches ? 1 : 0.8 + 0.4 * fade));
+    ctx.strokeStyle = COLOR.dim;
+    ctx.lineWidth = Math.max(1.5, size * 0.03);
+    ctx.stroke();
+    ctx.restore();
+    return;
+  }
+  const color = JUDGEMENT_COLOR[judgement];
+  if (ageS < STAMP_S) {
+    ctx.globalAlpha *= STAMP_STRENGTH[judgement] * (1 - ageS / STAMP_S);
+    painter.circle(center, size * STAMP_RADIUS * (REDUCED_MOTION.matches ? 1 : 1 + 0.3 * springAt(ageS)));
+    ctx.fillStyle = ageS < STAMP_WHITE_S ? mixColors(COLOR.text, color, ageS / STAMP_WHITE_S) : color;
+    ctx.fill();
+  }
+  ctx.restore();
+  if (REDUCED_MOTION.matches || ageS >= DUST_S) return;
+  const count = DUST_BY_JUDGEMENT[judgement];
+  const along = easeOut(ageS / DUST_S);
+  ctx.save();
+  ctx.globalAlpha *= 1 - ageS / DUST_S;
+  for (let i = 0; i < count; i++) {
+    // A fixed scatter for each note, so the same hit always throws the same dust.
+    const scatter = Math.sin((index + 1) * 12.9898 + i * 78.233) * 43758.5453;
+    const jitter = scatter - Math.floor(scatter);
+    const direction = (i / count) * Math.PI * 2 + jitter * 1.3;
+    const distance = size * DUST_REACH * (0.5 + 0.5 * jitter) * along;
+    const grain = size * DUST_SIZE * (0.6 + 0.8 * jitter);
+    ctx.fillStyle = i % 3 === 0 ? color : COLOR.text;
+    ctx.fillRect(
+      center.x + Math.cos(direction) * distance - grain / 2,
+      center.y + Math.sin(direction) * distance - grain / 2,
+      grain,
+      grain,
+    );
+  }
+  ctx.restore();
+}
+
 /** The judgement of the last press at `at`, fading out, with how early or late the press was under it. */
 function drawFeedback(painter: Painter, feedback: Feedback | null, songTime: number, at: Point): void {
   if (feedback === null) return;
@@ -277,7 +460,12 @@ function drawFeedback(painter: Painter, feedback: Feedback | null, songTime: num
   const { ctx } = painter;
   ctx.save();
   ctx.globalAlpha *= 1 - age / FEEDBACK_FADE_S;
-  painter.text(feedback.judgement.toUpperCase(), at, { size: 32, weight: 800, color: JUDGEMENT_COLOR[feedback.judgement] });
+  const pop = REDUCED_MOTION.matches ? 0 : POP * springAt(age);
+  painter.text(feedback.judgement.toUpperCase(), at, {
+    size: 32 * (1 + pop),
+    weight: 800,
+    color: JUDGEMENT_COLOR[feedback.judgement],
+  });
   if (feedback.judgement !== "miss" && Math.abs(feedback.offsetMs) >= EARLY_LATE_MIN_MS) {
     const label = feedback.offsetMs < 0 ? "빠름" : "느림";
     painter.text(`${label} ${Math.abs(feedback.offsetMs).toFixed(0)}ms`, { x: at.x, y: at.y + 30 }, {
@@ -301,7 +489,7 @@ function drawHud(painter: Painter, frame: PlayingFrame, { width, height }: Size)
   const x = width / 2;
   if (play.combo >= 2) {
     painter.text(String(play.combo), { x, y: height * 0.16 }, {
-      size: 56 * (1 + PULSE_COMBO * hitPulse(frame)),
+      size: 56 * (1 + (frame.path.rhythm === undefined ? PULSE_COMBO * hitPulse(frame) : comboPop(frame))),
       weight: 800,
       color: COMBO_COLOR[comboTier(play.combo)] ?? COLOR.text,
     });
@@ -324,7 +512,8 @@ export function drawPlaying(painter: Painter, frame: PlayingFrame, size: Size): 
 
   drawCloth(painter, view, size);
   // The sewn road stays in the background until the piece is finished; the road ahead is drawn over it.
-  drawStitches(painter, frame.path, frame.play.history, view, taut, PAST_OPACITY + (1 - PAST_OPACITY) * taut);
+  const pastOpacity = frame.path.rhythm === undefined ? PAST_OPACITY : 0.15;
+  drawStitches(painter, frame.path, frame.play.history, view, taut, pastOpacity + (1 - pastOpacity) * taut);
   ctx.save();
   ctx.globalAlpha = 1 - visualFinale;
   drawAhead(painter, frame, view);

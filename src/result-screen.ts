@@ -46,7 +46,10 @@ export function resultButtonsAt(size: Size): { readonly x: number; readonly y: n
 function drawStats(painter: Painter, frame: ResultFrame, x: number, top: number, scale: number): void {
   const { play } = frame;
   const at = (offset: number): { x: number; y: number } => ({ x, y: top + offset * scale });
-  painter.text(`${frame.title}  ·  ${frame.difficulty}  ·  ${frame.pictureName}`, at(0), { size: 16 * scale, color: COLOR.dim });
+  const heading = frame.pictureName === ""
+    ? `${frame.title}  ·  ${frame.difficulty}`
+    : `${frame.title}  ·  ${frame.difficulty}  ·  ${frame.pictureName}`;
+  painter.text(heading, at(0), { size: 16 * scale, color: COLOR.dim });
   painter.text(`${play.grade}점`, at(80), { size: 104 * scale, weight: 800 });
   painter.text(play.score.toLocaleString("en-US"), at(160), { size: 34 * scale, weight: 700 });
   const lineY = top + 198 * scale;

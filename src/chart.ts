@@ -6,7 +6,13 @@ export type Difficulty = (typeof DIFFICULTIES)[number];
 const songIdSchema = z.string().regex(/^[a-z0-9-]+$/);
 const noteTimes = z.array(z.number().nonnegative());
 
-const chartSchema = z.object({
+const tempoSectionSchema = z.tuple([z.number().nonnegative(), z.number().positive()]);
+const tempoMapSchema = z.tuple([tempoSectionSchema]).rest(tempoSectionSchema).refine(
+  (tempo) => tempo[0][0] === 0 && tempo.every(([start], i) => i === 0 || start > (tempo[i - 1]?.[0] ?? 0)),
+  "tempo must start at zero and have increasing section times",
+);
+
+const chartBase = z.object({
   version: z.literal(4),
   title: z.string(),
   audio: z.string(),
@@ -20,6 +26,16 @@ const chartSchema = z.object({
   difficulty: z.enum(DIFFICULTIES),
   notes: noteTimes,
 });
+
+export const chartSchema = z.union([
+  chartBase.extend({ road: z.undefined().optional(), tempo: tempoMapSchema.optional() }),
+  chartBase.extend({
+    road: z.literal("rhythm"),
+    tempo: tempoMapSchema,
+    /** From each start time, how many times faster than the beat the crayon turns (1 = half a turn a beat). */
+    turnScale: tempoMapSchema.optional(),
+  }),
+]);
 
 const noteCount = z.number().int().nonnegative();
 const songSummarySchema = z.object({

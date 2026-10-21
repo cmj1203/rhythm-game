@@ -1,22 +1,22 @@
 import { COLOR, type Painter, type Point } from "./canvas";
 
-/** Half the thickness of a crayon and how much of it is the bare point, as shares of its length. */
+/**
+ * Half the thickness of a crayon and how much of it is the point, as shares of its length. The point is cut a little
+ * blunt: its flat end is `TIP_SHARE` of the crayon's thickness.
+ */
 const HALF_WIDTH = 0.17;
 const POINT = 0.32;
+const TIP_SHARE = 1 / 3;
 /** The dark edge round the crayon and the haze beyond it, as shares of its length. */
 const EDGE = 0.1;
 const HAZE = 0.35;
-/** The paper wrapper covers this stretch of the crayon, measured from the point, as shares of its length. */
-const WRAPPER_FROM = 0.46;
-const WRAPPER_TO = 0.86;
-const WRAPPER_SHADE = 0.35;
 /** The paper's grain repeats every this many pixels and has this many specks in each repeat. */
 const GRAIN_CELL = 64;
 const GRAIN_SPECKS = 900;
 const GRAIN_SEED = 7;
 const GRAIN_ALPHA_FROM = 0.3;
 
-/** A crayon of `color`, `length` long, lying along `heading` with its point at `tip`. */
+/** A crayon of `color`, `length` long, lying along `heading` with its slightly blunt point at `tip`. */
 export function drawCrayon(painter: Painter, tip: Point, heading: number, length: number, color: string): void {
   const { ctx } = painter;
   const halfWidth = length * HALF_WIDTH;
@@ -25,12 +25,14 @@ export function drawCrayon(painter: Painter, tip: Point, heading: number, length
   ctx.translate(tip.x, tip.y);
   ctx.rotate(heading + Math.PI);
 
+  const tipHalf = halfWidth * TIP_SHARE;
   ctx.beginPath();
-  ctx.moveTo(0, 0);
+  ctx.moveTo(0, -tipHalf);
   ctx.lineTo(length * POINT, -halfWidth);
   ctx.lineTo(length, -halfWidth);
   ctx.lineTo(length, halfWidth);
   ctx.lineTo(length * POINT, halfWidth);
+  ctx.lineTo(0, tipHalf);
   ctx.closePath();
   // A dark edge and a dark haze around it keep the crayon apart from the line of its own colour that it lies
   // on, and from the sparkles of a hit around it.
@@ -43,10 +45,6 @@ export function drawCrayon(painter: Painter, tip: Point, heading: number, length
   ctx.shadowBlur = 0;
   ctx.fillStyle = color;
   ctx.fill();
-
-  ctx.globalAlpha *= WRAPPER_SHADE;
-  ctx.fillStyle = COLOR.background;
-  ctx.fillRect(length * WRAPPER_FROM, -halfWidth, length * (WRAPPER_TO - WRAPPER_FROM), halfWidth * 2);
   ctx.restore();
 }
 

@@ -19,7 +19,8 @@ import { PlayState } from "./judge";
 import { recordPlay, today } from "./playlog";
 import { SongMenu } from "./menu";
 import type { Path } from "./path";
-import { sewingFor, sewingOf } from "./pictures";
+import { type Sewing, sewingFor, sewingOf } from "./pictures";
+import { accentsOf, buildRhythmPath } from "./rhythm-road";
 import { type Frame, Renderer } from "./render";
 import { resultButtonsAt } from "./result-screen";
 import { dyePath, planSections, type Section } from "./sections";
@@ -30,6 +31,8 @@ import { TutorialScreen } from "./tutorial";
 const RESULT_FADE_MS = 600;
 /** A song is previewed once the player has stayed on it this long, so that running down the list stays quiet. */
 const PREVIEW_DELAY_MS = 350;
+/** Every this many in a row, a hit gives the screen a kick. */
+const COMBO_KICK_EVERY = 50;
 
 type Session = {
   readonly song: SongSummary;
@@ -74,6 +77,8 @@ type ReadyScreen = Session & {
   readonly volume: number;
   /** Song times of the clicks that count the beat in before the first note. */
   readonly countIn: readonly number[];
+  /** The notes whose hit gives the screen a kick, by note index. */
+  readonly accents: readonly boolean[];
 };
 type PlayingScreen = Extract<Screen, { kind: "playing" }>;
 
@@ -92,7 +97,7 @@ function requireElement<T extends Element>(selector: string): T {
 
 function record(screen: PlayingScreen, feedback: Feedback): void {
   screen.feedback = feedback;
-  if (feedback.judgement !== "miss") screen.bursts.push(feedback);
+  screen.bursts.push(feedback);
 }
 
 const VOLUME_KEY = "livecanvas.volume";
@@ -183,8 +188,13 @@ async function boot(): Promise<void> {
       await unlocked;
       const times = chart.notes;
       const pinned = picturePins.get(song.id);
-      const { pictureName, path } =
-        pinned === undefined
+      let sewing: Sewing;
+      switch (chart.road) {
+        case "rhythm":
+          sewing = { pictureName: "", path: buildRhythmPath(times, chart.tempo, chart.turnScale) };
+          break;
+        case undefined:
+          sewing = pinned === undefined
           ? await sewingFor(
               times,
               songs.findIndex(({ id }) => id === song.id),
@@ -192,6 +202,11 @@ async function boot(): Promise<void> {
               song.difficulty,
             )
           : await sewingOf(times, pinned);
+          break;
+        default:
+          return assertNever(chart);
+      }
+      const { pictureName, path } = sewing;
       const sections = planSections(times, chart.bpm, chart.offset);
       menu.hide();
       backCorner.hidden = false;
@@ -207,6 +222,7 @@ async function boot(): Promise<void> {
         audioShift: decodingShift(buffer, chart.anchors),
         volume: volumeFor(buffer),
         countIn: countIn(chart.bpm, times),
+        accents: chart.road === "rhythm" ? accentsOf(times, chart.tempo, chart.offset) : [],
       };
     } catch (error) {
       screen = { kind: "menu" };
@@ -367,8 +383,11 @@ async function boot(): Promise<void> {
 
   const press = (playing: PlayingScreen, performanceMs: number): void => {
     const songTime = player.songTime(performanceMs);
-    const hit = playing.play.press(songTime);
-    if (hit !== null) record(playing, { ...hit, at: songTime });
+    const { play, source } = playing;
+    const hit = play.press(songTime);
+    if (hit === null) return;
+    const accent = (source.accents[hit.index] ?? false) || play.combo % COMBO_KICK_EVERY === 0;
+    record(playing, { ...hit, at: songTime, accent });
   };
 
   window.addEventListener("keydown", (event) => {
@@ -487,7 +506,7 @@ async function boot(): Promise<void> {
         };
       case "playing": {
         const songTime = player.songTime(performance.now());
-        for (const event of screen.play.advance(songTime)) record(screen, { ...event, at: songTime });
+        for (const event of screen.play.advance(songTime)) record(screen, { ...event, at: songTime, accent: false });
         while (screen.bursts[0] !== undefined && songTime - screen.bursts[0].at > BURST_S) screen.bursts.shift();
         if (screen.play.overAt !== null) {
           player.stop();

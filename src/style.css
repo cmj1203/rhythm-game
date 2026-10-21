@@ -563,18 +563,14 @@ body {
   animation: demo-turn 2.4s linear infinite;
 }
 
-/* The crayon stands across the end of the hand, point toward the way it turns; the darker band is its wrapper. */
+/* The crayon points along the turn, with a slightly blunt tip and no paper band. */
 .demo-crayon {
   left: 56px;
   top: -11px;
   width: 8px;
   height: 24px;
-  background: linear-gradient(
-    var(--thread) 14%,
-    color-mix(in srgb, var(--thread) 65%, var(--background)) 14% 54%,
-    var(--thread) 54%
-  );
-  clip-path: polygon(50% 100%, 0 68%, 0 0, 100% 0, 100% 68%);
+  background: var(--thread);
+  clip-path: polygon(0 0, 100% 0, 100% 68%, 66.6667% 100%, 33.3333% 100%, 0 68%);
 }
 
 .demo-now {

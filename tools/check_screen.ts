@@ -29,11 +29,17 @@ const script = `(async () => {
   const { loadSongIndex, loadPicturePins } = await import("/src/chart.ts");
   const pictures = await import("/src/pictures.ts");
   const { sewingStats } = await import("/tools/sewing-stats.ts");
+  const { buildRhythmPath } = await import("/src/rhythm-road.ts");
+  const { roadStats } = await import("/tools/road-stats.ts");
   const songs = await loadSongIndex();
   const pins = await loadPicturePins();
   const rows = [];
   for (const [number, song] of songs.entries()) {
     const chart = await (await fetch("/songs/" + song.id + "/chart.json")).json();
+    if (chart.road === "rhythm") {
+      rows.push({ id: song.id, difficulty: chart.difficulty, road: roadStats(buildRhythmPath(chart.notes, chart.tempo, chart.turnScale)) });
+      continue;
+    }
     const pinned = pins.get(song.id);
     const sewing = pinned === undefined
       ? await pictures.sewingFor(chart.notes, number, songs.length, chart.difficulty)
@@ -52,7 +58,7 @@ type Row = {
   speedOffPct: number;
   gentleRun: number;
   emptyEnd: number;
-};
+} | { readonly id: string; readonly difficulty: string; readonly road: ReturnType<typeof import("./road-stats").roadStats> };
 
 const view = new Bun.WebView({ headless: true, backend: { type: "chrome", path: headlessShell(), argv: ["--mute-audio"], url: false }, width: 800, height: 600 });
 let failed = 0;
@@ -60,8 +66,18 @@ try {
   await view.navigate(GAME_URL);
   const rows = JSON.parse((await view.evaluate(script)) as string) as Row[];
   const users = new Map<string, string[]>();
-  for (const row of rows) users.set(row.picture, [...(users.get(row.picture) ?? []), row.id]);
   for (const row of rows) {
+    if ("road" in row) continue;
+    users.set(row.picture, [...(users.get(row.picture) ?? []), row.id]);
+  }
+  for (const row of rows) {
+    if ("road" in row) {
+      const { pink, speedOff, illegalTwirl, guideOff } = row.road;
+      const bad = pink > 0 || speedOff > 0 || illegalTwirl > 0 || guideOff > 0;
+      if (bad) failed++;
+      console.log(`${bad ? "FAIL" : "ok  "} ${row.id} [${row.difficulty}] rhythm ${JSON.stringify(row.road)}`);
+      continue;
+    }
     const problems = [
       row.p90Pct > 2 ? `p90 ${row.p90Pct}%` : "",
       row.emptyEnd >= 2 ? `ends ${row.emptyEnd} notes early` : "",
@@ -74,9 +90,8 @@ try {
       `${problems.length > 0 ? "FAIL" : "ok  "} ${row.id} [${row.difficulty}] ${row.picture} p90 ${row.p90Pct} speedOff ${row.speedOffPct} gentleRun ${row.gentleRun} emptyEnd ${row.emptyEnd}${problems.length > 0 ? ` -- ${problems.join("; ")}` : ""}`,
     );
   }
-  console.log(`${rows.length} songs, ${new Set(rows.map((row) => row.picture)).size} different pictures, ${failed} failing`);
+  console.log(`${rows.length} songs, ${users.size} different pictures, ${failed} failing`);
 } finally {
   view.close();
-  Bun.spawnSync(["pkill", "-f", "bun-chrome"]);
 }
 process.exit(failed > 0 ? 1 : 0);

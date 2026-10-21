@@ -17,7 +17,7 @@
 # 2. Run (writes chart.json next to the audio file):
 #      uv run tools/make_chart.py public/songs/<song-id>/song.mp3 --title "Song Title"
 #    Options: --artist "Name", --credit "attribution text the music license requires",
-#             --difficulty easy|normal|hard (without it the tempo decides)
+#             --difficulty easy|normal|hard (without it the tempo decides), --road rhythm
 #    The first run downloads PyTorch and the beat-tracking model, which takes a few minutes.
 # 3. Self-test (synthetic swing and straight songs, never played): uv run tools/make_chart.py --self-test
 # ──────────────────
@@ -40,6 +40,7 @@ from rich.console import Console
 from rich.table import Table
 from scipy.ndimage import median_filter, percentile_filter
 from scipy.signal import butter, sosfilt
+from road_tempo import tempo_from_beats
 
 SAMPLE_RATE: Final = 22050
 HOP: Final = 256
@@ -128,6 +129,10 @@ class Level(StrEnum):
     EASY = "easy"
     NORMAL = "normal"
     HARD = "hard"
+
+
+class Road(StrEnum):
+    RHYTHM = "rhythm"
 
 
 @dataclass(frozen=True, slots=True)
@@ -397,7 +402,13 @@ def align_to_attacks(beats: np.ndarray, percussive: np.ndarray, *, is_steady: bo
     return beats + np.nan_to_num(local, nan=float(np.nanmedian(shifts)))
 
 
-def build_grid(samples: np.ndarray, percussive: np.ndarray, envelope: np.ndarray) -> BeatGrid:
+def build_grid(
+    samples: np.ndarray, percussive: np.ndarray, envelope: np.ndarray, known_beats: np.ndarray | None = None
+) -> BeatGrid:
+    """The song's beat grid. `known_beats` (a generated song whose beats are known exactly, such as one retimed to
+    change tempo) are used as they are instead of tracked beats."""
+    if known_beats is not None:
+        return grid_on_beats(np.asarray(known_beats, dtype=float), is_steady=True)
     beats, downbeats = track_beats(samples)
     if len(beats) < MIN_BEATS:
         raise NoBeatError(len(beats))
@@ -423,14 +434,16 @@ def grid_on_beats(beats: np.ndarray, *, is_steady: bool, steps_per_beat: int = S
     )
 
 
-def chart_grid(samples: np.ndarray, percussive: np.ndarray, envelope: np.ndarray) -> BeatGrid:
+def chart_grid(
+    samples: np.ndarray, percussive: np.ndarray, envelope: np.ndarray, known_beats: np.ndarray | None = None
+) -> BeatGrid:
     """`build_grid`, split into 3 (triplet) or 6 (mixed) steps per beat instead of 4 when the song's off-beat hits sit
     on thirds of a beat, as tools/screen/grid.py decides it: a swung off-beat falls 50-100 ms from every quarter step.
     """
     # Imported here, not at the top: tools/screen/core.py imports this file, and screen.grid needs only numpy/librosa.
     from screen.grid import grid_steps_per_beat, strong_onsets
 
-    grid = build_grid(samples, percussive, envelope)
+    grid = build_grid(samples, percussive, envelope, known_beats)
     beats = grid.step_times[::STEPS_PER_BEAT]
     steps_per_beat = grid_steps_per_beat(strong_onsets(percussive, envelope), beats)
     if steps_per_beat == STEPS_PER_BEAT:
@@ -876,13 +889,20 @@ def main(
     artist: str | None = None,
     credit: str | None = None,
     difficulty: Level | None = None,
+    beats: Path | None = None,
+    road: Road | None = None,
 ) -> None:
-    """Analyze AUDIO, write chart.json next to it and refresh the song list."""
+    """Analyze AUDIO, write chart.json next to it and refresh the song list. BEATS is a JSON file {"beats": [seconds]}
+    of the song's exact beats, for a generated song whose tempo changes."""
+    if road is not None and beats is None:
+        print("오류: --road rhythm에는 --beats가 필요합니다.", file=sys.stderr)
+        raise typer.Exit(2)
     samples, _ = librosa.load(audio, sr=SAMPLE_RATE, mono=True)
     duration = len(samples) / SAMPLE_RATE
     percussive = librosa.effects.percussive(samples)
     envelope = librosa.onset.onset_strength(y=percussive, sr=SAMPLE_RATE, hop_length=HOP)
-    grid = chart_grid(samples, percussive, envelope)
+    known = np.asarray(json.loads(beats.read_text(encoding="utf-8"))["beats"]) if beats is not None else None
+    grid = chart_grid(samples, percussive, envelope, known)
 
     step_frames = librosa.time_to_frames(grid.step_times, sr=SAMPLE_RATE, hop_length=HOP)
     accent = step_accents(envelope, step_frames, grid.steps_per_beat)
@@ -915,6 +935,10 @@ def main(
         "difficulty": listed.value,
         "notes": notes,
     }
+    if road is not None:
+        chart["road"] = road.value
+        road_beats = known if known is not None else grid.step_times[::grid.steps_per_beat]
+        chart["tempo"] = tempo_from_beats([float(beat) for beat in road_beats])
     for key, value in (("artist", artist), ("credit", credit)):
         if value:
             chart[key] = value
@@ -1017,6 +1041,14 @@ def off_the_beat(grid: BeatGrid, streams: dict) -> str:
 
 def self_test() -> int:
     failed = 0
+    known = np.concatenate([np.arange(0.5, 30.0, 0.5), 30.0 + np.arange(0.0, 30.0, 0.4)])
+    samples, _ = test_song("sweep_kick", "noise_hat", 120, 60, 1 / 2)
+    percussive = librosa.effects.percussive(samples)
+    envelope = librosa.onset.onset_strength(y=percussive, sr=SAMPLE_RATE, hop_length=HOP)
+    grid = chart_grid(samples, percussive, envelope, known)
+    ok = grid.steps_per_beat == STEPS_PER_BEAT and np.allclose(grid.step_times[:: grid.steps_per_beat], known)
+    failed += not ok
+    print(f"{'PASS' if ok else 'FAIL'} known beats are the grid's beats as given")
     for beat_kind, swung_kind, bpm, seconds in SWING_SONGS:
         samples, streams = test_song(beat_kind, swung_kind, bpm, seconds, SWING_SHARE)
         for level in (Level.NORMAL, Level.HARD):

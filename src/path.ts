@@ -1,6 +1,8 @@
 import type { Point } from "./canvas";
 import type { Route } from "./drawing";
 import { type Course, GUIDE_STEP, type Guide, layCourse, layGuide } from "./guide";
+import type { RhythmDetails } from "./rhythm-road";
+import { beatsBetween, type TempoMap } from "./tempo";
 
 export type Pace = "normal" | "fast" | "slow";
 
@@ -24,6 +26,7 @@ export type Sweep = {
   readonly endTime: number;
   readonly pace: Pace;
   readonly isTwirl: boolean;
+  readonly tempo?: TempoMap;
 };
 
 /**
@@ -41,6 +44,7 @@ export type Path = {
   readonly weights: readonly number[];
   readonly guide: Guide;
   readonly drift: number;
+  readonly rhythm?: RhythmDetails;
 };
 
 const TAU = Math.PI * 2;
@@ -396,6 +400,10 @@ export function shareEnding(path: Path): Path {
 
 /** Before `startTime` and after `endTime` the ball simply keeps turning at the same speed. */
 export function orbiterAngle(sweep: Sweep, time: number): number {
+  if (sweep.tempo !== undefined) {
+    return sweep.startAngle + sweep.angle * beatsBetween(sweep.tempo, sweep.startTime, time) /
+      beatsBetween(sweep.tempo, sweep.startTime, sweep.endTime);
+  }
   return sweep.startAngle + (sweep.angle * (time - sweep.startTime)) / (sweep.endTime - sweep.startTime);
 }
 

@@ -311,6 +311,16 @@
    "credit": "Music - \"Laserpack\" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0. https://creativecommons.org/licenses/by/4.0/"
   },
   {
+   "id": "last-fortress",
+   "title": "Last Fortress",
+   "bpm": 183.99,
+   "duration": 93.64,
+   "difficulty": "hard",
+   "notes": 364,
+   "artist": "LiveCanvas",
+   "credit": "Piano samples: Salamander Grand Piano V3 by Alexander Holm, licensed under CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/). SFZ mapping by kinwie; retuning by Markus Fiedler. Source: https://github.com/sfzinstruments/SalamanderGrandPiano."
+  },
+  {
    "id": "level-4-first-infiltration-in-unresponsible-tech",
    "title": "Level 4 : First infiltration in Unresponsible Tech",
    "bpm": 143.01,

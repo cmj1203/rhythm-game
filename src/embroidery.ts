@@ -23,6 +23,15 @@ const MIN_STITCH_PX = 1.5;
 /** The finished picture is sewn at least this thick, as a share of its size, so a long song's picture is not faint. */
 const FINISHED_WIDTH_SHARE = 0.008;
 const GUIDE_WIDTH = 0.1;
+/** A rhythm road's guide is thinner, its dashes four to a unit with short gaps, so the road reads as one line. */
+const RHYTHM_GUIDE_WIDTH = 0.065;
+const RHYTHM_DASH = [0.16, 0.09] as const;
+/**
+ * While a rhythm road is played, the line already drawn is one colour, this thin and this far toward the background;
+ * it takes its colours only once the finished piece is shown.
+ */
+const TRAVELLED_WIDTH = 0.1;
+const TRAVELLED_DIM = 0.55;
 /** While the song plays, the stitches sewn a while ago step back; this many of the latest stay in full view. */
 const FRESH_STITCHES = 6;
 const WIDE_LAYOUT_RATIO = 1.15;
@@ -122,7 +131,7 @@ export function drawCloth(painter: Painter, view: View, { width, height }: Size)
  */
 export function drawGuide(
   painter: Painter,
-  { tiles }: Path,
+  { tiles, rhythm }: Path,
   view: View,
   from: number,
   to: number,
@@ -131,10 +140,11 @@ export function drawGuide(
   const { ctx } = painter;
   const opacity = ctx.globalAlpha;
   ctx.save();
-  // Tiles are one unit apart and the dashes repeat three times a unit, so they run on evenly from piece to piece.
-  ctx.setLineDash([view.tileSize / 6, view.tileSize / 6]);
+  // Tiles are one unit apart and the dashes repeat a whole number of times a unit, so they run on evenly from piece
+  // to piece.
+  ctx.setLineDash(rhythm === undefined ? [view.tileSize / 6, view.tileSize / 6] : RHYTHM_DASH.map((share) => view.tileSize * share));
   ctx.lineCap = "round";
-  ctx.lineWidth = Math.max(1.5, view.tileSize * GUIDE_WIDTH);
+  ctx.lineWidth = Math.max(1.5, view.tileSize * (rhythm === undefined ? GUIDE_WIDTH : RHYTHM_GUIDE_WIDTH));
   ctx.strokeStyle = COLOR.text;
   for (let i = from; i < to; i++) {
     const tile = tiles[i];
@@ -197,7 +207,7 @@ function strokeLine(ctx: CanvasRenderingContext2D, line: readonly Point[]): void
  */
 export function drawStitches(
   painter: Painter,
-  { tiles, anchors, weights, guide }: Path,
+  { tiles, anchors, weights, guide, rhythm }: Path,
   history: readonly Judgement[],
   view: View,
   taut: number,
@@ -229,7 +239,8 @@ export function drawStitches(
     };
     const threadOf = (along: number): string | null =>
       guide.colors[Math.min(end, Math.floor(lerp(start, end, along)))] ?? null;
-    const fade = lerp(past, 1, Math.max(0, 1 - (history.length - 1 - note) / FRESH_STITCHES));
+    const fresh = rhythm === undefined ? FRESH_STITCHES : 2;
+    const fade = lerp(past, 1, Math.max(0, 1 - (history.length - 1 - note) / fresh));
     // A faint or faded stroke is mixed toward the background rather than made see-through, so where two strokes
     // meet end to end nothing shows through twice.
     const inkOf = (thread: string, strength: number): string =>
@@ -244,6 +255,12 @@ export function drawStitches(
       return;
     }
 
+    if (rhythm !== undefined && taut === 0) {
+      ctx.lineWidth = size * TRAVELLED_WIDTH;
+      ctx.strokeStyle = mixColors(COLOR.thread, COLOR.background, TRAVELLED_DIM);
+      strokeLine(ctx, [spot(0), spot(1)]);
+      return;
+    }
     const pressure = PRESSURE[judgement];
     const pieces = Math.max(1, end - start);
     // Pieces of the same colour are drawn as one line; the colour may change where one stroke of the picture ends.

@@ -1,0 +1,194 @@
+import { COLOR, type Point } from "./canvas";
+import { GUIDE_STEP, type Guide } from "./guide";
+import type { Path, Sweep, Tile } from "./path";
+import { phraseMatches, type Phrase } from "./road-phrases";
+import { beatsBetween, bpmAt, scaledTempo, type TempoMap, type TempoMark } from "./tempo";
+
+/** Only still-fresh stitches block a turn; older, passed loops may be travelled again. */
+export const RHYTHM_CLEARANCE = { distance: 0.95, lookback: 6, maxAgeSeconds: 0.5 } as const;
+const GRID = 12;
+const SAMPLES_PER_TILE = Math.round(1 / GUIDE_STEP);
+
+export type RhythmDetails = {
+  readonly tempo: TempoMap;
+  /** How fast the crayon turns: `tempo` times the chart's turn scale. Angles and tempo marks follow this. */
+  readonly turns: TempoMap;
+  readonly marks: readonly (TempoMark | null)[];
+  /** Nonoverlapping destinations reusing an earlier phrase's relative turns. */
+  readonly phrases: readonly (Phrase & { readonly to: number })[];
+};
+export type RhythmPath = Path & { readonly rhythm: RhythmDetails };
+
+function crowded(tiles: readonly Tile[], spot: Point): boolean {
+  const now = tiles.at(-1)?.time ?? 0;
+  return tiles.slice(-RHYTHM_CLEARANCE.lookback, -1).some((tile) =>
+    now - tile.time <= RHYTHM_CLEARANCE.maxAgeSeconds &&
+    Math.hypot(tile.x - spot.x, tile.y - spot.y) < RHYTHM_CLEARANCE.distance);
+}
+
+function step(pivot: Point, heading: number): Point {
+  return { x: pivot.x + Math.cos(heading), y: pivot.y + Math.sin(heading) };
+}
+
+function sweepAngle(units: number): number {
+  let divisor = 1;
+  while (units / divisor > 2) divisor *= 2;
+  return (Math.PI * units) / divisor;
+}
+
+/** The guide is the travelled line itself, sampled exactly at each tile, not fitted to a picture. */
+function guideOf(tiles: readonly Tile[]): Guide {
+  const points: Point[] = [];
+  for (const [i, tile] of tiles.entries()) {
+    const next = tiles[i + 1];
+    if (next === undefined) break;
+    for (let k = 0; k < SAMPLES_PER_TILE; k++) {
+      const along = k / SAMPLES_PER_TILE;
+      points.push({ x: tile.x + (next.x - tile.x) * along, y: tile.y + (next.y - tile.y) * along });
+    }
+  }
+  const last = tiles.at(-1) ?? { x: 0, y: 0 };
+  points.push({ x: last.x, y: last.y });
+  return {
+    points,
+    colors: points.map(() => COLOR.thread),
+    endIndex: points.length - 1,
+    length: Math.max(0, tiles.length - 1),
+    bounds: {
+      minX: Math.min(...points.map(({ x }) => x)),
+      minY: Math.min(...points.map(({ y }) => y)),
+      maxX: Math.max(...points.map(({ x }) => x)),
+      maxY: Math.max(...points.map(({ y }) => y)),
+    },
+  };
+}
+
+/** Beats in a bar, and how near (in beats) a note must be to a bar's first beat to count as on it. */
+const BAR_BEATS = 4;
+const ON_BEAT = 0.08;
+/** A note after a gap of at least this many beats comes back in after a rest. */
+const REST_BEATS = 2;
+
+/**
+ * Which notes are big moments, for the screen to give a kick when they are hit: a note on the first beat of a bar
+ * (bars counted from `offset`, the first downbeat), the first note after a rest, and the first note at a new tempo.
+ */
+export function accentsOf(times: readonly number[], tempo: TempoMap, offset: number): boolean[] {
+  const changes = tempo.slice(1).map(([start]) => times.findIndex((time) => time >= start - 0.0001));
+  return times.map((time, i) => {
+    const beats = beatsBetween(tempo, offset, time);
+    const fromBar = beats - Math.round(beats / BAR_BEATS) * BAR_BEATS;
+    const before = times[i - 1];
+    const afterRest = before !== undefined && beatsBetween(tempo, before, time) >= REST_BEATS - ON_BEAT;
+    return Math.abs(fromBar) <= ON_BEAT || afterRest || changes.includes(i);
+  });
+}
+
+/**
+ * A separate opt-in layout; buildPath's picture roads and all their heuristics stay untouched. `turnScale` turns the
+ * crayon that much faster (or slower) per beat from each start time, so the same rhythm bends at other angles there.
+ */
+export function buildRhythmPath(times: readonly number[], songTempo: TempoMap, turnScale?: TempoMap): RhythmPath {
+  const tempo = scaledTempo(songTempo, turnScale);
+  const first = times[0] ?? 0;
+  const unit = 60 / bpmAt(tempo, first);
+  const tiles: Tile[] = [{ x: 0, y: 0, time: first - unit }, { x: 1, y: 0, time: first }];
+  const sweeps: Sweep[] = [{
+    startAngle: Math.PI,
+    angle: Math.PI,
+    startTime: first - unit,
+    endTime: first,
+    pace: "normal",
+    isTwirl: false,
+  }];
+  const units = times.slice(1).map((time, i) => Math.max(1 / GRID, Math.round(beatsBetween(tempo, times[i] ?? time, time) * GRID) / GRID));
+  const phrases = phraseMatches(units);
+  const decisions: boolean[] = [];
+  const reproduced: (Phrase & { readonly to: number })[] = [];
+  const weights = [1];
+  let heading = 0;
+  let spin = 1;
+  let replay: readonly boolean[] = [];
+  let replayAt = 0;
+
+  for (const [i, gap] of units.entries()) {
+    const pivot = tiles[i + 1];
+    const from = times[i];
+    const to = times[i + 1];
+    if (pivot === undefined || from === undefined || to === undefined) break;
+    if (replayAt >= replay.length) {
+      replay = [];
+      replayAt = 0;
+      for (const phrase of phrases.get(i) ?? []) {
+        if (Math.sign(sweeps[phrase.from]?.angle ?? Math.PI) !== spin) continue;
+        const proposed = decisions.slice(phrase.from, phrase.from + phrase.count);
+        const trial: Tile[] = tiles.slice(-RHYTHM_CLEARANCE.lookback);
+        let trialHeading = heading;
+        let trialSpin = spin;
+        let valid = true;
+        for (const [j, twirl] of proposed.entries()) {
+          const at = trial.at(-1) ?? pivot;
+          const angle = sweepAngle(units[i + j] ?? 1);
+          const forward = step(at, trialHeading + Math.PI + trialSpin * angle);
+          // A remembered twirl is legal only when it still prevents an overlap here.
+          if (twirl && !crowded(trial, forward)) { valid = false; break; }
+          if (twirl) trialSpin *= -1;
+          trialHeading += Math.PI + trialSpin * angle;
+          const next = step(at, trialHeading);
+          if (crowded(trial, next)) { valid = false; break; }
+          trial.push({ ...next, time: times[i + j + 1] ?? to });
+        }
+        if (valid) {
+          replay = proposed;
+          reproduced.push({ ...phrase, to: i });
+          break;
+        }
+      }
+    }
+
+    const angle = sweepAngle(gap);
+    const forward = step(pivot, heading + Math.PI + spin * angle);
+    const backward = step(pivot, heading + Math.PI - spin * angle);
+    const avoidsOverlap = crowded(tiles, forward) && !crowded(tiles, backward);
+    const isReplayed = replayAt < replay.length;
+    const twirl = isReplayed ? replay[replayAt++] === true : avoidsOverlap;
+    if (twirl) spin *= -1;
+    heading = (heading + Math.PI + spin * angle) % (Math.PI * 2);
+    decisions.push(twirl);
+    sweeps.push({
+      startAngle: heading - spin * angle,
+      angle: spin * angle,
+      startTime: from,
+      endTime: to,
+      pace: gap > 2 ? "slow" : "normal",
+      isTwirl: twirl,
+      tempo,
+    });
+    tiles.push({ ...step(pivot, heading), time: to });
+    weights.push(Math.min(1.8, Math.max(0.6, Math.sqrt(gap))));
+  }
+  const last = tiles.at(-1) ?? tiles[0];
+  const endTime = last?.time ?? first;
+  sweeps.push({
+    startAngle: heading + Math.PI,
+    angle: spin * Math.PI,
+    startTime: endTime,
+    endTime: endTime + 60 / bpmAt(tempo, endTime),
+    pace: "normal",
+    isTwirl: false,
+  });
+  const marks: (TempoMark | null)[] = tiles.map(() => null);
+  for (const [i, [start, bpm]] of tempo.entries()) {
+    const before = tempo[i - 1]?.[1];
+    if (before === undefined || before === bpm) continue;
+    const tile = tiles.findIndex(({ time }) => time >= start - 0.0001);
+    if (tile >= 0) marks[tile] = bpm > before ? "faster" : "slower";
+  }
+  return {
+    tiles, sweeps, weights,
+    anchors: tiles.map((_, i) => i * SAMPLES_PER_TILE),
+    guide: guideOf(tiles),
+    drift: 0,
+    rhythm: { tempo: songTempo, turns: tempo, marks, phrases: reproduced },
+  };
+}

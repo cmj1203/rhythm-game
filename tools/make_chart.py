@@ -909,7 +909,8 @@ def main(
     level = difficulty or level_for(grid.bpm)
     end = music_end(samples)
     out = audio.with_name("chart.json")
-    previous = json.loads(out.read_text(encoding="utf-8"))["notes"] if out.exists() else None
+    previous_chart = json.loads(out.read_text(encoding="utf-8")) if out.exists() else None
+    previous = previous_chart["notes"] if previous_chart else None
 
     def heard_notes(keep_runs: bool) -> list[float]:
         charted = chart_notes(grid, envelope, accent, level, end, keep_runs=keep_runs)
@@ -939,6 +940,9 @@ def main(
         chart["road"] = road.value
         road_beats = known if known is not None else grid.step_times[::grid.steps_per_beat]
         chart["tempo"] = tempo_from_beats([float(beat) for beat in road_beats])
+        # The tool never makes a turn scale; one set by hand outlives a regenerated chart.
+        if previous_chart and "turnScale" in previous_chart:
+            chart["turnScale"] = previous_chart["turnScale"]
     for key, value in (("artist", artist), ("credit", credit)):
         if value:
             chart[key] = value

@@ -12,7 +12,14 @@ export type MenuOptions = {
   readonly onBrowse: (song: SongSummary) => void;
 };
 
-const DIFFICULTY_LABEL = { easy: "Easy", normal: "Normal", hard: "Hard" } as const satisfies Record<Difficulty, string>;
+/** A tab of the list: the songs made for this game (artist LiveCanvas) on their own, the rest by difficulty. */
+type Shelf = "new" | Difficulty;
+const SHELVES: readonly Shelf[] = ["new", ...DIFFICULTIES];
+const SHELF_LABEL = { new: "New", easy: "Easy", normal: "Normal", hard: "Hard" } as const satisfies Record<Shelf, string>;
+
+function shelfOf(song: SongSummary | undefined): Shelf | undefined {
+  return song?.artist === "LiveCanvas" ? "new" : song?.difficulty;
+}
 const DIFFICULTY_BY_CODE: Readonly<Record<string, Difficulty>> = { Digit1: "easy", Digit2: "normal", Digit3: "hard" };
 
 function formatDuration(seconds: number): string {
@@ -20,40 +27,40 @@ function formatDuration(seconds: number): string {
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
 }
 
-/** Every song has one difficulty. The list shows the songs of one difficulty at a time: that of the song picked. */
+/** Every song has one shelf. The list shows the songs of one shelf at a time: that of the song picked. */
 export class SongMenu {
   private songIndex: number;
-  /** The difficulties that have songs, easiest first. */
-  private readonly difficulties: readonly Difficulty[];
+  /** The shelves that have songs, the new songs first, then easiest first. */
+  private readonly shelves: readonly Shelf[];
   private readonly rows: readonly HTMLLIElement[];
   /** Each row's place for the song's best on this device. */
   private readonly bestLabels: readonly HTMLElement[];
-  private readonly tabs: ReadonlyMap<Difficulty, HTMLButtonElement>;
+  private readonly tabs: ReadonlyMap<Shelf, HTMLButtonElement>;
   private readonly credit = element("p", "credit");
   private readonly status = element("p", "status");
 
   constructor(private readonly options: MenuOptions) {
     const { root, songs, initialSongId } = options;
-    this.difficulties = DIFFICULTIES.filter((difficulty) => songs.some((song) => song.difficulty === difficulty));
+    this.shelves = SHELVES.filter((shelf) => songs.some((song) => shelfOf(song) === shelf));
     const asked = songs.findIndex((song) => song.id === initialSongId);
-    this.songIndex = asked >= 0 ? asked : Math.max(0, this.firstOf(this.difficulties[0]));
+    this.songIndex = asked >= 0 ? asked : Math.max(0, this.firstOf(this.shelves[0]));
 
     const tabs = element("div", "difficulties");
     tabs.setAttribute("role", "radiogroup");
     tabs.setAttribute("aria-label", "난이도");
     this.tabs = new Map(
-      this.difficulties.map((difficulty) => {
+      this.shelves.map((shelf) => {
         const tab = element("button", "difficulty");
-        const count = songs.filter((song) => song.difficulty === difficulty).length;
+        const count = songs.filter((song) => shelfOf(song) === shelf).length;
         tab.type = "button";
         tab.setAttribute("role", "radio");
         tab.append(
-          element("span", "difficulty-name", DIFFICULTY_LABEL[difficulty]),
+          element("span", "difficulty-name", SHELF_LABEL[shelf]),
           element("span", "difficulty-count", `${count}곡`),
         );
-        tab.addEventListener("click", () => this.setDifficulty(difficulty));
+        tab.addEventListener("click", () => this.setShelf(shelf));
         tabs.append(tab);
-        return [difficulty, tab];
+        return [shelf, tab];
       }),
     );
 
@@ -138,7 +145,7 @@ export class SongMenu {
       default: {
         const difficulty = DIFFICULTY_BY_CODE[event.code];
         if (difficulty === undefined) return;
-        this.setDifficulty(difficulty);
+        this.setShelf(difficulty);
       }
     }
     event.preventDefault();
@@ -153,9 +160,9 @@ export class SongMenu {
     });
   }
 
-  /** The place in the list of the first song of `difficulty`, or -1 if there is none. */
-  private firstOf(difficulty: Difficulty | undefined): number {
-    return this.options.songs.findIndex((song) => song.difficulty === difficulty);
+  /** The place in the list of the first song of `shelf`, or -1 if there is none. */
+  private firstOf(shelf: Shelf | undefined): number {
+    return this.options.songs.findIndex((song) => shelfOf(song) === shelf);
   }
 
   private select(index: number): void {
@@ -165,29 +172,29 @@ export class SongMenu {
     if (song !== undefined) this.options.onBrowse(song);
   }
 
-  /** Picks the next song of the difficulty on show: `by` 1 goes down the list, -1 up. */
+  /** Picks the next song of the shelf on show: `by` 1 goes down the list, -1 up. */
   private step(by: 1 | -1): void {
     const { songs } = this.options;
-    const difficulty = songs[this.songIndex]?.difficulty;
+    const shelf = shelfOf(songs[this.songIndex]);
     for (let index = this.songIndex + by; songs[index] !== undefined; index += by) {
-      if (songs[index]?.difficulty === difficulty) {
+      if (shelfOf(songs[index]) === shelf) {
         this.select(index);
         return;
       }
     }
   }
 
-  /** Shows the songs of `difficulty`, with the first of them picked. */
-  private setDifficulty(difficulty: Difficulty): void {
-    const first = this.firstOf(difficulty);
-    if (first >= 0 && this.options.songs[this.songIndex]?.difficulty !== difficulty) this.select(first);
+  /** Shows the songs of `shelf`, with the first of them picked. */
+  private setShelf(shelf: Shelf): void {
+    const first = this.firstOf(shelf);
+    if (first >= 0 && shelfOf(this.options.songs[this.songIndex]) !== shelf) this.select(first);
   }
 
   private shiftDifficulty(delta: number): void {
-    const shown = this.options.songs[this.songIndex]?.difficulty;
+    const shown = shelfOf(this.options.songs[this.songIndex]);
     if (shown === undefined) return;
-    const next = this.difficulties[this.difficulties.indexOf(shown) + delta];
-    if (next !== undefined) this.setDifficulty(next);
+    const next = this.shelves[this.shelves.indexOf(shown) + delta];
+    if (next !== undefined) this.setShelf(next);
   }
 
   private start(): void {
@@ -199,12 +206,12 @@ export class SongMenu {
     const { songs } = this.options;
     const song = songs[this.songIndex];
     this.rows.forEach((row, index) => {
-      row.hidden = songs[index]?.difficulty !== song?.difficulty;
+      row.hidden = shelfOf(songs[index]) !== shelfOf(song);
       row.setAttribute("aria-selected", String(index === this.songIndex));
     });
     this.rows[this.songIndex]?.scrollIntoView({ block: "nearest" });
-    for (const [difficulty, tab] of this.tabs) {
-      tab.setAttribute("aria-checked", String(difficulty === song?.difficulty));
+    for (const [shelf, tab] of this.tabs) {
+      tab.setAttribute("aria-checked", String(shelf === shelfOf(song)));
     }
     this.credit.textContent = song?.credit ?? "";
   }

@@ -243,8 +243,7 @@ async function boot(): Promise<void> {
     onSettings: () => {
       stopPreview();
       menu.hide();
-      settings.show();
-      screen = { kind: "settings" };
+      openSettings("menu");
     },
     onBrowse: previewSong,
   });
@@ -267,12 +266,26 @@ async function boot(): Promise<void> {
       localStorage.removeItem(LAG_KEY);
       settings.setLag(0);
     },
-    onClose: () => {
-      settings.hide();
+    onClose: () => closeSettings(),
+  });
+
+  /** The screen settings was opened from, which closing it goes back to. */
+  let settingsFrom: "menu" | "tutorial" = "menu";
+  const openSettings = (from: "menu" | "tutorial"): void => {
+    settingsFrom = from;
+    settings.show();
+    screen = { kind: "settings" };
+  };
+  const closeSettings = (): void => {
+    settings.hide();
+    if (settingsFrom === "tutorial") {
+      tutorial.show();
+      screen = { kind: "tutorial" };
+    } else {
       menu.show();
       screen = { kind: "menu" };
-    },
-  });
+    }
+  };
 
   const calibration = new CalibrationScreen({
     root: requireElement<HTMLElement>("#calibration"),
@@ -295,6 +308,10 @@ async function boot(): Promise<void> {
       tutorial.hide();
       menu.show();
       screen = { kind: "menu" };
+    },
+    onSettings: () => {
+      tutorial.hide();
+      openSettings("tutorial");
     },
   });
 
@@ -426,11 +443,7 @@ async function boot(): Promise<void> {
         menu.handleKey(event);
         return;
       case "settings":
-        if (event.code === "Escape") {
-          settings.hide();
-          menu.show();
-          screen = { kind: "menu" };
-        }
+        if (event.code === "Escape") closeSettings();
         return;
       case "calibration":
         if (event.code === "Escape") {

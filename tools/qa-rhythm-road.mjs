@@ -127,7 +127,7 @@ export default async function autoplay(page, { device, outDir }) {
   }));
   await page.keyboard.press("Space");
   await page.locator("#title button").click();
-  await page.locator("#tutorial button").click();
+  await page.locator("#tutorial button", { hasText: "곡 고르기" }).click();
   await page.locator("#menu button.start").first().click();
   await page.locator("#back").waitFor({ state: "visible" });
   await page.locator("#game").click();

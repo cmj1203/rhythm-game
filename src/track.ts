@@ -283,13 +283,21 @@ function drawAhead(painter: Painter, { path, play, songTime }: PlayingFrame, vie
   ctx.globalAlpha = opacity;
 
   const target = path.tiles[standing + 1];
+  const targetSweep = path.sweeps[standing + 1];
+  // A coloured note's ring takes the note's colour, so the colour shows on the very tile to hit.
+  const targetMark = path.rhythm?.marks[standing + 1];
+  const targetColor = targetSweep?.isTwirl === true
+    ? COLOR.violet
+    : targetSweep !== undefined && targetSweep.pace !== "normal"
+      ? PACE_COLOR[targetSweep.pace]
+      : targetMark === "faster" ? COLOR.pink : targetMark === "slower" ? COLOR.sky : COLOR.text;
   if (target !== undefined) {
     const width = Math.max(TARGET_MIN_WIDTH_PX, view.tileSize * TARGET_WIDTH);
     painter.circle(toScreen(view, target), view.tileSize * TARGET_RADIUS);
     ctx.strokeStyle = COLOR.background;
     ctx.lineWidth = width + TARGET_EDGE_PX * 2;
     ctx.stroke();
-    ctx.strokeStyle = COLOR.text;
+    ctx.strokeStyle = targetColor;
     ctx.lineWidth = width;
     ctx.stroke();
   }

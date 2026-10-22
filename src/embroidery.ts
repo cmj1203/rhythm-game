@@ -127,7 +127,8 @@ export function drawCloth(painter: Painter, view: View, { width, height }: Size)
 
 /**
  * The road still to sew from tile `from` to tile `to`, as a dashed line. `clarity` says how clearly the piece
- * that many tiles on from `from` shows, 0 to 1. Whatever transparency the caller has set applies to all of it.
+ * that many tiles on from `from` shows, 0 to 1. `colorOf(i)` is the colour of the piece from tile `i`. Whatever
+ * transparency the caller has set applies to all of it.
  */
 export function drawGuide(
   painter: Painter,
@@ -136,6 +137,7 @@ export function drawGuide(
   from: number,
   to: number,
   clarity: (steps: number) => number,
+  colorOf: (tile: number) => string = () => COLOR.text,
 ): void {
   const { ctx } = painter;
   const opacity = ctx.globalAlpha;
@@ -145,13 +147,13 @@ export function drawGuide(
   ctx.setLineDash(rhythm === undefined ? [view.tileSize / 6, view.tileSize / 6] : RHYTHM_DASH.map((share) => view.tileSize * share));
   ctx.lineCap = "round";
   ctx.lineWidth = Math.max(1.5, view.tileSize * (rhythm === undefined ? GUIDE_WIDTH : RHYTHM_GUIDE_WIDTH));
-  ctx.strokeStyle = COLOR.text;
   for (let i = from; i < to; i++) {
     const tile = tiles[i];
     const next = tiles[i + 1];
     if (tile === undefined || next === undefined) continue;
     const start = toScreen(view, tile);
     const end = toScreen(view, next);
+    ctx.strokeStyle = colorOf(i);
     ctx.globalAlpha = opacity * clarity(i - from);
     ctx.beginPath();
     ctx.moveTo(start.x, start.y);

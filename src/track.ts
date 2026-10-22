@@ -14,8 +14,7 @@ import {
 import type { JudgeEvent, PlayState } from "./judge";
 import { cameraAt, orbiterAngle, type Pace, type Path } from "./path";
 import { poseAt, type Section } from "./sections";
-import { aheadClarity, aheadEnd, drawPhraseBound, laterPasses, phraseBounds } from "./road-view";
-import { beatsBetween } from "./tempo";
+import { aheadClarity, aheadEnd, laterPasses, phraseColors } from "./road-view";
 import { drawTempoMark } from "./tempo-mark";
 import { standingAt } from "./walking-crayon";
 import { drawWalkingCrayon, type HitOnCrayon } from "./walking-crayon-draw";
@@ -247,7 +246,8 @@ function drawAhead(painter: Painter, { path, play, songTime }: PlayingFrame, vie
     : aheadEnd({ ...path, rhythm: path.rhythm }, standing, songTime);
   const clarity = isRhythm ? (steps: number): number => aheadClarity(steps, end - standing) : nearness;
   const later = path.rhythm === undefined ? new Set<number>() : laterPasses({ ...path, rhythm: path.rhythm }, standing, end);
-  drawGuide(painter, path, view, standing, end, clarity);
+  const repeats = path.rhythm === undefined ? new Map<number, string>() : phraseColors({ ...path, rhythm: path.rhythm });
+  drawGuide(painter, path, view, standing, end, clarity, (i) => repeats.get(i) ?? COLOR.text);
 
   for (let i = standing; i <= end; i++) {
     const tile = path.tiles[i];
@@ -278,19 +278,6 @@ function drawAhead(painter: Painter, { path, play, songTime }: PlayingFrame, vie
         angle: Math.atan2(next.y - tile.y, next.x - tile.x) + view.angle,
         size: view.tileSize,
       });
-    }
-  }
-  if (path.rhythm !== undefined) {
-    for (const { tile: index, kind } of phraseBounds({ ...path, rhythm: path.rhythm })) {
-      const tile = path.tiles[index];
-      if (tile === undefined || index > end || later.has(index)) continue;
-      const passed = Math.max(0, beatsBetween(path.rhythm.tempo, tile.time, songTime));
-      if (passed >= 1) continue;
-      const other = path.tiles[kind === "open" ? index - 1 : index + 1] ?? path.tiles[kind === "open" ? index + 1 : index - 1];
-      if (other === undefined) continue;
-      const along = kind === "open" ? Math.atan2(tile.y - other.y, tile.x - other.x) : Math.atan2(other.y - tile.y, other.x - tile.x);
-      ctx.globalAlpha = opacity * (index >= standing ? clarity(index - standing) : 1) * (1 - passed);
-      drawPhraseBound(painter, kind, toScreen(view, tile), along + view.angle, view.tileSize);
     }
   }
   ctx.globalAlpha = opacity;

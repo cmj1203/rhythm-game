@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { chartSchema } from "../src/chart";
 import { buildRhythmPath } from "../src/rhythm-road";
-import { aheadEnd, laterPasses, phraseBounds, phraseSpans } from "../src/road-view";
+import { aheadEnd, laterPasses, phraseColors, phraseSpans } from "../src/road-view";
 import { beatsBetween } from "../src/tempo";
 import { standingAt } from "../src/walking-crayon";
 
@@ -47,17 +47,27 @@ describe("rhythm road view", () => {
     expect(onIt.has(revisits)).toBe(false);
   });
 
-  test("bracketed phrases are laid-again phrases or their first appearance, and never overlap", async () => {
+  test("each repeated phrase colours the road ahead the same every time it comes", async () => {
     // Given the shipped chart.
     const { path } = await lastFortress();
     const laid = path.rhythm.phrases.flatMap(({ from, to, count }) => [from, to].map((at) => `${at + 1}-${at + count + 1}`));
-    // When its bracketed spans are listed.
+    // When its repeated spans and their colours are listed.
     const spans = phraseSpans(path);
-    // Then each is one of those phrases, they run in order touching at most end to start, and each opens then closes.
+    const colors = phraseColors(path);
+    // Then each is one of those phrases, they run in order touching at most end to start, every group comes twice
+    // or more, and every tile of a span takes its group's one colour.
     expect(spans.length).toBeGreaterThan(0);
     expect(spans.every(({ start, end }) => laid.includes(`${start}-${end}`))).toBe(true);
     expect(spans.every((span, i) => i === 0 || (spans[i - 1]?.end ?? Infinity) <= span.start)).toBe(true);
-    expect(phraseBounds(path).map(({ kind }) => kind)).toEqual(spans.flatMap(() => ["open", "close"]));
+    const groups = new Map<number, typeof spans[number][]>();
+    for (const span of spans) groups.set(span.group, [...(groups.get(span.group) ?? []), span]);
+    for (const members of groups.values()) {
+      expect(members.length).toBeGreaterThanOrEqual(2);
+      const shades = new Set(members.flatMap(({ start, end }) => Array.from({ length: end - start }, (_, k) => colors.get(start + k))));
+      expect(shades.size).toBe(1);
+      expect([...shades][0]).toBeDefined();
+    }
+    expect(colors.size).toBe(spans.reduce((sum, { start, end }) => sum + end - start, 0));
   });
 
   test("a turn-around, rest or tempo marker shows at least two beats before its tile", async () => {

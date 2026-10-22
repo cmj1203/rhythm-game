@@ -1,4 +1,4 @@
-import { COLOR, type Painter, type Point } from "./canvas";
+import { JUDGEMENT_COLOR } from "./canvas";
 import type { RhythmPath } from "./rhythm-road";
 import { beatsBetween } from "./tempo";
 
@@ -10,10 +10,13 @@ export const AHEAD_MAX_TILES = 12;
 const SAME_SPOT = 0.5;
 /** The last two tiles shown fade out this far. */
 const EDGE_CLARITY = [0.7, 0.35] as const;
-/** Phrase brackets, in tiles: how far outside their boundary tile, how tall, how long their arms, how thick. */
-const BRACKET = { offset: 0.35, height: 0.34, arm: 0.12, width: 0.045, minWidthPx: 1.5 } as const;
-
-export type PhraseBound = { readonly tile: number; readonly kind: "open" | "close" };
+/**
+ * The colours the road ahead takes along a phrase laid again in the same shape, and along the first time it was laid:
+ * every time one phrase comes, it comes in the same colour. Phrases take them in turn.
+ */
+const PHRASE_COLORS = [JUDGEMENT_COLOR.perfect, JUDGEMENT_COLOR.great] as const;
+/** A phrase is coloured as a repeat only when it comes again within this many beats of the end of the earlier one. */
+const REPEAT_WITHIN_BEATS = 16;
 
 /** The last tile shown ahead of `standing` at song time `songTime`. */
 export function aheadEnd({ tiles, rhythm }: RhythmPath, standing: number, songTime: number): number {
@@ -55,51 +58,59 @@ export function laterPasses({ tiles }: RhythmPath, standing: number, end: number
   return later;
 }
 
-export type PhraseSpan = { readonly start: number; readonly end: number };
+/** `group` is the same for every span that is one phrase laid again (or the first time it was laid). */
+export type PhraseSpan = { readonly start: number; readonly end: number; readonly group: number };
 
 /**
- * The tiles, first to last, of the phrases laid again in the same shape and of the first time each was laid, so that
- * the first appearance teaches the bracket the repeat shows again. Where they overlap, the longer one (then the
- * earlier) keeps its brackets; spans may touch end to start.
+ * The tiles, first to last, of the phrases laid again in the same shape and of the first time each was laid. Where
+ * they overlap, the longer one (then the earlier) is kept; spans may touch end to start. Groups are numbered in the
+ * order they first come, and only groups that come at least twice are kept, since one alone repeats nothing on screen.
+ * A phrase that comes back only long after (`REPEAT_WITHIN_BEATS`) is not a repeat anyone would hear as one.
  */
 export function phraseSpans({ tiles, rhythm }: RhythmPath): readonly PhraseSpan[] {
-  const candidates = rhythm.phrases
+  const timeOf = (tile: number): number => tiles[tile]?.time ?? Infinity;
+  const phrases = rhythm.phrases.filter(({ from, to, count }) =>
+    beatsBetween(rhythm.tempo, timeOf(from + count + 1), timeOf(to + 1)) <= REPEAT_WITHIN_BEATS);
+  const keyOf = (start: number, end: number): string => `${start}-${end}`;
+  const parent = new Map<string, string>();
+  const root = (key: string): string => {
+    const up = parent.get(key) ?? key;
+    if (up === key) return key;
+    const top = root(up);
+    parent.set(key, top);
+    return top;
+  };
+  for (const { from, to, count } of phrases) parent.set(root(keyOf(to + 1, to + count + 1)), root(keyOf(from + 1, from + count + 1)));
+  const candidates = phrases
     .flatMap(({ from, to, count }) => [from, to].map((at) => ({ start: at + 1, end: at + count + 1 })))
     .filter(({ end }) => end < tiles.length)
     .sort((a, b) => b.end - b.start - (a.end - a.start) || a.start - b.start);
-  const kept: PhraseSpan[] = [];
+  const kept: { start: number; end: number; root: string }[] = [];
   for (const span of candidates) {
-    if (kept.every((other) => span.end <= other.start || other.end <= span.start)) kept.push(span);
+    const isFree = kept.every((other) => span.end <= other.start || other.end <= span.start);
+    if (isFree) kept.push({ ...span, root: root(keyOf(span.start, span.end)) });
   }
-  return kept.sort((a, b) => a.start - b.start);
+  kept.sort((a, b) => a.start - b.start);
+  const counts = new Map<string, number>();
+  for (const { root: group } of kept) counts.set(group, (counts.get(group) ?? 0) + 1);
+  const numbers = new Map<string, number>();
+  return kept.filter(({ root: group }) => (counts.get(group) ?? 0) >= 2).map(({ start, end, root: group }) => {
+    if (!numbers.has(group)) numbers.set(group, numbers.size);
+    return { start, end, group: numbers.get(group) ?? 0 };
+  });
 }
 
-export function phraseBounds(path: RhythmPath): readonly PhraseBound[] {
-  return phraseSpans(path).flatMap(({ start, end }): PhraseBound[] => [{ tile: start, kind: "open" }, { tile: end, kind: "close" }]);
-}
+/** Kept per road's rhythm details, which stay the same object frame after frame. */
+const phraseColorCache = new WeakMap<RhythmPath["rhythm"], ReadonlyMap<number, string>>();
 
-/**
- * A bracket across the road just outside a phrase's boundary tile: an opening one before the first tile, its arms
- * pointing into the phrase, a closing one after the last. `along` is the road's screen direction there.
- */
-export function drawPhraseBound(painter: Painter, kind: PhraseBound["kind"], at: Point, along: number, size: number): void {
-  const { ctx } = painter;
-  const outward = kind === "open" ? -1 : 1;
-  ctx.save();
-  ctx.translate(at.x, at.y);
-  ctx.rotate(along);
-  ctx.translate(outward * BRACKET.offset * size, 0);
-  const half = (BRACKET.height / 2) * size;
-  const arm = -outward * BRACKET.arm * size;
-  ctx.strokeStyle = COLOR.text;
-  ctx.lineWidth = Math.max(BRACKET.minWidthPx, BRACKET.width * size);
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-  ctx.beginPath();
-  ctx.moveTo(arm, -half);
-  ctx.lineTo(0, -half);
-  ctx.lineTo(0, half);
-  ctx.lineTo(arm, half);
-  ctx.stroke();
-  ctx.restore();
+/** The colour of the road ahead from tile `i` to tile `i + 1`, for each `i` inside a repeated phrase. */
+export function phraseColors(path: RhythmPath): ReadonlyMap<number, string> {
+  const cached = phraseColorCache.get(path.rhythm);
+  if (cached !== undefined) return cached;
+  const colors = new Map<number, string>();
+  for (const { start, end, group } of phraseSpans(path)) {
+    for (let i = start; i < end; i++) colors.set(i, PHRASE_COLORS[group % PHRASE_COLORS.length] ?? JUDGEMENT_COLOR.perfect);
+  }
+  phraseColorCache.set(path.rhythm, colors);
+  return colors;
 }

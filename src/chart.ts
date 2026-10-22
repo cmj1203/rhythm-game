@@ -6,6 +6,25 @@ export type Difficulty = (typeof DIFFICULTIES)[number];
 const songIdSchema = z.string().regex(/^[a-z0-9-]+$/);
 const noteTimes = z.array(z.number().nonnegative());
 
+/**
+ * A rhythm road that also draws public/pictures/<name>.svg (tools/picture_road.ts writes it). `flips` are the indices of
+ * the notes after which the crayon turns back the other way; with a picture these replace every other twirl rule. The
+ * road is played as usual; on the result screen each piece of it, from tile `from` up to the next piece, moves to
+ * `(x, y) + scale * rotate(angle) * tile`, in the picture's own units, and the pieces together make the picture.
+ */
+const roadPictureSchema = z.object({
+  name: songIdSchema,
+  flips: z.array(z.number().int().nonnegative()),
+  pieces: z.array(z.object({
+    from: z.number().int().nonnegative(),
+    scale: z.number().positive(),
+    angle: z.number(),
+    x: z.number(),
+    y: z.number(),
+  })).min(1),
+});
+export type RoadPictureData = Readonly<z.infer<typeof roadPictureSchema>>;
+
 const tempoSectionSchema = z.tuple([z.number().nonnegative(), z.number().positive()]);
 const tempoMapSchema = z.tuple([tempoSectionSchema]).rest(tempoSectionSchema).refine(
   (tempo) => tempo[0][0] === 0 && tempo.every(([start], i) => i === 0 || start > (tempo[i - 1]?.[0] ?? 0)),
@@ -36,6 +55,7 @@ export const chartSchema = z.union([
     turnScale: tempoMapSchema.optional(),
     /** Times of notes after which the crayon turns back the other way, set by hand. */
     twirls: z.array(z.number().nonnegative()).optional(),
+    picture: roadPictureSchema.optional(),
   }),
 ]);
 

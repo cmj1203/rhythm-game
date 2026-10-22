@@ -44,6 +44,8 @@ export default async function autoplay(page, { device, outDir }) {
   });
   let startedAt = 0;
   await page.exposeFunction("roadStarted", () => { startedAt = Date.now(); });
+  let resultAt = 0;
+  await page.exposeFunction("roadResultShown", () => { resultAt = Date.now(); });
   await page.exposeFunction("roadProgress", (info) => console.log(`${device} 연주 진행: ${JSON.stringify(info)}`));
   await page.evaluate(async (captureDuringPlay) => {
     // Vite may add ?t=... after an edit. Import the app's exact module instance.
@@ -67,6 +69,9 @@ export default async function autoplay(page, { device, outDir }) {
     const draw = Renderer.prototype.draw;
     const checkpoints = new Map(captureDuringPlay ? [["riff", 22.5], ["rest", 25.15], ["tempo-196", 66.21]] : []);
     let completed = false;
+    let resultShown = false;
+    // The result screen moves the road into its picture: before, halfway and after.
+    const resultStills = new Map([["result-before", 200], ["result-moving", 1400]]);
     let pressed = 0;
     let lastProgress = -1;
     Renderer.prototype.draw = function (frame) {
@@ -96,7 +101,18 @@ export default async function autoplay(page, { device, outDir }) {
         }
       }
       draw.call(this, frame);
-      if (frame.kind === "result" && frame.fade === 1 && !completed) {
+      if (frame.kind === "result" && !resultShown) {
+        resultShown = true;
+        window.roadResultShown();
+      }
+      if (frame.kind === "result") {
+        for (const [name, at] of resultStills) {
+          if (frame.elapsedMs < at) continue;
+          resultStills.delete(name);
+          window.roadCheckpoint(name);
+        }
+      }
+      if (frame.kind === "result" && frame.elapsedMs >= 3800 && !completed) {
         completed = true;
         window.roadCheckpoint("result");
         window.__rhythmSummary = {
@@ -133,10 +149,10 @@ export default async function autoplay(page, { device, outDir }) {
   await page.locator("#game").click();
   const summary = await completed;
   await Promise.all(shots);
-  const report = { device, muted, startedAt, ...summary, errors };
+  const report = { device, muted, startedAt, resultAt, ...summary, errors };
   await writeFile(`${outDir}/${device}-autoplay.json`, JSON.stringify(report, null, 2));
   console.log(`${device} 자동 연주: ${JSON.stringify(report)}`);
-  if (!summary.road || summary.pictureName !== "" || summary.counts.perfect !== summary.notes ||
+  if (!summary.road || summary.counts.perfect !== summary.notes ||
       summary.counts.great !== 0 || summary.counts.good !== 0 || summary.counts.miss !== 0 ||
       !summary.audibleSamples || summary.overflow !== 0 || errors.length > 0) {
     throw new Error(`${device} 자동 연주 검증 실패`);
@@ -158,13 +174,14 @@ if (process.argv.includes("--desktop")) {
     });
     const page = await context.newPage();
     const videoStartedAt = Date.now();
-    await page.goto("http://127.0.0.1:5187/?song=last-fortress", { waitUntil: "load" });
+    await page.goto(process.env["QA_URL"] ?? "http://127.0.0.1:5187/?song=last-fortress", { waitUntil: "load" });
     const summary = await autoplay(page, { device: "desktop", outDir });
     const video = page.video();
     await context.close();
     const videoPath = await video.path();
     await writeFile(`${outDir}/video.json`, JSON.stringify({
       source: videoPath,
+      resultFrom: (summary.resultAt - videoStartedAt) / 1000,
       // Eight seconds: dense riff around 19.5s into the 24.8-25.8s stop.
       clipFrom: (summary.startedAt - videoStartedAt) / 1000 + 3 + 19.5,
       duration: 8,

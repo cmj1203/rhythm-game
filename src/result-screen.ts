@@ -1,7 +1,9 @@
 import { COLOR, JUDGEMENT_COLOR, type Painter, type Size } from "./canvas";
-import { clothRect, drawCloth, drawStitches, fitView, isWideLayout } from "./embroidery";
+import { clothRect, drawCloth, drawStitches, fitView, isWideLayout, toScreen, type View } from "./embroidery";
 import { JUDGEMENTS, type PlayState } from "./judge";
 import type { Path } from "./path";
+import { revealedPath, revealStage } from "./picture-reveal";
+import type { RoadPicture } from "./rhythm-road";
 
 /** `fade` grows from 0 to 1 as the numbers appear beside the finished embroidery. */
 export type ResultFrame = {
@@ -16,7 +18,13 @@ export type ResultFrame = {
   readonly isNewBest: boolean;
   readonly previousBestGrade: number | null;
   readonly fade: number;
+  /** Time since the result screen came up, for a rhythm road moving into its picture. */
+  readonly elapsedMs: number;
 };
+
+/** The picture's own lines (in its units, half as wide as the file draws them), over the road that made it. */
+const PICTURE_LINE_WIDTH = 0.45;
+const PICTURE_LINE_ALPHA = 0.8;
 
 const STATS_HEIGHT = 330;
 /** Room under the numbers for the 다시 하기 and 곡 선택 buttons main.ts lays over this screen (`.start` is about 50px tall). */
@@ -92,11 +100,35 @@ function drawStats(painter: Painter, frame: ResultFrame, x: number, top: number,
   }
 }
 
+function drawPictureLines(painter: Painter, picture: RoadPicture, view: View, alpha: number): void {
+  const { ctx } = painter;
+  ctx.save();
+  ctx.globalAlpha = alpha * PICTURE_LINE_ALPHA;
+  ctx.strokeStyle = COLOR.thread;
+  ctx.lineWidth = Math.max(1.5, PICTURE_LINE_WIDTH * view.tileSize);
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  for (const { points } of picture.strokes) {
+    ctx.beginPath();
+    for (const [i, point] of points.entries()) {
+      const { x, y } = toScreen(view, point);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
 export function drawResult(painter: Painter, frame: ResultFrame, size: Size): void {
   const rect = clothRect(size);
-  const view = fitView(frame.path, rect);
+  const picture = frame.path.rhythm?.picture;
+  const stage = revealStage(frame.elapsedMs);
+  const path = picture === undefined || stage.move === 0 ? frame.path : revealedPath(frame.path, picture, stage.move);
+  const view = fitView(path, rect);
   drawCloth(painter, view, size);
-  drawStitches(painter, frame.path, frame.play.history, view, 1, 1);
+  drawStitches(painter, path, frame.play.history, view, 1, 1);
+  if (picture !== undefined && stage.lines > 0) drawPictureLines(painter, picture, view, stage.lines);
 
   const { ctx } = painter;
   ctx.save();

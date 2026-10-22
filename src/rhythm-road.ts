@@ -1,4 +1,6 @@
 import { COLOR, type Point } from "./canvas";
+import type { RoadPictureData } from "./chart";
+import type { Stroke } from "./drawing";
 import { GUIDE_STEP, type Guide } from "./guide";
 import type { Path, Sweep, Tile } from "./path";
 import { phraseMatches, type Phrase } from "./road-phrases";
@@ -16,6 +18,14 @@ export type RhythmDetails = {
   readonly marks: readonly (TempoMark | null)[];
   /** Nonoverlapping destinations reusing an earlier phrase's relative turns. */
   readonly phrases: readonly (Phrase & { readonly to: number })[];
+  /** The picture the road's pieces move into on the result screen, if the chart has one. */
+  readonly picture?: RoadPicture;
+};
+/** `name` is what the result screen calls the picture; `strokes` are its lines, in the picture's own units. */
+export type RoadPicture = {
+  readonly name: string;
+  readonly strokes: readonly Stroke[];
+  readonly pieces: RoadPictureData["pieces"];
 };
 export type RhythmPath = Path & { readonly rhythm: RhythmDetails };
 
@@ -90,15 +100,19 @@ export function accentsOf(times: readonly number[], tempo: TempoMap, offset: num
  * A separate opt-in layout; buildPath's picture roads and all their heuristics stay untouched. `turnScale` turns the
  * crayon that much faster (or slower) per beat from each start time, so the same rhythm bends at other angles there.
  * After a note at one of the times in `twirls` the crayon turns back the other way, wherever that leaves room.
+ * Given `flips` (note indices), the crayon turns back after exactly those notes and nowhere else, as a picture's road
+ * was laid out; a phrase is then marked as repeated only where its twirls are the same as the earlier one's.
  */
 export function buildRhythmPath(
   times: readonly number[],
   songTempo: TempoMap,
   turnScale?: TempoMap,
   twirls: readonly number[] = [],
+  flips?: readonly number[],
 ): RhythmPath {
   const tempo = scaledTempo(songTempo, turnScale);
   const forced = new Set(times.flatMap((time, i) => (twirls.some((at) => Math.abs(at - time) < TWIRL_MATCH_S) ? [i] : [])));
+  const exact = flips === undefined ? null : new Set(flips);
   const first = times[0] ?? 0;
   const unit = 60 / bpmAt(tempo, first);
   const tiles: Tile[] = [{ x: 0, y: 0, time: first - unit }, { x: 1, y: 0, time: first }];
@@ -131,6 +145,14 @@ export function buildRhythmPath(
       for (const phrase of phrases.get(i) ?? []) {
         if (Math.sign(sweeps[phrase.from]?.angle ?? Math.PI) !== spin) continue;
         const proposed = decisions.slice(phrase.from, phrase.from + phrase.count);
+        if (exact !== null) {
+          if (proposed.every((twirl, j) => twirl === exact.has(i + j))) {
+            replay = proposed;
+            reproduced.push({ ...phrase, to: i });
+            break;
+          }
+          continue;
+        }
         const trial: Tile[] = tiles.slice(-RHYTHM_CLEARANCE.lookback);
         let trialHeading = heading;
         let trialSpin = spin;
@@ -161,9 +183,12 @@ export function buildRhythmPath(
     const backward = step(pivot, heading + Math.PI - spin * angle);
     const avoidsOverlap = crowded(tiles, forward) && !crowded(tiles, backward);
     const isReplayed = replayAt < replay.length;
-    const twirl = isReplayed
-      ? replay[replayAt++] === true
-      : avoidsOverlap || (forced.has(i) && !crowded(tiles, backward));
+    if (isReplayed) replayAt++;
+    const twirl = exact !== null
+      ? exact.has(i)
+      : isReplayed
+        ? replay[replayAt - 1] === true
+        : avoidsOverlap || (forced.has(i) && !crowded(tiles, backward));
     if (twirl) spin *= -1;
     heading = (heading + Math.PI + spin * angle) % (Math.PI * 2);
     decisions.push(twirl);

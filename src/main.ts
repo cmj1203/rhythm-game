@@ -13,7 +13,7 @@ import {
   type SongSummary,
 } from "./chart";
 import { element } from "./dom";
-import { DrawingLoadError } from "./drawing";
+import { DrawingLoadError, loadDrawing } from "./drawing";
 import { loadIntro } from "./intro";
 import { PlayState } from "./judge";
 import { recordPlay, today } from "./playlog";
@@ -190,9 +190,17 @@ async function boot(): Promise<void> {
       const pinned = picturePins.get(song.id);
       let sewing: Sewing;
       switch (chart.road) {
-        case "rhythm":
-          sewing = { pictureName: "", path: buildRhythmPath(times, chart.tempo, chart.turnScale, chart.twirls) };
+        case "rhythm": {
+          const road = buildRhythmPath(times, chart.tempo, chart.turnScale, chart.twirls, chart.picture?.flips);
+          if (chart.picture === undefined) {
+            sewing = { pictureName: "", path: road };
+            break;
+          }
+          const drawing = await loadDrawing(chart.picture.name);
+          const picture = { name: drawing.name, strokes: drawing.strokes, pieces: chart.picture.pieces };
+          sewing = { pictureName: drawing.name, path: { ...road, rhythm: { ...road.rhythm, picture } } };
           break;
+        }
         case undefined:
           sewing = pinned === undefined
           ? await sewingFor(
@@ -597,6 +605,7 @@ async function boot(): Promise<void> {
           isNewBest: screen.isNewBest,
           previousBestGrade: screen.previousBestGrade,
           fade: Math.min(1, (performance.now() - screen.shownAt) / RESULT_FADE_MS),
+          elapsedMs: performance.now() - screen.shownAt,
         };
       default:
         return assertNever(screen);

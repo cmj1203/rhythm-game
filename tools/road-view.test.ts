@@ -8,11 +8,13 @@ import { standingAt } from "../src/walking-crayon";
 const tempo = [[0, 120]] as const;
 const evenly = (count: number, beats: number): number[] => Array.from({ length: count }, (_, i) => i * beats / 2);
 
-async function lastFortress() {
-  const chart = chartSchema.parse(await Bun.file("public/songs/last-fortress/chart.json").json());
-  if (chart.road !== "rhythm") throw new Error("Last Fortress is a rhythm road");
-  return { chart, path: buildRhythmPath(chart.notes, chart.tempo, chart.turnScale, chart.twirls) };
+async function shippedRoad(id: string) {
+  const chart = chartSchema.parse(await Bun.file(`public/songs/${id}/chart.json`).json());
+  if (chart.road !== "rhythm") throw new Error(`${id} is a rhythm road`);
+  return { chart, path: buildRhythmPath(chart.notes, chart.tempo, chart.turnScale, chart.twirls, chart.picture?.flips) };
 }
+
+const lastFortress = () => shippedRoad("last-fortress");
 
 describe("rhythm road view", () => {
   test.each([
@@ -70,9 +72,9 @@ describe("rhythm road view", () => {
     expect(colors.size).toBe(spans.reduce((sum, { start, end }) => sum + end - start, 0));
   });
 
-  test("a turn-around, rest or tempo marker shows at least two beats before its tile", async () => {
+  test.each(["last-fortress", "eight-arms"])("%s: a turn-around, rest or tempo marker shows at least two beats before its tile", async (id) => {
     // Given the shipped chart and its marked tiles.
-    const { path } = await lastFortress();
+    const { path } = await shippedRoad(id);
     const marked = path.tiles.map((_, i) =>
       path.sweeps[i]?.isTwirl === true || path.sweeps[i]?.pace === "slow" || path.rhythm.marks[i] != null);
     const firstSeen = new Map<number, number>();

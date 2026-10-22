@@ -11,9 +11,11 @@ const noteTimes = z.array(z.number().nonnegative());
  * the notes after which the crayon turns back the other way; with a picture these replace every other twirl rule. The
  * road is played as usual; on the result screen each piece of it, from tile `from` up to the next piece, moves to
  * `(x, y) + scale * rotate(angle) * tile`, in the picture's own units, and the pieces together make the picture.
+ * `lines: false` leaves the picture's own lines off that screen, for a road laid along them that already draws them.
  */
 const roadPictureSchema = z.object({
   name: songIdSchema,
+  lines: z.boolean().optional(),
   flips: z.array(z.number().int().nonnegative()),
   pieces: z.array(z.object({
     from: z.number().int().nonnegative(),

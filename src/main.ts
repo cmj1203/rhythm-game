@@ -197,7 +197,8 @@ async function boot(): Promise<void> {
             break;
           }
           const drawing = await loadDrawing(chart.picture.name);
-          const picture = { name: drawing.name, strokes: drawing.strokes, pieces: chart.picture.pieces };
+          const strokes = chart.picture.lines === false ? [] : drawing.strokes;
+          const picture = { name: drawing.name, strokes, pieces: chart.picture.pieces };
           sewing = { pictureName: drawing.name, path: { ...road, rhythm: { ...road.rhythm, picture } } };
           break;
         }

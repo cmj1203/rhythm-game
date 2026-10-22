@@ -10,6 +10,8 @@ import { readFile, writeFile } from "node:fs/promises";
 import { parseArgs } from "node:util";
 import { chartSchema } from "../src/chart";
 import { buildRhythmPath } from "../src/rhythm-road";
+import { aheadEnd, laterPasses } from "../src/road-view";
+import { standingAt } from "../src/walking-crayon";
 import { beatsBetween } from "../src/tempo";
 
 const { positionals, values: args } = parseArgs({
@@ -19,6 +21,7 @@ const { positionals, values: args } = parseArgs({
     only: { type: "string" },
     out: { type: "string" },
     write: { type: "string" },
+    preview: { type: "string" },
     cap: { type: "string", default: "30" },
     shard: { type: "string", default: "0" },
     shards: { type: "string", default: "1" },
@@ -105,7 +108,12 @@ function cuts(c: Contour): number[] {
   return out;
 }
 
-type State = { tiles: P[]; heading: number; spin: number; flips: boolean[]; violet: number; cost: number };
+/**
+ * `local` (the last few tiles) and `lh` follow the road as the game lays it while it is played: one tile a step and
+ * never cut at a rest, so a piece goes on from where the last one ended there, whatever its place in the picture.
+ */
+type State = { tiles: P[]; heading: number; spin: number; flips: boolean[]; violet: number; cost: number; local: P[]; lh: number };
+const unitStep = (from: P, heading: number): P => ({ x: from.x + Math.cos(heading), y: from.y + Math.sin(heading) });
 function runPiece(c: Contour, k: number, s0: number, s1: number, z: number, entry: { pivot: P; heading: number; spin: number } | null, cap: number, prior: State | null) {
   const { from, to } = pieces[k]!;
   const n = to - from + 1;
@@ -120,16 +128,19 @@ function runPiece(c: Contour, k: number, s0: number, s1: number, z: number, entr
     for (let h = 0; h < 12; h++) {
       const heading = (h / 12) * TAU, p0 = target(0);
       const p1 = { x: p0.x + z * Math.cos(heading), y: p0.y + z * Math.sin(heading) };
-      beam.push({ tiles: [p0, p1], heading, spin: 1, flips: [], violet: 0, cost: 0 });
+      beam.push({ tiles: [p0, p1], heading, spin: 1, flips: [], violet: 0, cost: 0, local: [{ x: 0, y: 0 }, { x: 1, y: 0 }], lh: 0 });
     }
   } else if (entry === null) {
     // Jump: land at the arc start; the first tile of the piece is the landing spot, the next one any direction.
+    // In play the rest is an ordinary turn, so the landing tile follows on from the last tile with no twirl.
+    const lh = prior!.lh + Math.PI + prior!.spin * angles[from - 2]!;
+    const local = [...prior!.local, unitStep(prior!.local.at(-1)!, lh)].slice(-(AHEAD_TILES + 1));
     for (let h = 0; h < 12; h++) for (const spin of [prior!.spin]) {
       const p0 = target(0), heading = (h / 12) * TAU;
-      beam.push({ tiles: [p0], heading, spin, flips: [], violet: 0, cost: 0 });
+      beam.push({ tiles: [p0], heading, spin, flips: [], violet: 0, cost: 0, local, lh });
     }
   } else {
-    beam.push({ tiles: [entry.pivot], heading: entry.heading, spin: entry.spin, flips: [], violet: 0, cost: 0 });
+    beam.push({ tiles: [entry.pivot], heading: entry.heading, spin: entry.spin, flips: [], violet: 0, cost: 0, local: prior!.local, lh: prior!.lh });
   }
   // Index of the first note this piece decides the turn for.
   const firstPlaced = from === 0 ? 2 : entry === null ? 1 : 0;
@@ -158,10 +169,16 @@ function runPiece(c: Contour, k: number, s0: number, s1: number, z: number, entr
         const recent = st.tiles.slice(-24);
         let visits = 0;
         for (const q of st.tiles) if (d2(q, next) < 0.25 * z * z) visits++;
+        // A spot passed again within the road shown ahead hides its markers until the first pass is over; that is
+        // measured on the road as played, where a jump's landing still follows on from the last tile.
+        const lh = st.lh + Math.PI + o.spin * angles[tileIndex - 2]!;
+        const localNext = unitStep(st.local.at(-1)!, lh);
+        let recentVisits = 0;
+        for (const q of st.local) if (d2(q, localNext) < 0.25) recentVisits++;
         let crosses = 0;
         for (let i = Math.max(0, recent.length - 22); i < recent.length - 2; i++) if (cross(recent[i]!, recent[i + 1]!, pivot, next)) crosses++;
-        const cost = 0.4 * d2(next, target(j)) / (z * z) + 2 * arcD2(next) / (z * z) + 6 * visits + 2 * crosses + (visible ? 1.5 : o.flip ? 0.05 : 0);
-        cand.push({ tiles: [...st.tiles, next], heading: o.heading, spin: o.spin, flips: [...st.flips, o.flip && !free], violet: st.violet + +visible, cost: st.cost + cost });
+        const cost = 0.4 * d2(next, target(j)) / (z * z) + 2 * arcD2(next) / (z * z) + 6 * visits + 40 * recentVisits + 2 * crosses + (visible ? 1.5 : o.flip ? 0.05 : 0);
+        cand.push({ tiles: [...st.tiles, next], heading: o.heading, spin: o.spin, flips: [...st.flips, o.flip && !free], violet: st.violet + +visible, cost: st.cost + cost, local: [...st.local, localNext].slice(-(AHEAD_TILES + 1)), lh });
       }
     }
     cand.sort((a, b) => a.cost - b.cost);
@@ -297,6 +314,35 @@ function silhouette(cells: P[], step: number): P[] {
   return smooth;
 }
 /** Higher is closer: the share of the outline the road runs along, less how far its lines stray from it. */
+/** As many tiles as the game ever shows ahead (AHEAD_MAX_TILES in src/road-view.ts). */
+const AHEAD_TILES = 12;
+
+/** The notes after which the crayon turns back: the sim decides each turn while placing tile `from + j`, after note `from + j - 2`. */
+function flipsOf(pieceTiles: ReturnType<typeof draw>): number[] {
+  const flips: number[] = [];
+  for (const [k, piece] of pieceTiles.entries()) {
+    const firstPlaced = k === 0 ? 2 : 1;
+    piece.flips.forEach((flip, n) => { if (flip) flips.push(piece.from + firstPlaced + n - 2); });
+  }
+  return flips;
+}
+
+/** Twirl, rest and tempo markers that first show less than two beats before the crayon reaches them. */
+function lateMarks(flips: readonly number[]): number {
+  if (chart.road !== "rhythm") return 0;
+  const path = buildRhythmPath(chart.notes, chart.tempo, chart.turnScale, [], flips);
+  const marked = path.tiles.map((_, i) => path.sweeps[i]?.isTwirl === true || path.sweeps[i]?.pace === "slow" || path.rhythm.marks[i] != null);
+  const firstSeen = new Map<number, number>();
+  const last = path.tiles.at(-1)?.time ?? 0;
+  for (let time = path.tiles[0]?.time ?? 0; time <= last; time += 0.01) {
+    const standing = standingAt(path.tiles, time);
+    const end = aheadEnd(path, standing, time);
+    const later = laterPasses(path, standing, end);
+    for (let i = standing; i <= end; i++) if (marked[i] === true && !later.has(i) && !firstSeen.has(i)) firstSeen.set(i, time);
+  }
+  return [...firstSeen].filter(([i, seen]) => i > 1 && beatsBetween(path.rhythm.tempo, seen, path.tiles[i]?.time ?? 0) < 2).length;
+}
+
 const closeness = (m: { coveredPct: number; offLinePct: number }) => +(m.coveredPct - 5 * m.offLinePct).toFixed(2);
 /**
  * The picture's line length over the length of its outer outline. A clean outline drawing is near 2.5 to 3; one that
@@ -345,20 +391,20 @@ for (const [pi, pic] of geometry.pictures.entries()) {
   const m = metrics(pieceTiles, c, false);
   const flips = pieceTiles.reduce((a, p) => a + p.flips.filter(Boolean).length, 0);
   laid.push({ pictureId: pic.id, pieceTiles });
-  ranking.push({ picture: pic.id, closeness: closeness(m), inkRatio: +inkRatio(pic.ink, pic.mask).toFixed(2), ...m, flips });
-  console.log(`RESULT ${pic.id} closeness=${closeness(m)} ${JSON.stringify(m)} flips=${flips}`);
+  const late = lateMarks(flipsOf(pieceTiles));
+  ranking.push({ picture: pic.id, closeness: closeness(m), inkRatio: +inkRatio(pic.ink, pic.mask).toFixed(2), lateMarks: late, ...m, flips });
+  console.log(`RESULT ${pic.id} closeness=${closeness(m)} late=${late} ${JSON.stringify(m)} flips=${flips}`);
 }
 if (args.out !== undefined) await writeFile(args.out, JSON.stringify({ cap: CAP, ranking }));
+// The finished picture of each road laid, for a person to look at: the pieces in the picture's own units.
+if (args.preview !== undefined) {
+  await writeFile(args.preview, JSON.stringify(laid.map(({ pictureId, pieceTiles }) => ({ picture: pictureId, pieces: pieceTiles.map(({ tiles }) => tiles) }))));
+}
 
 if (args.write !== undefined) {
   const chosen = laid[0];
   if (chosen === undefined) throw new RangeError(`no picture ${args.write} in the geometry file`);
-  // The sim decides each turn while placing tile `from + j`; that turn comes after note `from + j - 2`.
-  const flips: number[] = [];
-  for (const [k, piece] of chosen.pieceTiles.entries()) {
-    const firstPlaced = k === 0 ? 2 : 1;
-    piece.flips.forEach((flip, n) => { if (flip) flips.push(piece.from + firstPlaced + n - 2); });
-  }
+  const flips = flipsOf(chosen.pieceTiles);
   const played = buildRhythmPath(chart.notes, chart.tempo, chart.turnScale, [], flips);
   const placed: { from: number; scale: number; angle: number; x: number; y: number }[] = [];
   for (const piece of chosen.pieceTiles) {

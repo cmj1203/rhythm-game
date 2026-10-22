@@ -117,6 +117,7 @@ export default async function autoplay(page, { device, outDir }) {
         window.roadCheckpoint("result");
         window.__rhythmSummary = {
           counts: frame.play.counts,
+          missed: frame.play.history.flatMap((judgement, note) => (judgement === "miss" ? [note] : [])),
           notes: frame.play.times.length,
           pictureName: frame.pictureName,
           road: frame.path.rhythm !== undefined,

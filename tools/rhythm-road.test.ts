@@ -101,6 +101,19 @@ describe("rhythm road", () => {
     expect(scaled.rhythm.marks.filter((mark) => mark !== null)).toEqual(["faster"]);
   });
 
+  test("a twirl set by hand turns the crayon back after that note only", () => {
+    // Given beats on a straight road, with a twirl set at the third note.
+    const times = [0, 0.5, 1, 1.5, 2];
+    // When the road is laid with and without it.
+    const plain = buildRhythmPath(times, tempo);
+    const twirled = buildRhythmPath(times, tempo, undefined, [1]);
+    // Then only the sweep after that note twirls, the spin turns over from there, and note times stay.
+    expect(plain.sweeps.map(({ isTwirl }) => isTwirl)).toEqual([false, false, false, false, false, false]);
+    expect(twirled.sweeps.map(({ isTwirl }) => isTwirl)).toEqual([false, false, false, true, false, false]);
+    expect(Math.sign(twirled.sweeps[4]?.angle ?? 0)).toBe(-Math.sign(plain.sweeps[4]?.angle ?? 0));
+    expect(twirled.tiles.slice(1).map(({ time }) => time)).toEqual(times);
+  });
+
   test("a sweep crossing a tempo boundary follows both local speeds", () => {
     // Given one gap crossing 120 -> 240 BPM.
     const map = [[0, 120], [0.25, 240]] as const;
@@ -184,10 +197,14 @@ describe("rhythm road", () => {
     // Given the unchanged opt-in song.
     const chart = chartSchema.parse(await Bun.file(new URL("../public/songs/last-fortress/chart.json", import.meta.url)).json());
     if (chart.road !== "rhythm") throw new RangeError("missing rhythm chart");
-    // When its road is laid with fresh-stitch clearance.
-    const path = buildRhythmPath(chart.notes, chart.tempo, chart.turnScale);
-    // Then it stays within the requested violet budget and lands on every original note.
-    expect(path.sweeps.filter(({ isTwirl }) => isTwirl).length).toBeLessThanOrEqual(20);
+    // When its road is laid with fresh-stitch clearance, with and without the twirls set by hand.
+    const own = buildRhythmPath(chart.notes, chart.tempo, chart.turnScale);
+    const path = buildRhythmPath(chart.notes, chart.tempo, chart.turnScale, chart.twirls);
+    const violets = (laid: typeof path): number => laid.sweeps.filter(({ isTwirl }) => isTwirl).length;
+    // Then its own twirls stay within the violet budget, the hand-set ones add no more than their count,
+    // and it lands on every original note.
+    expect(violets(own)).toBeLessThanOrEqual(20);
+    expect(violets(path)).toBeLessThanOrEqual(violets(own) + (chart.twirls?.length ?? 0));
     expect(path.tiles.slice(1).map(({ time }) => time)).toEqual(chart.notes);
   });
 

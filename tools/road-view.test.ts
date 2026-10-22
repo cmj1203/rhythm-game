@@ -11,7 +11,7 @@ const evenly = (count: number, beats: number): number[] => Array.from({ length: 
 async function lastFortress() {
   const chart = chartSchema.parse(await Bun.file("public/songs/last-fortress/chart.json").json());
   if (chart.road !== "rhythm") throw new Error("Last Fortress is a rhythm road");
-  return { chart, path: buildRhythmPath(chart.notes, chart.tempo, chart.turnScale) };
+  return { chart, path: buildRhythmPath(chart.notes, chart.tempo, chart.turnScale, chart.twirls) };
 }
 
 describe("rhythm road view", () => {

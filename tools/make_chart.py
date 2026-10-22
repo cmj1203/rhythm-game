@@ -940,9 +940,10 @@ def main(
         chart["road"] = road.value
         road_beats = known if known is not None else grid.step_times[::grid.steps_per_beat]
         chart["tempo"] = tempo_from_beats([float(beat) for beat in road_beats])
-        # The tool never makes a turn scale; one set by hand outlives a regenerated chart.
-        if previous_chart and "turnScale" in previous_chart:
-            chart["turnScale"] = previous_chart["turnScale"]
+        # The tool never makes a turn scale or twirls; those set by hand outlive a regenerated chart.
+        for key in ("turnScale", "twirls"):
+            if previous_chart and key in previous_chart:
+                chart[key] = previous_chart[key]
     for key, value in (("artist", artist), ("credit", credit)):
         if value:
             chart[key] = value

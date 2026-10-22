@@ -34,6 +34,8 @@ export const chartSchema = z.union([
     tempo: tempoMapSchema,
     /** From each start time, how many times faster than the beat the crayon turns (1 = half a turn a beat). */
     turnScale: tempoMapSchema.optional(),
+    /** Times of notes after which the crayon turns back the other way, set by hand. */
+    twirls: z.array(z.number().nonnegative()).optional(),
   }),
 ]);
 

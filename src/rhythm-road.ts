@@ -66,6 +66,8 @@ function guideOf(tiles: readonly Tile[]): Guide {
 /** Beats in a bar, and how near (in beats) a note must be to a bar's first beat to count as on it. */
 const BAR_BEATS = 4;
 const ON_BEAT = 0.08;
+/** A chart's twirl time names the note within this many seconds of it. */
+const TWIRL_MATCH_S = 0.002;
 /** A note after a gap of at least this many beats comes back in after a rest. */
 const REST_BEATS = 2;
 
@@ -87,9 +89,16 @@ export function accentsOf(times: readonly number[], tempo: TempoMap, offset: num
 /**
  * A separate opt-in layout; buildPath's picture roads and all their heuristics stay untouched. `turnScale` turns the
  * crayon that much faster (or slower) per beat from each start time, so the same rhythm bends at other angles there.
+ * After a note at one of the times in `twirls` the crayon turns back the other way, wherever that leaves room.
  */
-export function buildRhythmPath(times: readonly number[], songTempo: TempoMap, turnScale?: TempoMap): RhythmPath {
+export function buildRhythmPath(
+  times: readonly number[],
+  songTempo: TempoMap,
+  turnScale?: TempoMap,
+  twirls: readonly number[] = [],
+): RhythmPath {
   const tempo = scaledTempo(songTempo, turnScale);
+  const forced = new Set(times.flatMap((time, i) => (twirls.some((at) => Math.abs(at - time) < TWIRL_MATCH_S) ? [i] : [])));
   const first = times[0] ?? 0;
   const unit = 60 / bpmAt(tempo, first);
   const tiles: Tile[] = [{ x: 0, y: 0, time: first - unit }, { x: 1, y: 0, time: first }];
@@ -131,7 +140,8 @@ export function buildRhythmPath(times: readonly number[], songTempo: TempoMap, t
           const angle = sweepAngle(units[i + j] ?? 1);
           const forward = step(at, trialHeading + Math.PI + trialSpin * angle);
           // A remembered twirl is legal only when it still prevents an overlap here.
-          if (twirl && !crowded(trial, forward)) { valid = false; break; }
+          if (twirl && !crowded(trial, forward) && !forced.has(i + j)) { valid = false; break; }
+          if (forced.has(i + j) && !twirl) { valid = false; break; }
           if (twirl) trialSpin *= -1;
           trialHeading += Math.PI + trialSpin * angle;
           const next = step(at, trialHeading);
@@ -151,7 +161,9 @@ export function buildRhythmPath(times: readonly number[], songTempo: TempoMap, t
     const backward = step(pivot, heading + Math.PI - spin * angle);
     const avoidsOverlap = crowded(tiles, forward) && !crowded(tiles, backward);
     const isReplayed = replayAt < replay.length;
-    const twirl = isReplayed ? replay[replayAt++] === true : avoidsOverlap;
+    const twirl = isReplayed
+      ? replay[replayAt++] === true
+      : avoidsOverlap || (forced.has(i) && !crowded(tiles, backward));
     if (twirl) spin *= -1;
     heading = (heading + Math.PI + spin * angle) % (Math.PI * 2);
     decisions.push(twirl);

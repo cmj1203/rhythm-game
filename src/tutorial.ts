@@ -1,7 +1,8 @@
-import { JUDGEMENT_COLOR } from "./canvas";
+import { COLOR, JUDGEMENT_COLOR, Painter } from "./canvas";
 import { element } from "./dom";
-import { judgementOf } from "./judge";
-import { EARLY_LATE_MIN_MS } from "./track";
+import { judgementOf, PlayState } from "./judge";
+import { buildRhythmPath } from "./rhythm-road";
+import { BURST_S, drawRoadOnly, EARLY_LATE_MIN_MS, type Feedback, type PlayingFrame } from "./track";
 
 export type TutorialOptions = {
   readonly root: HTMLElement;
@@ -17,26 +18,66 @@ const MARKS = [
 /** How long a judgement made on the demo stays up, fading out over the last part of it. */
 const JUDGEMENT_SHOWN_MS = 1200;
 
-/** A looping picture of the one move in the game: the crayon comes round and its point touches the ring. */
-function demo(): { readonly figure: HTMLElement; readonly hand: HTMLElement } {
-  const figure = element("div", "demo");
-  figure.setAttribute("aria-hidden", "true");
-  const hand = element("span", "demo-hand");
-  hand.append(element("span", "demo-crayon"));
-  figure.append(
-    element("span", "demo-orbit"),
-    element("span", "demo-road"),
-    element("span", "demo-target"),
-    hand,
-    element("span", "demo-stitch"),
-    element("span", "demo-now", "지금!"),
-  );
-  return { figure, hand };
+/**
+ * The demo is a rhythm road with no end, played perfectly and drawn as the game draws it. One lap of these gaps (in
+ * beats: a rest that turns, straight beats and half-beat turns both ways, a turn-around after the notes at
+ * `DEMO_TWIRLS`) comes back to where and how it started, so lap after lap is laid on the same road. The demo plays
+ * `DEMO_SHOWN_LAP` over and over: the laps before it are already sewn under it, and the laps after it lie ahead.
+ */
+const DEMO_BPM = 120;
+const DEMO_LAP = [3, 0.5, 1, 0.5, 1, 1, 0.5, 1, 0.5, 0.5, 0.5, 0.5] as const;
+const DEMO_TWIRLS = [1, 10] as const;
+const DEMO_LAPS = 5;
+const DEMO_SHOWN_LAP = 2;
+/** The first time the picture shows, it starts this long before a lap. */
+const DEMO_LEAD_S = 1;
+/** "지금!" shows for this long from each note. */
+const NOW_SHOWN_S = 0.18;
+/** The still picture shown instead of the loop to someone who asked for less motion. */
+const STILL_AT_S = 3.2;
+const REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+const DEMO_TIMES = (() => {
+  const beat = 60 / DEMO_BPM;
+  const times = [0];
+  for (let lap = 0; lap < DEMO_LAPS; lap++) {
+    for (const gap of DEMO_LAP) times.push((times.at(-1) ?? 0) + gap * beat);
+  }
+  return times;
+})();
+const DEMO_PATH = buildRhythmPath(
+  DEMO_TIMES,
+  [[0, DEMO_BPM]],
+  undefined,
+  Array.from({ length: DEMO_LAPS }, (_, lap) => DEMO_TWIRLS.map((note) => DEMO_TIMES[lap * DEMO_LAP.length + note] ?? 0)).flat(),
+);
+const DEMO_LOOP_FROM_S = DEMO_TIMES[DEMO_SHOWN_LAP * DEMO_LAP.length] ?? 0;
+const DEMO_PERIOD_S = (DEMO_TIMES[(DEMO_SHOWN_LAP + 1) * DEMO_LAP.length] ?? 0) - DEMO_LOOP_FROM_S;
+
+/** The demo road at `songTime`, every note up to then hit on time. */
+function demoFrame(songTime: number): PlayingFrame {
+  const play = new PlayState(DEMO_TIMES);
+  let feedback: Feedback | null = null;
+  const bursts: Feedback[] = [];
+  for (const note of DEMO_TIMES) {
+    if (note > songTime) break;
+    const hit = play.press(note);
+    if (hit === null) continue;
+    feedback = { ...hit, at: note, accent: false };
+    if (songTime - note <= BURST_S) bursts.push(feedback);
+  }
+  return {
+    kind: "playing", phase: "playing", play, path: DEMO_PATH, sections: [], songTime,
+    duration: DEMO_TIMES.at(-1) ?? 0, feedback, bursts,
+  };
 }
 
 export class TutorialScreen {
-  private readonly hand: HTMLElement;
+  private readonly canvas = element("canvas", "demo-road");
+  private readonly now = element("span", "demo-now", "지금!");
   private readonly judged = element("p", "tutorial-judgement");
+  private startMs = 0;
+  private frame = 0;
 
   constructor(private readonly options: TutorialOptions) {
     const marks = element("ul", "marks");
@@ -54,8 +95,9 @@ export class TutorialScreen {
     done.type = "button";
     done.addEventListener("click", () => this.finish());
 
-    const { figure, hand } = demo();
-    this.hand = hand;
+    const figure = element("div", "demo");
+    figure.setAttribute("aria-hidden", "true");
+    figure.append(this.canvas, this.now);
     this.judged.setAttribute("aria-live", "polite");
     options.root.append(
       element("h1", "menu-title", "하는 법"),
@@ -71,16 +113,46 @@ export class TutorialScreen {
     this.options.onDone();
   }
 
+  /** Where the demo road is at `performanceMs`, in seconds from its first note: always within the shown lap. */
+  private songTimeAt(performanceMs: number): number {
+    const into = (performanceMs - this.startMs) / 1000 - DEMO_LEAD_S;
+    return DEMO_LOOP_FROM_S + ((into % DEMO_PERIOD_S) + DEMO_PERIOD_S) % DEMO_PERIOD_S;
+  }
+
+  private draw(performanceMs: number): void {
+    const ctx = this.canvas.getContext("2d");
+    if (ctx === null) return;
+    const ratio = window.devicePixelRatio;
+    const width = this.canvas.clientWidth;
+    const height = this.canvas.clientHeight;
+    if (this.canvas.width !== Math.round(width * ratio) || this.canvas.height !== Math.round(height * ratio)) {
+      this.canvas.width = Math.round(width * ratio);
+      this.canvas.height = Math.round(height * ratio);
+    }
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    ctx.fillStyle = COLOR.background;
+    ctx.fillRect(0, 0, width, height);
+    const songTime = REDUCED_MOTION.matches ? DEMO_LOOP_FROM_S + STILL_AT_S : this.songTimeAt(performanceMs);
+    drawRoadOnly(new Painter(ctx), demoFrame(songTime), { width, height });
+    let lastNote = Number.NEGATIVE_INFINITY;
+    for (const note of DEMO_TIMES) if (note <= songTime) lastNote = note;
+    const sinceNote = songTime - lastNote;
+    this.now.style.opacity = !REDUCED_MOTION.matches && sinceNote <= NOW_SHOWN_S ? "1" : "0";
+  }
+
+  private loop = (performanceMs: number): void => {
+    this.draw(performanceMs);
+    if (!REDUCED_MOTION.matches) this.frame = requestAnimationFrame(this.loop);
+  };
+
   /**
-   * A press at `performanceMs` while the demo turns, judged as the game judges a note: against the moment the
-   * crayon's point touches the ring nearest to it (the start of each turn), shown under the picture.
+   * A press at `performanceMs` while the demo plays, judged as the game judges a note: against the demo note
+   * nearest to it, shown under the picture.
    */
   press(performanceMs: number): void {
-    const turn = this.hand.getAnimations()[0];
-    const period = Number(turn?.effect?.getTiming().duration);
-    if (turn === undefined || turn.startTime === null || !(period > 0)) return;
-    const into = (((performanceMs - Number(turn.startTime)) % period) + period) % period;
-    const offsetMs = into < period / 2 ? into : into - period;
+    const songTime = this.songTimeAt(performanceMs);
+    const nearest = DEMO_TIMES.reduce((best, note) => (Math.abs(note - songTime) < Math.abs(best - songTime) ? note : best));
+    const offsetMs = (songTime - nearest) * 1000;
     const judgement = judgementOf(offsetMs / 1000) ?? "miss";
     const name = element("strong", "tutorial-judgement-name", judgement.toUpperCase());
     name.style.color = JUDGEMENT_COLOR[judgement];
@@ -95,9 +167,13 @@ export class TutorialScreen {
 
   show(): void {
     this.options.root.hidden = false;
+    this.startMs = performance.now();
+    cancelAnimationFrame(this.frame);
+    this.frame = requestAnimationFrame(this.loop);
   }
 
   hide(): void {
     this.options.root.hidden = true;
+    cancelAnimationFrame(this.frame);
   }
 }

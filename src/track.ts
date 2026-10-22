@@ -528,6 +528,16 @@ export function drawPlaying(painter: Painter, frame: PlayingFrame, size: Size): 
   if (frame.phase === "over") drawGameOver(painter, size);
 }
 
+/** The road, the crayon, the rings and the landings of a playing frame, without score, combo or warnings. */
+export function drawRoadOnly(painter: Painter, frame: PlayingFrame, size: Size): void {
+  const view = followView(size, frame);
+  drawCloth(painter, view, size);
+  drawStitches(painter, frame.path, frame.play.history, view, 0, frame.path.rhythm === undefined ? PAST_OPACITY : 0.15);
+  drawAhead(painter, frame, view);
+  drawBursts(painter, frame, view);
+  drawCircling(painter, frame, view);
+}
+
 /** A red glow along every edge of the screen, as strong as `danger`: 0 is none, 1 is a game over. */
 function drawDanger(painter: Painter, danger: number, { width, height }: Size): void {
   if (danger <= 0) return;

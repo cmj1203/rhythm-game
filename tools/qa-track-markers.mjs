@@ -13,20 +13,15 @@ export default async function checkMarkers(page, { device, outDir }) {
   await page.keyboard.press("Space");
   await page.locator("#title button").click();
   await page.locator("#tutorial").waitFor({ state: "visible" });
-  await page.evaluate(() => {
-    for (const animation of document.querySelector(".demo").getAnimations({ subtree: true })) {
-      animation.pause();
-      animation.currentTime = 0;
-    }
+  // The how-to-play picture is the game's own road drawing: wait for a frame with the crayon on it.
+  await page.waitForFunction(() => {
+    const canvas = document.querySelector(".demo-road");
+    if (!(canvas instanceof HTMLCanvasElement) || canvas.width === 0) return false;
+    const data = canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height).data;
+    let lit = 0;
+    for (let i = 0; i < data.length; i += 16) if (data[i] + data[i + 1] + data[i + 2] > 450) lit++;
+    return lit > 50;
   });
-  const tip = await page.locator(".demo-crayon").evaluate((element) => {
-    const style = getComputedStyle(element);
-    return { polygon: style.clipPath.match(/[\d.]+/g).map(Number), band: style.backgroundImage };
-  });
-  assert.equal(tip.band, "none");
-  const expectedTip = [0, 0, 100, 0, 100, 68, 200 / 3, 100, 100 / 3, 100, 0, 68];
-  assert.equal(tip.polygon.length, expectedTip.length);
-  tip.polygon.forEach((value, i) => assert.ok(Math.abs(value - expectedTip[i]) < 0.001));
   for (const theme of ["light", "dark"]) {
     await page.emulateMedia({ colorScheme: theme });
     await page.screenshot({ path: `${outDir}/${device}-${theme}-tutorial.png` });
@@ -126,7 +121,7 @@ export default async function checkMarkers(page, { device, outDir }) {
     window.__reviewStill = async (id) => {
       const chart = chartSchema.parse(await (await fetch(`/songs/${id}/chart.json`)).json());
       const sections = planSections(chart.notes, chart.bpm, chart.offset);
-      const path = dyePath(chart.road === "rhythm" ? buildRhythmPath(chart.notes, chart.tempo, chart.turnScale)
+      const path = dyePath(chart.road === "rhythm" ? buildRhythmPath(chart.notes, chart.tempo, chart.turnScale, chart.twirls)
         : (await sewingOf(chart.notes, pictures[id])).path, sections);
       const time = chart.road === "rhythm" ? 22.5
         : (path.tiles[path.sweeps.findIndex((sweep) => sweep.pace !== "normal")]?.time ?? 5) + 0.15;

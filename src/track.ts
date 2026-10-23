@@ -14,7 +14,7 @@ import {
 import type { JudgeEvent, PlayState } from "./judge";
 import { cameraAt, orbiterAngle, type Pace, type Path } from "./path";
 import { poseAt, type Section } from "./sections";
-import { aheadClarity, aheadEnd, laterPasses, passColors } from "./road-view";
+import { aheadClarity, aheadEnd, laterPasses } from "./road-view";
 import type { TempoMark } from "./tempo";
 import { drawTempoMark } from "./tempo-mark";
 import { standingAt } from "./walking-crayon";
@@ -252,8 +252,7 @@ function drawAhead(painter: Painter, { path, play, songTime }: PlayingFrame, vie
     : aheadEnd({ ...path, rhythm: path.rhythm }, standing, songTime);
   const clarity = isRhythm ? (steps: number): number => aheadClarity(steps, end - standing) : nearness;
   const later = path.rhythm === undefined ? new Set<number>() : laterPasses({ ...path, rhythm: path.rhythm }, standing, end);
-  const repeats = path.rhythm === undefined ? new Map<number, string>() : passColors({ ...path, rhythm: path.rhythm });
-  drawGuide(painter, path, view, standing, end, clarity, (i) => repeats.get(i) ?? COLOR.text);
+  drawGuide(painter, path, view, standing, end, clarity, () => COLOR.text);
 
   for (let i = standing; i <= end; i++) {
     const tile = path.tiles[i];

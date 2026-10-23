@@ -1,4 +1,3 @@
-import { JUDGEMENT_COLOR, type Point } from "./canvas";
 import type { RhythmPath } from "./rhythm-road";
 import { beatsBetween } from "./tempo";
 
@@ -49,43 +48,4 @@ export function laterPasses({ tiles }: RhythmPath, standing: number, end: number
     }
   }
   return later;
-}
-
-/** The colours of the road ahead where it runs over a spot the crayon has already passed: the second pass, the third, and so on in turn. */
-const PASS_COLORS = [JUDGEMENT_COLOR.perfect, JUDGEMENT_COLOR.great] as const;
-/** Tiles this close in index are the same visit, not an earlier pass over the spot. */
-const SAME_VISIT_TILES = 2;
-
-/** Kept per road's rhythm details, which stay the same object frame after frame. */
-const passColorCache = new WeakMap<RhythmPath["rhythm"], ReadonlyMap<number, string>>();
-
-/** Whether the stretches from tile `i` and from tile `j` run between the same two spots, either way round. */
-function sameStretch(tiles: RhythmPath["tiles"], i: number, j: number): boolean {
-  const a = tiles[i]; const b = tiles[i + 1]; const c = tiles[j]; const d = tiles[j + 1];
-  if (a === undefined || b === undefined || c === undefined || d === undefined) return false;
-  const near = (p: Point, q: Point): boolean => Math.hypot(p.x - q.x, p.y - q.y) < SAME_SPOT;
-  return (near(a, c) && near(b, d)) || (near(a, d) && near(b, c));
-}
-
-/** How many earlier stretches of the road run along the stretch from tile `i`: the line there was drawn before. */
-function earlierPasses(tiles: RhythmPath["tiles"], i: number): number {
-  let passes = 0;
-  for (let j = 0; j < i - SAME_VISIT_TILES; j++) if (sameStretch(tiles, i, j)) passes++;
-  return passes;
-}
-
-/**
- * The colour of the road ahead from tile `i` to tile `i + 1`, for each `i` where that stretch runs along a line the
- * crayon has already drawn (both its ends on the spots of an earlier stretch, not merely one tile on an old spot): the colour says which pass this is, so the player can tell a retraced line apart.
- */
-export function passColors(path: RhythmPath): ReadonlyMap<number, string> {
-  const cached = passColorCache.get(path.rhythm);
-  if (cached !== undefined) return cached;
-  const colors = new Map<number, string>();
-  for (let i = 0; i + 1 < path.tiles.length; i++) {
-    const pass = earlierPasses(path.tiles, i);
-    if (pass > 0) colors.set(i, PASS_COLORS[(pass - 1) % PASS_COLORS.length] ?? JUDGEMENT_COLOR.perfect);
-  }
-  passColorCache.set(path.rhythm, colors);
-  return colors;
 }

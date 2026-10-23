@@ -10,13 +10,6 @@ export const AHEAD_MAX_TILES = 12;
 const SAME_SPOT = 0.5;
 /** The last two tiles shown fade out this far. */
 const EDGE_CLARITY = [0.7, 0.35] as const;
-/**
- * The colours the road ahead takes along a phrase laid again in the same shape, and along the first time it was laid:
- * every time one phrase comes, it comes in the same colour. Phrases take them in turn.
- */
-const PHRASE_COLORS = [JUDGEMENT_COLOR.perfect, JUDGEMENT_COLOR.great] as const;
-/** A phrase is coloured as a repeat only when it comes again within this many beats of the end of the earlier one. */
-const REPEAT_WITHIN_BEATS = 16;
 
 /** The last tile shown ahead of `standing` at song time `songTime`. */
 export function aheadEnd({ tiles, rhythm }: RhythmPath, standing: number, songTime: number): number {
@@ -58,59 +51,42 @@ export function laterPasses({ tiles }: RhythmPath, standing: number, end: number
   return later;
 }
 
-/** `group` is the same for every span that is one phrase laid again (or the first time it was laid). */
-export type PhraseSpan = { readonly start: number; readonly end: number; readonly group: number };
-
-/**
- * The tiles, first to last, of the phrases laid again in the same shape and of the first time each was laid. Where
- * they overlap, the longer one (then the earlier) is kept; spans may touch end to start. Groups are numbered in the
- * order they first come, and only groups that come at least twice are kept, since one alone repeats nothing on screen.
- * A phrase that comes back only long after (`REPEAT_WITHIN_BEATS`) is not a repeat anyone would hear as one.
- */
-export function phraseSpans({ tiles, rhythm }: RhythmPath): readonly PhraseSpan[] {
-  const timeOf = (tile: number): number => tiles[tile]?.time ?? Infinity;
-  const phrases = rhythm.phrases.filter(({ from, to, count }) =>
-    beatsBetween(rhythm.tempo, timeOf(from + count + 1), timeOf(to + 1)) <= REPEAT_WITHIN_BEATS);
-  const keyOf = (start: number, end: number): string => `${start}-${end}`;
-  const parent = new Map<string, string>();
-  const root = (key: string): string => {
-    const up = parent.get(key) ?? key;
-    if (up === key) return key;
-    const top = root(up);
-    parent.set(key, top);
-    return top;
-  };
-  for (const { from, to, count } of phrases) parent.set(root(keyOf(to + 1, to + count + 1)), root(keyOf(from + 1, from + count + 1)));
-  const candidates = phrases
-    .flatMap(({ from, to, count }) => [from, to].map((at) => ({ start: at + 1, end: at + count + 1 })))
-    .filter(({ end }) => end < tiles.length)
-    .sort((a, b) => b.end - b.start - (a.end - a.start) || a.start - b.start);
-  const kept: { start: number; end: number; root: string }[] = [];
-  for (const span of candidates) {
-    const isFree = kept.every((other) => span.end <= other.start || other.end <= span.start);
-    if (isFree) kept.push({ ...span, root: root(keyOf(span.start, span.end)) });
-  }
-  kept.sort((a, b) => a.start - b.start);
-  const counts = new Map<string, number>();
-  for (const { root: group } of kept) counts.set(group, (counts.get(group) ?? 0) + 1);
-  const numbers = new Map<string, number>();
-  return kept.filter(({ root: group }) => (counts.get(group) ?? 0) >= 2).map(({ start, end, root: group }) => {
-    if (!numbers.has(group)) numbers.set(group, numbers.size);
-    return { start, end, group: numbers.get(group) ?? 0 };
-  });
-}
+/** The colours of the road ahead where it runs over a spot the crayon has already passed: the second pass, the third, and so on in turn. */
+const PASS_COLORS = [JUDGEMENT_COLOR.perfect, JUDGEMENT_COLOR.great] as const;
+/** Tiles this close in index are the same visit, not an earlier pass over the spot. */
+const SAME_VISIT_TILES = 2;
 
 /** Kept per road's rhythm details, which stay the same object frame after frame. */
-const phraseColorCache = new WeakMap<RhythmPath["rhythm"], ReadonlyMap<number, string>>();
+const passColorCache = new WeakMap<RhythmPath["rhythm"], ReadonlyMap<number, string>>();
 
-/** The colour of the road ahead from tile `i` to tile `i + 1`, for each `i` inside a repeated phrase. */
-export function phraseColors(path: RhythmPath): ReadonlyMap<number, string> {
-  const cached = phraseColorCache.get(path.rhythm);
+/** How many earlier passes of the road stand on the spot of tile `i`: runs of earlier tiles within SAME_SPOT of it. */
+function earlierPasses(tiles: RhythmPath["tiles"], i: number): number {
+  const tile = tiles[i];
+  if (tile === undefined) return 0;
+  let passes = 0;
+  let inPass = false;
+  for (let j = 0; j < i - SAME_VISIT_TILES; j++) {
+    const earlier = tiles[j];
+    const near = earlier !== undefined && Math.hypot(earlier.x - tile.x, earlier.y - tile.y) < SAME_SPOT;
+    if (near && !inPass) passes++;
+    inPass = near;
+  }
+  return passes;
+}
+
+/**
+ * The colour of the road ahead from tile `i` to tile `i + 1`, for each `i` where that stretch goes back over a spot
+ * the crayon has already passed: the colour says which pass this is, so the player can tell a retraced line apart.
+ */
+export function passColors(path: RhythmPath): ReadonlyMap<number, string> {
+  const cached = passColorCache.get(path.rhythm);
   if (cached !== undefined) return cached;
   const colors = new Map<number, string>();
-  for (const { start, end, group } of phraseSpans(path)) {
-    for (let i = start; i < end; i++) colors.set(i, PHRASE_COLORS[group % PHRASE_COLORS.length] ?? JUDGEMENT_COLOR.perfect);
+  const passes = path.tiles.map((_, i) => earlierPasses(path.tiles, i));
+  for (let i = 0; i + 1 < path.tiles.length; i++) {
+    const pass = Math.max(passes[i] ?? 0, passes[i + 1] ?? 0);
+    if (pass > 0) colors.set(i, PASS_COLORS[(pass - 1) % PASS_COLORS.length] ?? JUDGEMENT_COLOR.perfect);
   }
-  phraseColorCache.set(path.rhythm, colors);
+  passColorCache.set(path.rhythm, colors);
   return colors;
 }

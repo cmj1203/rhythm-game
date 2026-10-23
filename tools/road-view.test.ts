@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { chartSchema } from "../src/chart";
 import { buildRhythmPath } from "../src/rhythm-road";
-import { aheadEnd, laterPasses, phraseColors, phraseSpans } from "../src/road-view";
+import { aheadEnd, laterPasses, passColors } from "../src/road-view";
 import { beatsBetween } from "../src/tempo";
 import { standingAt } from "../src/walking-crayon";
 
@@ -49,27 +49,17 @@ describe("rhythm road view", () => {
     expect(onIt.has(revisits)).toBe(false);
   });
 
-  test("each repeated phrase colours the road ahead the same every time it comes", async () => {
-    // Given the shipped chart.
+  test("the road ahead is coloured only where it goes back over a spot already passed", async () => {
+    // Given the shipped chart, and which tiles stand on a spot an earlier tile stood on.
     const { path } = await lastFortress();
-    const laid = path.rhythm.phrases.flatMap(({ from, to, count }) => [from, to].map((at) => `${at + 1}-${at + count + 1}`));
-    // When its repeated spans and their colours are listed.
-    const spans = phraseSpans(path);
-    const colors = phraseColors(path);
-    // Then each is one of those phrases, they run in order touching at most end to start, every group comes twice
-    // or more, and every tile of a span takes its group's one colour.
-    expect(spans.length).toBeGreaterThan(0);
-    expect(spans.every(({ start, end }) => laid.includes(`${start}-${end}`))).toBe(true);
-    expect(spans.every((span, i) => i === 0 || (spans[i - 1]?.end ?? Infinity) <= span.start)).toBe(true);
-    const groups = new Map<number, typeof spans[number][]>();
-    for (const span of spans) groups.set(span.group, [...(groups.get(span.group) ?? []), span]);
-    for (const members of groups.values()) {
-      expect(members.length).toBeGreaterThanOrEqual(2);
-      const shades = new Set(members.flatMap(({ start, end }) => Array.from({ length: end - start }, (_, k) => colors.get(start + k))));
-      expect(shades.size).toBe(1);
-      expect([...shades][0]).toBeDefined();
-    }
-    expect(colors.size).toBe(spans.reduce((sum, { start, end }) => sum + end - start, 0));
+    const near = (j: number, i: number): boolean =>
+      Math.hypot((path.tiles[j]?.x ?? 0) - (path.tiles[i]?.x ?? 0), (path.tiles[j]?.y ?? 0) - (path.tiles[i]?.y ?? 0)) < 0.5;
+    const revisit = (i: number): boolean => path.tiles.some((_, j) => j < i - 2 && near(j, i));
+    // When the colours of the road ahead are listed.
+    const colors = passColors(path);
+    // Then a stretch is coloured exactly when one of its two tiles is a revisit, and some stretch is.
+    expect(colors.size).toBeGreaterThan(0);
+    for (let i = 0; i + 1 < path.tiles.length; i++) expect(colors.has(i)).toBe(revisit(i) || revisit(i + 1));
   });
 
   test.each(["last-fortress", "eight-arms"])("%s: a turn-around, rest or tempo marker shows at least two beats before its tile", async (id) => {

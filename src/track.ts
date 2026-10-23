@@ -14,7 +14,7 @@ import {
 import type { JudgeEvent, PlayState } from "./judge";
 import { cameraAt, orbiterAngle, type Pace, type Path } from "./path";
 import { poseAt, type Section } from "./sections";
-import { aheadClarity, aheadEnd, laterPasses, phraseColors } from "./road-view";
+import { aheadClarity, aheadEnd, laterPasses, passColors } from "./road-view";
 import { drawTempoMark } from "./tempo-mark";
 import { standingAt } from "./walking-crayon";
 import { drawWalkingCrayon, type HitOnCrayon } from "./walking-crayon-draw";
@@ -246,7 +246,7 @@ function drawAhead(painter: Painter, { path, play, songTime }: PlayingFrame, vie
     : aheadEnd({ ...path, rhythm: path.rhythm }, standing, songTime);
   const clarity = isRhythm ? (steps: number): number => aheadClarity(steps, end - standing) : nearness;
   const later = path.rhythm === undefined ? new Set<number>() : laterPasses({ ...path, rhythm: path.rhythm }, standing, end);
-  const repeats = path.rhythm === undefined ? new Map<number, string>() : phraseColors({ ...path, rhythm: path.rhythm });
+  const repeats = path.rhythm === undefined ? new Map<number, string>() : passColors({ ...path, rhythm: path.rhythm });
   drawGuide(painter, path, view, standing, end, clarity, (i) => repeats.get(i) ?? COLOR.text);
 
   for (let i = standing; i <= end; i++) {
@@ -566,4 +566,4 @@ function drawGameOver(painter: Painter, { width, height }: Size): void {
   ctx.fillRect(0, 0, width, height);
   ctx.restore();
   painter.text("게임 오버", { x: width / 2, y: height * 0.45 }, { size: 48, weight: 800, color: JUDGEMENT_COLOR.miss });
-}
+}__EOF__

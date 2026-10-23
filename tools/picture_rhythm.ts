@@ -4,9 +4,6 @@
 // song to, and the placement that puts the played road onto the picture for the result screen.
 //   bun tools/picture_rhythm.ts <picture-id> --geometry <file> --tiles 320 --out road.json
 //   bun tools/picture_rhythm.ts <picture-id> --line --tiles 480 --out road.json   (along the picture's one-stroke line)
-//   --grid: whole bars from a few rhythm patterns, each bar preferring to repeat the one before, so the rhythm can be
-//   learnt by ear; the road keeps to the line less exactly. Every few bars it may add a repeat sign: the last
-//   `REPEAT_BARS` bars walked again over the very same tiles with the same rhythm (`repeats` in the output).
 import { readFile, writeFile } from "node:fs/promises";
 import { parseArgs } from "node:util";
 import { buildRhythmPath } from "../src/rhythm-road";
@@ -20,9 +17,6 @@ const { positionals, values: args } = parseArgs({
     beam: { type: "string", default: "300" },
     reverse: { type: "boolean", default: false },
     line: { type: "boolean", default: false },
-    grid: { type: "boolean", default: false },
-    repeat: { type: "string", default: "1.2" },
-    sign: { type: "string", default: "0" },
   },
 });
 const pictureId = positionals[0];
@@ -149,55 +143,6 @@ const CELLS: { gaps: number[]; cost: number }[] = [
   { gaps: [4], cost: 3 },
 ];
 
-/**
- * With --grid, whole bars (four beats) from these patterns only: halves, beats, dotted beats and the dotted-eighth
- * pairs that turn the road 45 degrees, plus bars with a rest. No triplets. A bar unlike the one before it costs
- * `--repeat` (`SWITCH_COST`), and unlike the one two bars before half as much again, so bars come in twos and fours.
- */
-const BAR_PATTERNS: { gaps: number[]; cost: number }[] = [
-  { gaps: [1, 1, 1, 1], cost: 0 },
-  { gaps: [1, 1, 1 / 2, 1 / 2, 1], cost: 0.05 },
-  { gaps: [1, 1 / 2, 1 / 2, 1, 1], cost: 0.05 },
-  { gaps: [1 / 2, 1 / 2, 1, 1 / 2, 1 / 2, 1], cost: 0.05 },
-  { gaps: [1 / 2, 1, 1 / 2, 1, 1], cost: 0.05 },
-  { gaps: [1, 1, 1 / 2, 1 / 2, 1 / 2, 1 / 2], cost: 0.05 },
-  { gaps: [1 / 2, 1 / 2, 1 / 2, 1 / 2, 1, 1], cost: 0.05 },
-  { gaps: [1 / 2, 1 / 2, 1 / 2, 1 / 2, 1 / 2, 1 / 2, 1 / 2, 1 / 2], cost: 0.1 },
-  { gaps: [3 / 2, 3 / 2, 1], cost: 0.1 },
-  { gaps: [1, 3 / 2, 3 / 2], cost: 0.1 },
-  { gaps: [3 / 2, 3 / 2, 1 / 2, 1 / 2], cost: 0.1 },
-  { gaps: [1 / 2, 3 / 2, 1 / 2, 3 / 2], cost: 0.1 },
-  { gaps: [3 / 2, 1 / 2, 3 / 2, 1 / 2], cost: 0.1 },
-  { gaps: [3 / 2, 1 / 2, 1, 1], cost: 0.1 },
-  { gaps: [1, 1, 3 / 2, 1 / 2], cost: 0.1 },
-  { gaps: [3 / 4, 5 / 4, 3 / 4, 5 / 4], cost: 0.15 },
-  { gaps: [5 / 4, 3 / 4, 5 / 4, 3 / 4], cost: 0.15 },
-  { gaps: [3 / 4, 3 / 4, 1 / 2, 3 / 4, 3 / 4, 1 / 2], cost: 0.15 },
-  { gaps: [3 / 4, 3 / 4, 1 / 2, 1, 1], cost: 0.15 },
-  { gaps: [1, 1, 3 / 4, 3 / 4, 1 / 2], cost: 0.15 },
-  { gaps: [1, 3 / 4, 5 / 4, 1], cost: 0.15 },
-  { gaps: [3, 1], cost: 3 },
-  { gaps: [1, 3], cost: 3 },
-  { gaps: [1 / 2, 1 / 2, 3], cost: 3 },
-];
-const SWITCH_COST = Number(args.repeat);
-const SWITCH_COST_TWO_BACK = SWITCH_COST / 2;
-/**
- * A repeat sign walks the last `REPEAT_BARS` bars again; it costs `--sign` (less than nothing to ask for them) and
- * may follow the last one only after `REPEAT_GAP_BARS` fresh bars.
- */
-const REPEAT_BARS = 2;
-const REPEAT_GAP_BARS = 4;
-const SIGN_COST = Number(args.sign);
-const PIECES = args.grid ? BAR_PATTERNS : CELLS;
-
-/** With --grid, what a bar costs beyond its own: more for one unlike the bar before, and the one before that. */
-function switchCost(cells: number[], c: number): number {
-  if (!args.grid) return 0;
-  return (cells.at(-1) !== undefined && cells.at(-1) !== c ? SWITCH_COST : 0)
-    + (cells.at(-2) !== undefined && cells.at(-2) !== c ? SWITCH_COST_TWO_BACK : 0);
-}
-
 const d2 = (a: P, b: P) => (a.x - b.x) ** 2 + (a.y - b.y) ** 2;
 /** The nearest point of the outline to `p` within arc lengths `from` to `to`, as [arc length, squared distance]. */
 function nearest(p: P, from: number, to: number): [number, number] {
@@ -215,11 +160,7 @@ function nearest(p: P, from: number, to: number): [number, number] {
   return best;
 }
 
-type Repeat = { from: number; count: number };
-type State = {
-  tiles: P[]; heading: number; along: number; gaps: number[]; cells: number[]; cost: number;
-  barTiles: number[]; repeats: Repeat[]; freshBars: number;
-};
+type State = { tiles: P[]; heading: number; along: number; gaps: number[]; cells: number[]; cost: number };
 // The game's first two tiles stand one tile apart along the outline's start.
 const startHeading = Math.atan2(outline[5]!.y - outline[0]!.y, outline[5]!.x - outline[0]!.x);
 const start: State = {
@@ -229,30 +170,7 @@ const start: State = {
   gaps: [],
   cells: [],
   cost: 0,
-  barTiles: [],
-  repeats: [],
-  freshBars: 0,
 };
-
-/** The state after a repeat sign: the last `REPEAT_BARS` bars' tiles and gaps again, the road no further along. */
-function repeated(state: State): State | null {
-  if (!args.grid || state.freshBars < REPEAT_GAP_BARS || state.barTiles.length < REPEAT_BARS) return null;
-  const count = state.barTiles.slice(-REPEAT_BARS).reduce((sum, n) => sum + n, 0);
-  const stretch = state.tiles.slice(-count);
-  const gaps = state.gaps.slice(-count);
-  // The jump back takes the gap the stretch was entered with, so that must be a beat or more: time to see it.
-  if ((gaps[0] ?? 0) < 1) return null;
-  return {
-    ...state,
-    tiles: [...state.tiles, ...stretch],
-    gaps: [...state.gaps, ...gaps],
-    cells: [...state.cells, ...state.cells.slice(-REPEAT_BARS)],
-    cost: state.cost + SIGN_COST,
-    barTiles: [...state.barTiles, ...state.barTiles.slice(-REPEAT_BARS)],
-    repeats: [...state.repeats, { from: state.tiles.length - count - 1, count }],
-    freshBars: 0,
-  };
-}
 
 let beam: State[] = [start];
 const finished: State[] = [];
@@ -260,12 +178,10 @@ const BEAM = Number(args.beam);
 for (let round = 0; round < 2000 && beam.length > 0; round++) {
   const next: State[] = [];
   for (const state of beam) {
-    const again = repeated(state);
-    if (again !== null) next.push(again);
-    for (const [c, cell] of PIECES.entries()) {
+    for (const [c, cell] of CELLS.entries()) {
       let { heading, along } = state;
       const tiles = [...state.tiles];
-      let cost = state.cost + cell.cost + switchCost(state.cells, c);
+      let cost = state.cost + cell.cost;
       let ok = true;
       for (const gap of cell.gaps) {
         heading += Math.PI + sweepAngle(gap);
@@ -281,10 +197,7 @@ for (let round = 0; round < 2000 && beam.length > 0; round++) {
         along = Math.max(along, at);
       }
       if (!ok) continue;
-      const done: State = {
-        tiles, heading, along, gaps: [...state.gaps, ...cell.gaps], cells: [...state.cells, c], cost,
-        barTiles: [...state.barTiles, cell.gaps.length], repeats: state.repeats, freshBars: state.freshBars + 1,
-      };
+      const done = { tiles, heading, along, gaps: [...state.gaps, ...cell.gaps], cells: [...state.cells, c], cost };
       if (along >= length - 1.2 * z) finished.push(done);
       else next.push(done);
     }
@@ -310,7 +223,7 @@ if (best === undefined) throw new RangeError("no road reached the end of the out
 // Check against the game: the same gaps at one beat a second, laid with no twirls, must give the same shape.
 const times = [0];
 for (const gap of best.gaps) times.push(times.at(-1)! + gap);
-const played = buildRhythmPath(times, [[0, 60]], undefined, [], [], best.repeats);
+const played = buildRhythmPath(times, [[0, 60]], undefined, [], []);
 const a = played.tiles[0]!, b = played.tiles[1]!;
 const A = best.tiles[0]!, B = best.tiles[1]!;
 const scale = Math.hypot(B.x - A.x, B.y - A.y) / Math.hypot(b.x - a.x, b.y - a.y);
@@ -328,17 +241,9 @@ const offLine = best.tiles.map((t) => Math.sqrt(nearest(t, 0, length)[1])).reduc
 const beats = best.gaps.reduce((s, g) => s + g, 0);
 // How far along the line each tile stands (0 to 1), followed forward the way the search walked it.
 let walked = 0;
-const sourceOf = new Map<number, number>();
-for (const { from, count } of best.repeats) for (let k = 0; k < count; k++) sourceOf.set(from + count + k + 1, from + k + 1);
-const fractions: number[] = [];
-best.tiles.forEach((t, i) => {
-  const source = sourceOf.get(i);
-  if (source !== undefined) {
-    fractions.push(fractions[source]!);
-    return;
-  }
+const fractions = best.tiles.map((t) => {
   walked = Math.max(walked, nearest(t, walked - 0.3 * z, walked + 2.5 * z)[0]);
-  fractions.push(+(walked / length).toFixed(4));
+  return +(walked / length).toFixed(4);
 });
 const result = {
   picture: pictureId,
@@ -347,12 +252,11 @@ const result = {
   beats,
   offLineTiles: +offLine.toFixed(3),
   gaps: best.gaps,
-  cells: best.cells.map((c) => PIECES[c]!.gaps),
+  cells: best.cells.map((c) => CELLS[c]!.gaps),
   piece: { from: 0, scale, angle, x, y },
   tiles: best.tiles,
   fractions,
-  repeats: best.repeats,
   outline,
 };
-console.log(`ROAD ${pictureId}: ${result.notes} notes over ${beats} beats, off the outline ${result.offLineTiles} tiles on average, ${best.repeats.length} repeat signs`);
+console.log(`ROAD ${pictureId}: ${result.notes} notes over ${beats} beats, off the outline ${result.offLineTiles} tiles on average`);
 if (args.out !== undefined) await writeFile(args.out, JSON.stringify(result));

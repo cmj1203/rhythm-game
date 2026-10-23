@@ -1,6 +1,6 @@
 // Real, silent autoplay through the normal menu, keyboard handler, audio clock and renderer.
 // Phones: mobile-check URL --wait 0 --script tools/qa-rhythm-road.mjs --out /tmp/livecanvas-rhythm-road
-// Desktop: bun tools/qa-rhythm-road.mjs --desktop   (QA_SHOTS="name:seconds,..." for stills at other song times)
+// Desktop: bun tools/qa-rhythm-road.mjs --desktop
 import { mkdir, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 
@@ -67,10 +67,7 @@ export default async function autoplay(page, { device, outDir }) {
       return start.apply(this, args);
     };
     const draw = Renderer.prototype.draw;
-    const checkpoints = new Map(captureDuringPlay
-      ? (captureDuringPlay === true ? [["riff", 22.5], ["rest", 25.15], ["tempo-196", 66.21]]
-        : captureDuringPlay.split(",").map((shot) => { const [name, at] = shot.split(":"); return [name, Number(at)]; }))
-      : []);
+    const checkpoints = new Map(captureDuringPlay ? [["riff", 22.5], ["rest", 25.15], ["tempo-196", 66.21]] : []);
     let completed = false;
     let resultShown = false;
     // The result screen moves the road into its picture: before, halfway and after.
@@ -133,7 +130,7 @@ export default async function autoplay(page, { device, outDir }) {
         window.dispatchEvent(new Event("rhythm-qa-complete"));
       }
     };
-  }, device === "desktop" && (process.env["QA_SHOTS"] ?? true));
+  }, device === "desktop");
   const completed = page.evaluate(() => new Promise((resolve, reject) => {
     const deadline = setTimeout(() => reject(new Error("자동 연주 완료 신호 시간 초과")), 360000);
     window.addEventListener("rhythm-qa-complete", () => {

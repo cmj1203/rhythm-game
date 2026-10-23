@@ -1,4 +1,4 @@
-import { JUDGEMENT_COLOR } from "./canvas";
+import { JUDGEMENT_COLOR, type Point } from "./canvas";
 import type { RhythmPath } from "./rhythm-road";
 import { beatsBetween } from "./tempo";
 
@@ -59,32 +59,31 @@ const SAME_VISIT_TILES = 2;
 /** Kept per road's rhythm details, which stay the same object frame after frame. */
 const passColorCache = new WeakMap<RhythmPath["rhythm"], ReadonlyMap<number, string>>();
 
-/** How many earlier passes of the road stand on the spot of tile `i`: runs of earlier tiles within SAME_SPOT of it. */
+/** Whether the stretches from tile `i` and from tile `j` run between the same two spots, either way round. */
+function sameStretch(tiles: RhythmPath["tiles"], i: number, j: number): boolean {
+  const a = tiles[i]; const b = tiles[i + 1]; const c = tiles[j]; const d = tiles[j + 1];
+  if (a === undefined || b === undefined || c === undefined || d === undefined) return false;
+  const near = (p: Point, q: Point): boolean => Math.hypot(p.x - q.x, p.y - q.y) < SAME_SPOT;
+  return (near(a, c) && near(b, d)) || (near(a, d) && near(b, c));
+}
+
+/** How many earlier stretches of the road run along the stretch from tile `i`: the line there was drawn before. */
 function earlierPasses(tiles: RhythmPath["tiles"], i: number): number {
-  const tile = tiles[i];
-  if (tile === undefined) return 0;
   let passes = 0;
-  let inPass = false;
-  for (let j = 0; j < i - SAME_VISIT_TILES; j++) {
-    const earlier = tiles[j];
-    const near = earlier !== undefined && Math.hypot(earlier.x - tile.x, earlier.y - tile.y) < SAME_SPOT;
-    if (near && !inPass) passes++;
-    inPass = near;
-  }
+  for (let j = 0; j < i - SAME_VISIT_TILES; j++) if (sameStretch(tiles, i, j)) passes++;
   return passes;
 }
 
 /**
- * The colour of the road ahead from tile `i` to tile `i + 1`, for each `i` where that stretch goes back over a spot
- * the crayon has already passed: the colour says which pass this is, so the player can tell a retraced line apart.
+ * The colour of the road ahead from tile `i` to tile `i + 1`, for each `i` where that stretch runs along a line the
+ * crayon has already drawn (both its ends on the spots of an earlier stretch, not merely one tile on an old spot): the colour says which pass this is, so the player can tell a retraced line apart.
  */
 export function passColors(path: RhythmPath): ReadonlyMap<number, string> {
   const cached = passColorCache.get(path.rhythm);
   if (cached !== undefined) return cached;
   const colors = new Map<number, string>();
-  const passes = path.tiles.map((_, i) => earlierPasses(path.tiles, i));
   for (let i = 0; i + 1 < path.tiles.length; i++) {
-    const pass = Math.max(passes[i] ?? 0, passes[i + 1] ?? 0);
+    const pass = earlierPasses(path.tiles, i);
     if (pass > 0) colors.set(i, PASS_COLORS[(pass - 1) % PASS_COLORS.length] ?? JUDGEMENT_COLOR.perfect);
   }
   passColorCache.set(path.rhythm, colors);

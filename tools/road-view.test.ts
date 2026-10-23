@@ -49,17 +49,23 @@ describe("rhythm road view", () => {
     expect(onIt.has(revisits)).toBe(false);
   });
 
-  test("the road ahead is coloured only where it goes back over a spot already passed", async () => {
-    // Given the shipped chart, and which tiles stand on a spot an earlier tile stood on.
+  test("the road ahead is coloured only where it runs along a line already drawn", async () => {
+    // Given the shipped chart, and which stretches run between the same two spots as an earlier stretch.
     const { path } = await lastFortress();
-    const near = (j: number, i: number): boolean =>
-      Math.hypot((path.tiles[j]?.x ?? 0) - (path.tiles[i]?.x ?? 0), (path.tiles[j]?.y ?? 0) - (path.tiles[i]?.y ?? 0)) < 0.5;
-    const revisit = (i: number): boolean => path.tiles.some((_, j) => j < i - 2 && near(j, i));
+    const spot = (i: number): { x: number; y: number } => ({ x: path.tiles[i]?.x ?? 0, y: path.tiles[i]?.y ?? 0 });
+    const near = (a: { x: number; y: number }, b: { x: number; y: number }): boolean => Math.hypot(a.x - b.x, a.y - b.y) < 0.5;
+    const retraced = (i: number): boolean => path.tiles.some((_, j) => j < i - 2 &&
+      ((near(spot(i), spot(j)) && near(spot(i + 1), spot(j + 1))) || (near(spot(i), spot(j + 1)) && near(spot(i + 1), spot(j)))));
     // When the colours of the road ahead are listed.
     const colors = passColors(path);
-    // Then a stretch is coloured exactly when one of its two tiles is a revisit, and some stretch is.
+    // Then a stretch is coloured exactly when it is retraced, and some stretch is; a stretch that only touches an
+    // old spot at one end is not.
     expect(colors.size).toBeGreaterThan(0);
-    for (let i = 0; i + 1 < path.tiles.length; i++) expect(colors.has(i)).toBe(revisit(i) || revisit(i + 1));
+    for (let i = 0; i + 1 < path.tiles.length; i++) expect(colors.has(i)).toBe(retraced(i));
+    const touching = path.tiles.findIndex((_, i) => i + 1 < path.tiles.length && !retraced(i) &&
+      path.tiles.some((_, j) => j < i - 2 && (near(spot(i), spot(j)) || near(spot(i + 1), spot(j)))));
+    expect(touching).toBeGreaterThan(0);
+    expect(colors.has(touching)).toBe(false);
   });
 
   test.each(["last-fortress", "eight-arms"])("%s: a turn-around, rest or tempo marker shows at least two beats before its tile", async (id) => {

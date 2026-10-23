@@ -3,7 +3,7 @@
   {
    "id": "8bit-dungeon-boss",
    "title": "8bit Dungeon Boss",
-   "bpm": 134,
+   "bpm": 134.0,
    "duration": 172.008,
    "difficulty": "hard",
    "notes": 659,
@@ -13,7 +13,7 @@
   {
    "id": "adventures-of-yuki",
    "title": "Adventures of Yuki Level 1",
-   "bpm": 139,
+   "bpm": 139.0,
    "duration": 126.013,
    "difficulty": "hard",
    "notes": 549,
@@ -23,7 +23,7 @@
   {
    "id": "aerosol-of-my-love",
    "title": "Aerosol of my Love",
-   "bpm": 100,
+   "bpm": 100.0,
    "duration": 141.819,
    "difficulty": "easy",
    "notes": 238,
@@ -33,7 +33,7 @@
   {
    "id": "battle-of-the-void",
    "title": "Battle of the Void",
-   "bpm": 97,
+   "bpm": 97.0,
    "duration": 162.116,
    "difficulty": "easy",
    "notes": 309,
@@ -43,7 +43,7 @@
   {
    "id": "blippy-trance",
    "title": "Blippy Trance",
-   "bpm": 100,
+   "bpm": 100.0,
    "duration": 120.008,
    "difficulty": "easy",
    "notes": 202,
@@ -53,8 +53,8 @@
   {
    "id": "boss-3-this-is-the-time-to-glisten",
    "title": "Boss 3 : This is the time to glisten",
-   "bpm": 90,
-   "duration": 161,
+   "bpm": 90.0,
+   "duration": 161.0,
    "difficulty": "easy",
    "notes": 272,
    "artist": "Komiku",
@@ -63,7 +63,7 @@
   {
    "id": "breakdown",
    "title": "Breakdown",
-   "bpm": 140,
+   "bpm": 140.0,
    "duration": 204.069,
    "difficulty": "hard",
    "notes": 687,
@@ -73,7 +73,7 @@
   {
    "id": "c-funk",
    "title": "C-Funk",
-   "bpm": 117,
+   "bpm": 117.0,
    "duration": 170.318,
    "difficulty": "normal",
    "notes": 482,
@@ -84,7 +84,7 @@
    "id": "captain-glouglou-contest",
    "title": "Captain Glouglou contest",
    "bpm": 120.02,
-   "duration": 104,
+   "duration": 104.0,
    "difficulty": "hard",
    "notes": 350,
    "artist": "Komiku",
@@ -93,7 +93,7 @@
   {
    "id": "carnivale-intrigue",
    "title": "Carnivale Intrigue",
-   "bpm": 95,
+   "bpm": 95.0,
    "duration": 199.654,
    "difficulty": "easy",
    "notes": 336,
@@ -133,7 +133,7 @@
   {
    "id": "desert-of-lost-souls",
    "title": "Desert of Lost Souls",
-   "bpm": 134,
+   "bpm": 134.0,
    "duration": 180.95,
    "difficulty": "hard",
    "notes": 669,
@@ -143,7 +143,7 @@
   {
    "id": "dubakupado",
    "title": "Dubakupado",
-   "bpm": 115,
+   "bpm": 115.0,
    "duration": 212.924,
    "difficulty": "normal",
    "notes": 583,
@@ -153,7 +153,7 @@
   {
    "id": "electro-cabello",
    "title": "Electro Cabello",
-   "bpm": 117,
+   "bpm": 117.0,
    "duration": 190.824,
    "difficulty": "normal",
    "notes": 523,
@@ -163,7 +163,7 @@
   {
    "id": "enter-the-party",
    "title": "Enter the Party",
-   "bpm": 120,
+   "bpm": 120.0,
    "duration": 188.056,
    "difficulty": "normal",
    "notes": 515,
@@ -173,7 +173,7 @@
   {
    "id": "fantasia-fantasia",
    "title": "Fantasia Fantasia",
-   "bpm": 118,
+   "bpm": 118.0,
    "duration": 151.589,
    "difficulty": "normal",
    "notes": 413,
@@ -193,7 +193,7 @@
   {
    "id": "freddys-menagerie",
    "title": "Freddy's Menagerie",
-   "bpm": 134,
+   "bpm": 134.0,
    "duration": 204.251,
    "difficulty": "hard",
    "notes": 758,
@@ -213,7 +213,7 @@
   {
    "id": "funkorama",
    "title": "Funkorama",
-   "bpm": 101,
+   "bpm": 101.0,
    "duration": 201.456,
    "difficulty": "easy",
    "notes": 374,
@@ -223,7 +223,7 @@
   {
    "id": "funky-chunk",
    "title": "Funky Chunk",
-   "bpm": 115,
+   "bpm": 115.0,
    "duration": 239.02,
    "difficulty": "normal",
    "notes": 640,
@@ -253,7 +253,7 @@
   {
    "id": "getting-it-done",
    "title": "Getting it Done",
-   "bpm": 135,
+   "bpm": 135.0,
    "duration": 209.842,
    "difficulty": "hard",
    "notes": 748,
@@ -263,7 +263,7 @@
   {
    "id": "glitter-blast",
    "title": "Glitter Blast",
-   "bpm": 100,
+   "bpm": 100.0,
    "duration": 177.816,
    "difficulty": "easy",
    "notes": 382,
@@ -273,7 +273,7 @@
   {
    "id": "groundwork",
    "title": "Groundwork",
-   "bpm": 102,
+   "bpm": 102.0,
    "duration": 169.482,
    "difficulty": "easy",
    "notes": 290,
@@ -283,8 +283,8 @@
   {
    "id": "jenifer-the-game",
    "title": "Jenifer The Game",
-   "bpm": 120,
-   "duration": 209,
+   "bpm": 120.0,
+   "duration": 209.0,
    "difficulty": "hard",
    "notes": 761,
    "artist": "Komiku",
@@ -293,7 +293,7 @@
   {
    "id": "jupiter",
    "title": "Jupiter",
-   "bpm": 90,
+   "bpm": 90.0,
    "duration": 135.937,
    "difficulty": "easy",
    "notes": 279,
@@ -333,8 +333,8 @@
   {
    "id": "looking-for-ammunition",
    "title": "Wandering Around Looking for Ammunition",
-   "bpm": 120,
-   "duration": 100,
+   "bpm": 120.0,
+   "duration": 100.0,
    "difficulty": "normal",
    "notes": 334,
    "artist": "Ragnar Random",
@@ -343,7 +343,7 @@
   {
    "id": "loopster",
    "title": "Loopster",
-   "bpm": 108,
+   "bpm": 108.0,
    "duration": 182.282,
    "difficulty": "normal",
    "notes": 455,
@@ -363,7 +363,7 @@
   {
    "id": "no-frills-comparsa",
    "title": "No Frills Comparsa",
-   "bpm": 115,
+   "bpm": 115.0,
    "duration": 159.713,
    "difficulty": "normal",
    "notes": 417,
@@ -373,7 +373,7 @@
   {
    "id": "no-war",
    "title": "No War",
-   "bpm": 95,
+   "bpm": 95.0,
    "duration": 189.518,
    "difficulty": "easy",
    "notes": 338,
@@ -383,7 +383,7 @@
   {
    "id": "occupy-the-dance-floor",
    "title": "Occupy The Dance Floor",
-   "bpm": 136,
+   "bpm": 136.0,
    "duration": 170.109,
    "difficulty": "hard",
    "notes": 743,
@@ -403,7 +403,7 @@
   {
    "id": "pookatori-and-friends",
    "title": "Pookatori and Friends",
-   "bpm": 124,
+   "bpm": 124.0,
    "duration": 247.798,
    "difficulty": "hard",
    "notes": 811,
@@ -423,7 +423,7 @@
   {
    "id": "punk-rock-metal",
    "title": "Punk Rock Metal Background Music",
-   "bpm": 110,
+   "bpm": 110.0,
    "duration": 113.871,
    "difficulty": "normal",
    "notes": 291,
@@ -443,7 +443,7 @@
   {
    "id": "ruby-4",
    "title": "Ruby 4",
-   "bpm": 86,
+   "bpm": 86.0,
    "duration": 158.329,
    "difficulty": "easy",
    "notes": 291,
@@ -453,7 +453,7 @@
   {
    "id": "show-your-moves",
    "title": "Show Your Moves",
-   "bpm": 136,
+   "bpm": 136.0,
    "duration": 215.353,
    "difficulty": "hard",
    "notes": 872,
@@ -463,7 +463,7 @@
   {
    "id": "special-spotlight",
    "title": "Special Spotlight",
-   "bpm": 126,
+   "bpm": 126.0,
    "duration": 192.444,
    "difficulty": "hard",
    "notes": 650,
@@ -473,7 +473,7 @@
   {
    "id": "street-party",
    "title": "Street Party",
-   "bpm": 114,
+   "bpm": 114.0,
    "duration": 172.696,
    "difficulty": "normal",
    "notes": 507,
@@ -483,7 +483,7 @@
   {
    "id": "sunday-dub",
    "title": "Sunday Dub",
-   "bpm": 102,
+   "bpm": 102.0,
    "duration": 209.476,
    "difficulty": "easy",
    "notes": 404,
@@ -493,7 +493,7 @@
   {
    "id": "sunny-afternoon",
    "title": "Sunny Afternoon",
-   "bpm": 100,
+   "bpm": 100.0,
    "duration": 115.153,
    "difficulty": "easy",
    "notes": 212,
@@ -503,7 +503,7 @@
   {
    "id": "tafi-maradi-no-voice",
    "title": "Tafi Maradi no voice",
-   "bpm": 133,
+   "bpm": 133.0,
    "duration": 158.856,
    "difficulty": "hard",
    "notes": 554,
@@ -513,7 +513,7 @@
   {
    "id": "tech-live",
    "title": "Tech Live",
-   "bpm": 124,
+   "bpm": 124.0,
    "duration": 228.441,
    "difficulty": "normal",
    "notes": 694,
@@ -523,7 +523,7 @@
   {
    "id": "the-adventure",
    "title": "The adventure",
-   "bpm": 100,
+   "bpm": 100.0,
    "duration": 57.6,
    "difficulty": "easy",
    "notes": 124,
@@ -553,7 +553,7 @@
   {
    "id": "to-fight-a-spell-by-dancing",
    "title": "To fight a spell by dancing",
-   "bpm": 100,
+   "bpm": 100.0,
    "duration": 115.2,
    "difficulty": "easy",
    "notes": 224,
@@ -563,7 +563,7 @@
   {
    "id": "video-games",
    "title": "Video Games",
-   "bpm": 95,
+   "bpm": 95.0,
    "duration": 131.329,
    "difficulty": "easy",
    "notes": 194,
@@ -573,7 +573,7 @@
   {
    "id": "voltaic",
    "title": "Voltaic",
-   "bpm": 120,
+   "bpm": 120.0,
    "duration": 196.075,
    "difficulty": "normal",
    "notes": 615,
@@ -583,7 +583,7 @@
   {
    "id": "wallpaper",
    "title": "Wallpaper",
-   "bpm": 93,
+   "bpm": 93.0,
    "duration": 220.056,
    "difficulty": "easy",
    "notes": 359,
@@ -593,7 +593,7 @@
   {
    "id": "wretched-destroyer",
    "title": "Wretched Destroyer",
-   "bpm": 140,
+   "bpm": 140.0,
    "duration": 198.06,
    "difficulty": "normal",
    "notes": 610,
@@ -603,7 +603,7 @@
   {
    "id": "your-call",
    "title": "Your Call",
-   "bpm": 120,
+   "bpm": 120.0,
    "duration": 224.052,
    "difficulty": "normal",
    "notes": 775,
@@ -614,9 +614,9 @@
    "id": "eight-arms",
    "title": "Eight Arms",
    "bpm": 176,
-   "duration": 191.16,
+   "duration": 173.44,
    "difficulty": "normal",
-   "notes": 464,
+   "notes": 461,
    "artist": "LiveCanvas",
    "credit": "Piano samples: Salamander Grand Piano V3 by Alexander Holm, licensed under CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/). SFZ mapping by kinwie; retuning by Markus Fiedler. Source: https://github.com/sfzinstruments/SalamanderGrandPiano."
   },
@@ -624,9 +624,9 @@
    "id": "breach",
    "title": "Breach",
    "bpm": 152,
-   "duration": 200.96,
+   "duration": 189.24,
    "difficulty": "normal",
-   "notes": 386,
+   "notes": 413,
    "artist": "LiveCanvas",
    "credit": "Piano samples: Salamander Grand Piano V3 by Alexander Holm, licensed under CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/). SFZ mapping by kinwie; retuning by Markus Fiedler. Source: https://github.com/sfzinstruments/SalamanderGrandPiano."
   }

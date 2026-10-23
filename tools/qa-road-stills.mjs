@@ -22,7 +22,7 @@ export default async function roadStills(page, { device, outDir }) {
     const { buildRhythmPath } = await import(moduleUrl("rhythm-road"));
     const chart = chartSchema.parse(await (await fetch("/songs/last-fortress/chart.json")).json());
     const sections = planSections(chart.notes, chart.bpm, chart.offset);
-    const path = dyePath(buildRhythmPath(chart.notes, chart.tempo, chart.turnScale, chart.twirls, chart.picture?.flips), sections);
+    const path = dyePath(buildRhythmPath(chart.notes, chart.tempo, chart.turnScale, chart.twirls, chart.picture?.flips, chart.repeats), sections);
     const renderer = new Renderer(document.querySelector("#game"));
     for (const root of document.querySelectorAll("main, section")) root.hidden = true;
     window.__roadStillAt = (time) => {

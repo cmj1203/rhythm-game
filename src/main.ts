@@ -191,7 +191,7 @@ async function boot(): Promise<void> {
       let sewing: Sewing;
       switch (chart.road) {
         case "rhythm": {
-          const road = buildRhythmPath(times, chart.tempo, chart.turnScale, chart.twirls, chart.picture?.flips);
+          const road = buildRhythmPath(times, chart.tempo, chart.turnScale, chart.twirls, chart.picture?.flips, chart.repeats);
           if (chart.picture === undefined) {
             sewing = { pictureName: "", path: road };
             break;

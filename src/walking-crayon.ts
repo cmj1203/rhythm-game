@@ -26,14 +26,20 @@ export function standingAt(tiles: readonly Tile[], time: number): number {
 
 /** A unit-length stick. Rhythm-road sweeps already start on the previous tile: no catch-up easing. */
 export function walkingCrayonAt(path: Path, time: number): WalkingCrayon | null {
-  const standing = standingAt(path.tiles, time);
-  const pivot = path.tiles[standing];
+  return poseOn(path, standingAt(path.tiles, time), time);
+}
+
+/** The crayon as it stands on tile `standing` at `time`, on the clock of that tile's sweep (before or after it too). */
+export function poseOn(path: Path, standing: number, time: number): WalkingCrayon | null {
+  const tile = path.tiles[standing];
   const sweep = path.sweeps[standing];
-  if (pivot === undefined || sweep === undefined) return null;
+  if (tile === undefined || sweep === undefined) return null;
+  // At a repeat sign the crayon has gone back to the tile before the stretch and turns around that one.
+  const pivot = sweep.from ?? tile;
   const angle = orbiterAngle(sweep, time);
   const free = { x: pivot.x + Math.cos(angle), y: pivot.y + Math.sin(angle) };
   const [tip, flat] = standing % 2 === 0 ? [free, pivot] : [pivot, free];
-  const age = (time - pivot.time) / LANDING_SETTLE_S;
+  const age = (time - tile.time) / LANDING_SETTLE_S;
   // Fast, continuous pressure attack, then a longer release. Endpoint positions never squash.
   const settle = standing > 0 && age > 0 && age < 1 ? Math.sin(Math.PI * Math.sqrt(age)) ** 2 : 0;
   return {

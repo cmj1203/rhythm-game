@@ -80,6 +80,8 @@ const BAR_BEATS = 4;
 const ON_BEAT = 0.08;
 /** A chart's twirl time names the note within this many seconds of it. */
 const TWIRL_MATCH_S = 0.002;
+/** Two turning speeds whose ratio is within this of 1 are the same speed. */
+const SAME_SPEED = 1e-6;
 /** A note after a gap of at least this many beats comes back in after a rest. */
 const REST_BEATS = 2;
 
@@ -131,6 +133,8 @@ export function buildRhythmPath(
   const decisions: boolean[] = [];
   const reproduced: (Phrase & { readonly to: number })[] = [];
   const weights = [1];
+  // How many half turns a beat the crayon makes on each sweep: 1, or less on a long rest it turns more slowly.
+  const factors = [1];
   let heading = 0;
   let spin = 1;
   let replay: readonly boolean[] = [];
@@ -205,6 +209,7 @@ export function buildRhythmPath(
     });
     tiles.push({ ...step(pivot, heading), time: to });
     weights.push(Math.min(1.8, Math.max(0.6, Math.sqrt(gap))));
+    factors.push(angle / (Math.PI * gap));
   }
   const last = tiles.at(-1) ?? tiles[0];
   const endTime = last?.time ?? first;
@@ -216,13 +221,17 @@ export function buildRhythmPath(
     pace: "normal",
     isTwirl: false,
   });
-  const marks: (TempoMark | null)[] = tiles.map(() => null);
-  for (const [i, [start, bpm]] of tempo.entries()) {
-    const before = tempo[i - 1]?.[1];
-    if (before === undefined || before === bpm) continue;
-    const tile = tiles.findIndex(({ time }) => time >= start - 0.0001);
-    if (tile >= 0) marks[tile] = bpm > before ? "faster" : "slower";
-  }
+  // A note is marked wherever the crayon sets out from it turning at another speed than it came in: a new tempo, or
+  // a long rest turned at half speed (or a quarter) and the note after it, where it speeds up again. The speed holds
+  // from one mark to the next, so every change of speed the player feels has a mark on its note.
+  factors.push(1);
+  const speeds = sweeps.map(({ startTime }, i) => bpmAt(tempo, startTime) * (factors[i] ?? 1));
+  const marks: (TempoMark | null)[] = tiles.map((_, i) => {
+    const before = speeds[i - 1];
+    const now = speeds[i];
+    if (before === undefined || now === undefined || Math.abs(now / before - 1) < SAME_SPEED) return null;
+    return now > before ? "faster" : "slower";
+  });
   return {
     tiles, sweeps, weights,
     anchors: tiles.map((_, i) => i * SAMPLES_PER_TILE),
@@ -230,4 +239,4 @@ export function buildRhythmPath(
     drift: 0,
     rhythm: { tempo: songTempo, turns: tempo, marks, phrases: reproduced },
   };
-}__EOF__
+}

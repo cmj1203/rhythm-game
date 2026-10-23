@@ -15,6 +15,7 @@ import type { JudgeEvent, PlayState } from "./judge";
 import { cameraAt, orbiterAngle, type Pace, type Path } from "./path";
 import { poseAt, type Section } from "./sections";
 import { aheadClarity, aheadEnd, laterPasses, passColors } from "./road-view";
+import type { TempoMark } from "./tempo";
 import { drawTempoMark } from "./tempo-mark";
 import { standingAt } from "./walking-crayon";
 import { drawWalkingCrayon, type HitOnCrayon } from "./walking-crayon-draw";
@@ -92,6 +93,11 @@ const BURST_OPACITY = 0.7;
 const GLOW_REACH = 2.2;
 const GLOW_REACH_PER_TIER = 0.5;
 const PACE_COLOR = { normal: COLOR.text, fast: COLOR.pink, slow: COLOR.sky } as const satisfies Record<Pace, string>;
+
+/** Pink for a note the crayon speeds up from, sky for one it slows down from, none for the rest. */
+function speedMarkColor(mark: TempoMark | null | undefined): string | null {
+  return mark === "faster" ? COLOR.pink : mark === "slower" ? COLOR.sky : null;
+}
 /**
  * Tile markers in tiles, with the minimum stroke in pixels. Picture roads keep their original sizes;
  * rhythm roads use the smaller markers. A marked tile gets a smaller dot inside its ring.
@@ -257,9 +263,12 @@ function drawAhead(painter: Painter, { path, play, songTime }: PlayingFrame, vie
     ctx.globalAlpha = opacity * clarity(i - standing);
     const isMarked = sweep.pace !== "normal" || sweep.isTwirl;
     painter.circle(center, view.tileSize * (isMarked ? markers.markedDot : markers.dot));
-    const marker = sweep.isTwirl ? COLOR.violet : PACE_COLOR[sweep.pace];
+    // On a rhythm road a note is sky or pink only where the speed changes (its tempo mark), so a run of rests turned
+    // at the same slow speed shows one sky note, not one per rest.
+    const speedColor = speedMarkColor(path.rhythm?.marks[i]);
+    const marker = sweep.isTwirl ? COLOR.violet : isRhythm ? speedColor ?? COLOR.text : PACE_COLOR[sweep.pace];
     const dot = isRhythm
-      ? (sweep.pace !== "normal" && sweep.isTwirl ? PACE_COLOR[sweep.pace] : COLOR.text)
+      ? (speedColor !== null && sweep.isTwirl ? speedColor : COLOR.text)
       : (sweep.pace === "normal" ? marker : PACE_COLOR[sweep.pace]);
     ctx.fillStyle = isRhythm ? mixColors(COLOR.background, dot, DOT_STRENGTH) : dot;
     ctx.fill();
@@ -288,9 +297,9 @@ function drawAhead(painter: Painter, { path, play, songTime }: PlayingFrame, vie
   const targetMark = path.rhythm?.marks[standing + 1];
   const targetColor = targetSweep?.isTwirl === true
     ? COLOR.violet
-    : targetSweep !== undefined && targetSweep.pace !== "normal"
-      ? PACE_COLOR[targetSweep.pace]
-      : targetMark === "faster" ? COLOR.pink : targetMark === "slower" ? COLOR.sky : COLOR.text;
+    : isRhythm
+      ? speedMarkColor(targetMark) ?? COLOR.text
+      : targetSweep !== undefined && targetSweep.pace !== "normal" ? PACE_COLOR[targetSweep.pace] : COLOR.text;
   if (target !== undefined) {
     const width = Math.max(TARGET_MIN_WIDTH_PX, view.tileSize * TARGET_WIDTH);
     painter.circle(toScreen(view, target), view.tileSize * TARGET_RADIUS);
@@ -566,4 +575,4 @@ function drawGameOver(painter: Painter, { width, height }: Size): void {
   ctx.fillRect(0, 0, width, height);
   ctx.restore();
   painter.text("게임 오버", { x: width / 2, y: height * 0.45 }, { size: 48, weight: 800, color: JUDGEMENT_COLOR.miss });
-}__EOF__
+}

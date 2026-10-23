@@ -239,6 +239,12 @@ if (played.tiles.length !== best.tiles.length || worst > 1e-6 * z) throw new Ran
 
 const offLine = best.tiles.map((t) => Math.sqrt(nearest(t, 0, length)[1])).reduce((s, v) => s + v, 0) / best.tiles.length / z;
 const beats = best.gaps.reduce((s, g) => s + g, 0);
+// How far along the line each tile stands (0 to 1), followed forward the way the search walked it.
+let walked = 0;
+const fractions = best.tiles.map((t) => {
+  walked = Math.max(walked, nearest(t, walked - 0.3 * z, walked + 2.5 * z)[0]);
+  return +(walked / length).toFixed(4);
+});
 const result = {
   picture: pictureId,
   tile: z,
@@ -249,6 +255,7 @@ const result = {
   cells: best.cells.map((c) => CELLS[c]!.gaps),
   piece: { from: 0, scale, angle, x, y },
   tiles: best.tiles,
+  fractions,
   outline,
 };
 console.log(`ROAD ${pictureId}: ${result.notes} notes over ${beats} beats, off the outline ${result.offLineTiles} tiles on average`);

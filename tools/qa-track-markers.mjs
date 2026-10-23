@@ -121,7 +121,7 @@ export default async function checkMarkers(page, { device, outDir }) {
     window.__reviewStill = async (id) => {
       const chart = chartSchema.parse(await (await fetch(`/songs/${id}/chart.json`)).json());
       const sections = planSections(chart.notes, chart.bpm, chart.offset);
-      const path = dyePath(chart.road === "rhythm" ? buildRhythmPath(chart.notes, chart.tempo, chart.turnScale, chart.twirls)
+      const path = dyePath(chart.road === "rhythm" ? buildRhythmPath(chart.notes, chart.tempo, chart.turnScale, chart.twirls, chart.picture?.flips)
         : (await sewingOf(chart.notes, pictures[id])).path, sections);
       const time = chart.road === "rhythm" ? 22.5
         : (path.tiles[path.sweeps.findIndex((sweep) => sweep.pace !== "normal")]?.time ?? 5) + 0.15;

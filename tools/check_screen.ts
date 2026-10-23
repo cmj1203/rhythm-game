@@ -37,7 +37,7 @@ const script = `(async () => {
   for (const [number, song] of songs.entries()) {
     const chart = await (await fetch("/songs/" + song.id + "/chart.json")).json();
     if (chart.road === "rhythm") {
-      rows.push({ id: song.id, difficulty: chart.difficulty, road: roadStats(buildRhythmPath(chart.notes, chart.tempo, chart.turnScale, chart.twirls)) });
+      rows.push({ id: song.id, difficulty: chart.difficulty, road: roadStats(buildRhythmPath(chart.notes, chart.tempo, chart.turnScale, chart.twirls, chart.picture?.flips)) });
       continue;
     }
     const pinned = pins.get(song.id);

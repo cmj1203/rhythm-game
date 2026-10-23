@@ -59,7 +59,7 @@ function measure(path: Path, span: Span, model: Model) {
 
 const chart = chartSchema.parse(await Bun.file("public/songs/last-fortress/chart.json").json());
 if (chart.road !== "rhythm") throw new RangeError("missing rhythm chart");
-const path = buildRhythmPath(chart.notes, chart.tempo, chart.turnScale, chart.twirls);
+const path = buildRhythmPath(chart.notes, chart.tempo, chart.turnScale, chart.twirls, chart.picture?.flips);
 let dense = { start: 0, end: 7, count: 0 };
 for (const start of chart.notes) {
   const count = chart.notes.filter((time) => time >= start && time < start + 7).length;

@@ -42,7 +42,7 @@ try {
     const { accentsOf, buildRhythmPath } = await import(moduleUrl("rhythm-road"));
     const chart = chartSchema.parse(await (await fetch("/songs/last-fortress/chart.json")).json());
     const sections = planSections(chart.notes, chart.bpm, chart.offset);
-    const path = dyePath(buildRhythmPath(chart.notes, chart.tempo, chart.turnScale, chart.twirls), sections);
+    const path = dyePath(buildRhythmPath(chart.notes, chart.tempo, chart.turnScale, chart.twirls, chart.picture?.flips), sections);
     const accents = accentsOf(chart.notes, chart.tempo, chart.offset);
     const renderer = new Renderer(document.querySelector("#game"));
     for (const root of document.querySelectorAll("main, section")) root.hidden = true;

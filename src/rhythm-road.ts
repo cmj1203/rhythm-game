@@ -26,6 +26,8 @@ export type RoadPicture = {
   readonly name: string;
   readonly strokes: readonly Stroke[];
   readonly pieces: RoadPictureData["pieces"];
+  /** The road was laid along `strokes` itself: the result screen pulls it onto them instead of drawing them. */
+  readonly traced?: boolean;
 };
 export type RhythmPath = Path & { readonly rhythm: RhythmDetails };
 
@@ -228,4 +230,4 @@ export function buildRhythmPath(
     drift: 0,
     rhythm: { tempo: songTempo, turns: tempo, marks, phrases: reproduced },
   };
-}
+}__EOF__

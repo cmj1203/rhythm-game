@@ -124,11 +124,14 @@ export function drawResult(painter: Painter, frame: ResultFrame, size: Size): vo
   const rect = clothRect(size);
   const picture = frame.path.rhythm?.picture;
   const stage = revealStage(frame.elapsedMs);
-  const path = picture === undefined || stage.move === 0 ? frame.path : revealedPath(frame.path, picture, stage.move);
+  const traced = picture?.traced === true;
+  const path = picture === undefined || stage.move === 0
+    ? frame.path
+    : revealedPath(frame.path, picture, stage.move, traced ? stage.lines : 0);
   const view = fitView(path, rect);
   drawCloth(painter, view, size);
   drawStitches(painter, path, frame.play.history, view, 1, 1);
-  if (picture !== undefined && stage.lines > 0) drawPictureLines(painter, picture, view, stage.lines);
+  if (picture !== undefined && !traced && stage.lines > 0) drawPictureLines(painter, picture, view, stage.lines);
 
   const { ctx } = painter;
   ctx.save();

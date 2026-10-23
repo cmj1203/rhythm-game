@@ -16,8 +16,14 @@ const EDGE_PX = 3;
 const HAZE = 0.06;
 /** A lit landed end is mixed this far toward white. */
 const FLASH_WHITE = 0.4;
-const TRAIL_S = 0.065;
-const TRAIL_STEPS = 6;
+/**
+ * The swinging end leaves a fading tail along the arc it just swept, this long, drawn in this many pieces, at most
+ * this opaque and this wide (in tiles) right behind the crayon, thinning and fading to nothing at its far end.
+ */
+const TRAIL_S = 0.22;
+const TRAIL_STEPS = 14;
+const TRAIL_OPACITY = 0.8;
+const TRAIL_WIDTH = 0.16;
 const PACE_RING = { normal: COLOR.separator, fast: COLOR.pink, slow: COLOR.sky } as const satisfies Record<Pace, string>;
 /** The crayon is one colour, but while a note it stepped on has changed its speed it takes that note's colour. */
 const PACE_COLOR = { normal: COLOR.thread, fast: COLOR.pink, slow: COLOR.sky } as const satisfies Record<Pace, string>;
@@ -72,13 +78,14 @@ export function drawWalkingCrayon(
     // Keep the identities of the two ends through a landing. The old arc fades in place.
     const opacity = ctx.globalAlpha;
     ctx.lineCap = "round";
-    ctx.lineWidth = Math.max(1.5, size * 0.035);
     ctx.strokeStyle = color;
     for (let step = TRAIL_STEPS; step > 0; step--) {
+      const fade = 1 - (step - 0.5) / TRAIL_STEPS;
+      ctx.lineWidth = Math.max(1.5, size * TRAIL_WIDTH * fade);
       const before = walkingCrayonAt(path, songTime - TRAIL_S * step / TRAIL_STEPS);
       const after = walkingCrayonAt(path, songTime - TRAIL_S * (step - 1) / TRAIL_STEPS);
       if (before === null || after === null) continue;
-      ctx.globalAlpha = opacity * 0.18 * (1 - (step - 0.5) / TRAIL_STEPS);
+      ctx.globalAlpha = opacity * TRAIL_OPACITY * fade;
       for (const end of ["tip", "flat"] as const) {
         const from = toScreen(view, before[end]);
         const to = toScreen(view, after[end]);

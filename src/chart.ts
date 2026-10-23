@@ -58,11 +58,6 @@ export const chartSchema = z.union([
     /** Times of notes after which the crayon turns back the other way, set by hand. */
     twirls: z.array(z.number().nonnegative()).optional(),
     picture: roadPictureSchema.optional(),
-    /**
-     * Repeat sections, as in sheet music: the notes from `from`, `count` of them, are played again right after by the
-     * next `count` notes, which walk the very same tiles with the same rhythm, and then the road goes on.
-     */
-    repeats: z.array(z.object({ from: z.number().int().nonnegative(), count: z.number().int().positive() })).optional(),
   }),
 ]);
 

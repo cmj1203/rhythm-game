@@ -20,10 +20,7 @@ export type RhythmDetails = {
   readonly phrases: readonly (Phrase & { readonly to: number })[];
   /** The picture the road's pieces move into on the result screen, if the chart has one. */
   readonly picture?: RoadPicture;
-  /** The tiles the road jumps back from, at a repeat sign: the next tile stands where an earlier one did. */
-  readonly jumps: readonly number[];
 };
-export type RepeatSection = { readonly from: number; readonly count: number };
 /** `name` is what the result screen calls the picture; `strokes` are its lines, in the picture's own units. */
 export type RoadPicture = {
   readonly name: string;
@@ -51,17 +48,14 @@ function sweepAngle(units: number): number {
   return (Math.PI * units) / divisor;
 }
 
-/**
- * The guide is the travelled line itself, sampled exactly at each tile, not fitted to a picture. From a tile the road
- * jumps back from, the samples all stay on it: the jump is no line to draw or sew.
- */
-function guideOf(tiles: readonly Tile[], jumps: ReadonlySet<number>): Guide {
+/** The guide is the travelled line itself, sampled exactly at each tile, not fitted to a picture. */
+function guideOf(tiles: readonly Tile[]): Guide {
   const points: Point[] = [];
   for (const [i, tile] of tiles.entries()) {
     const next = tiles[i + 1];
     if (next === undefined) break;
     for (let k = 0; k < SAMPLES_PER_TILE; k++) {
-      const along = jumps.has(i) ? 0 : k / SAMPLES_PER_TILE;
+      const along = k / SAMPLES_PER_TILE;
       points.push({ x: tile.x + (next.x - tile.x) * along, y: tile.y + (next.y - tile.y) * along });
     }
   }
@@ -112,9 +106,6 @@ export function accentsOf(times: readonly number[], tempo: TempoMap, offset: num
  * After a note at one of the times in `twirls` the crayon turns back the other way, wherever that leaves room.
  * Given `flips` (note indices), the crayon turns back after exactly those notes and nowhere else, as a picture's road
  * was laid out; a phrase is then marked as repeated only where its twirls are the same as the earlier one's.
- * At each of `repeats` the road jumps back: the note after the stretch stands on the stretch's first tile again, the
- * crayon set as it was there, and the stretch is walked once more with the same turns, so the second pass lands
- * on the very same tiles.
  */
 export function buildRhythmPath(
   times: readonly number[],
@@ -122,7 +113,6 @@ export function buildRhythmPath(
   turnScale?: TempoMap,
   twirls: readonly number[] = [],
   flips?: readonly number[],
-  repeats: readonly RepeatSection[] = [],
 ): RhythmPath {
   const tempo = scaledTempo(songTempo, turnScale);
   const forced = new Set(times.flatMap((time, i) => (twirls.some((at) => Math.abs(at - time) < TWIRL_MATCH_S) ? [i] : [])));
@@ -149,17 +139,6 @@ export function buildRhythmPath(
   let spin = 1;
   let replay: readonly boolean[] = [];
   let replayAt = 0;
-  // Where the road jumps back (by the unit it jumps over) to which note's tile, and which earlier unit each unit of a
-  // second pass walks again; and the crayon's heading and spin after each note's tile, to set it back there.
-  const jumpTo = new Map<number, number>();
-  const secondPassOf = new Map<number, number>();
-  for (const { from, count } of repeats) {
-    jumpTo.set(from + count - 1, from);
-    for (let k = 0; k + 1 < count; k++) secondPassOf.set(from + count + k, from + k);
-  }
-  const headingAfter = [0];
-  const spinAfter = [1];
-  const jumps = new Set<number>();
 
   for (const [i, gap] of units.entries()) {
     const pivot = tiles[i + 1];
@@ -205,40 +184,17 @@ export function buildRhythmPath(
       }
     }
 
-    const source = jumpTo.get(i);
-    if (source !== undefined) {
-      // The repeat sign: the crayon is set back as it stood on the tile before the stretch, and this sweep turns it
-      // into the stretch's first tile again, from there.
-      const first = tiles[source + 1];
-      const before = tiles[source];
-      const entry = sweeps[source];
-      if (first === undefined || before === undefined || entry === undefined) break;
-      heading = headingAfter[source] ?? heading;
-      spin = spinAfter[source] ?? spin;
-      decisions.push(false);
-      sweeps.push({ ...entry, startTime: from, endTime: to, tempo, from: { x: before.x, y: before.y } });
-      tiles.push({ x: first.x, y: first.y, time: to });
-      weights.push(weights[source + 1] ?? 1);
-      factors.push(factors[source + 1] ?? 1);
-      headingAfter.push(heading);
-      spinAfter.push(spin);
-      jumps.add(i + 1);
-      continue;
-    }
     const angle = sweepAngle(gap);
     const forward = step(pivot, heading + Math.PI + spin * angle);
     const backward = step(pivot, heading + Math.PI - spin * angle);
     const avoidsOverlap = crowded(tiles, forward) && !crowded(tiles, backward);
     const isReplayed = replayAt < replay.length;
     if (isReplayed) replayAt++;
-    const again = secondPassOf.get(i);
-    const twirl = again !== undefined
-      ? decisions[again] === true
-      : exact !== null
-        ? exact.has(i)
-        : isReplayed
-          ? replay[replayAt - 1] === true
-          : avoidsOverlap || (forced.has(i) && !crowded(tiles, backward));
+    const twirl = exact !== null
+      ? exact.has(i)
+      : isReplayed
+        ? replay[replayAt - 1] === true
+        : avoidsOverlap || (forced.has(i) && !crowded(tiles, backward));
     if (twirl) spin *= -1;
     heading = (heading + Math.PI + spin * angle) % (Math.PI * 2);
     decisions.push(twirl);
@@ -254,8 +210,6 @@ export function buildRhythmPath(
     tiles.push({ ...step(pivot, heading), time: to });
     weights.push(Math.min(1.8, Math.max(0.6, Math.sqrt(gap))));
     factors.push(angle / (Math.PI * gap));
-    headingAfter.push(heading);
-    spinAfter.push(spin);
   }
   const last = tiles.at(-1) ?? tiles[0];
   const endTime = last?.time ?? first;
@@ -281,8 +235,8 @@ export function buildRhythmPath(
   return {
     tiles, sweeps, weights,
     anchors: tiles.map((_, i) => i * SAMPLES_PER_TILE),
-    guide: guideOf(tiles, jumps),
+    guide: guideOf(tiles),
     drift: 0,
-    rhythm: { tempo: songTempo, turns: tempo, marks, phrases: reproduced, jumps: [...jumps] },
+    rhythm: { tempo: songTempo, turns: tempo, marks, phrases: reproduced },
   };
 }

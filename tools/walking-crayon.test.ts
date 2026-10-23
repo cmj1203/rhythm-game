@@ -93,7 +93,7 @@ test("Last Fortress has no boundary jumps or unexplained 60fps movement", async 
   // Given the real variable-tempo rhythm road, including 196 BPM riffs and long rests.
   const chart = chartSchema.parse(await Bun.file(new URL("../public/songs/last-fortress/chart.json", import.meta.url)).json());
   if (chart.road !== "rhythm") throw new RangeError("missing rhythm chart");
-  const path = buildRhythmPath(chart.notes, chart.tempo, chart.turnScale, chart.twirls, chart.picture?.flips, chart.repeats);
+  const path = buildRhythmPath(chart.notes, chart.tempo, chart.turnScale, chart.twirls, chart.picture?.flips);
   // When both physical ends are evaluated every frame and across every landing.
   const frames = Array.from({ length: 5600 }, (_, i) => pose(path, i / 60));
   const pairs = chart.notes.map((time) => [pose(path, time - 1e-9), pose(path, time + 1e-9)] as const);

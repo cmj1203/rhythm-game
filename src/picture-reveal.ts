@@ -14,8 +14,6 @@ export const SETTLE_SHARE = 0.65;
 /** How far back and ahead along the picture's line (in tiles) a settling point looks for its spot. */
 const SETTLE_BACK_TILES = 0.5;
 const SETTLE_AHEAD_TILES = 3;
-/** Consecutive guide points further apart than this many tiles are on either side of a repeat sign's jump. */
-const JUMP_TILES = 1.5;
 
 /** How far the pieces have moved (0 to 1, eased) and how clearly the picture's lines show, `elapsedMs` in. */
 export function revealStage(elapsedMs: number): RevealStage {
@@ -85,21 +83,7 @@ function settledTargets(path: Path, picture: RoadPicture): readonly Point[] {
   const tile = picture.pieces[0]?.scale ?? 1;
   let walked = 0;
   let first = 0;
-  // A point the road comes back to at a repeat sign settles where it settled the first time.
-  const settled = new Map<string, { spot: Point; along: number }>();
-  const keyOf = ({ x, y }: Point): string => `${Math.round(x / tile * 4)},${Math.round(y / tile * 4)}`;
-  const targets = placed.map((point, index) => {
-    const before = placed[index - 1];
-    const jumped = before !== undefined && Math.hypot(point.x - before.x, point.y - before.y) > JUMP_TILES * tile;
-    const seen = settled.get(keyOf(point));
-    if (jumped && seen !== undefined) {
-      walked = seen.along;
-      first = 0;
-    }
-    if (seen !== undefined && Math.abs(seen.along - walked) <= SETTLE_AHEAD_TILES * tile) {
-      walked = Math.max(walked, seen.along);
-      return seen.spot;
-    }
+  const targets = placed.map((point) => {
     while (first < segments.length - 1 && segments[first]!.to < walked - SETTLE_BACK_TILES * tile) first++;
     let best = { spot: point, along: walked, d2: Number.POSITIVE_INFINITY };
     for (let i = first; i < segments.length && segments[i]!.from <= walked + SETTLE_AHEAD_TILES * tile; i++) {
@@ -112,7 +96,6 @@ function settledTargets(path: Path, picture: RoadPicture): readonly Point[] {
       if (d2 < best.d2) best = { spot, along: from + (to - from) * t, d2 };
     }
     walked = Math.max(walked, best.along);
-    settled.set(keyOf(point), { spot: best.spot, along: best.along });
     return best.spot;
   });
   settledSpots.set(path, targets);

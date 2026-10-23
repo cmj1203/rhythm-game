@@ -1,10 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import { chartSchema } from "../src/chart";
 import type { Route } from "../src/drawing";
-import { buildPath, cameraAt, orbiterAngle } from "../src/path";
+import { buildPath, orbiterAngle } from "../src/path";
 import { buildRhythmPath } from "../src/rhythm-road";
 import { beatsBetween } from "../src/tempo";
-import { walkingCrayonAt } from "../src/walking-crayon";
 
 const tempo = [[0, 120]] as const;
 const wrap = (radians: number): number => Math.atan2(Math.sin(radians), Math.cos(radians));
@@ -207,33 +206,6 @@ describe("rhythm road", () => {
     expect(violets(own)).toBeLessThanOrEqual(20);
     expect(violets(path)).toBeLessThanOrEqual(violets(own) + (chart.twirls?.length ?? 0));
     expect(path.tiles.slice(1).map(({ time }) => time)).toEqual(chart.notes);
-  });
-
-  test("a repeat sign walks the same tiles again, from the tile before them, with no line across the jump", () => {
-    // Given notes a beat, a half and a beat apart, then a jump of a beat and the half and beat again, then on.
-    const times = [0, 1, 1.5, 2.5, 3, 4, 5, 6];
-    // When the road is laid with notes 1 and 2 repeated by notes 3 and 4.
-    const path = buildRhythmPath(times, [[0, 60]], undefined, [], undefined, [{ from: 1, count: 2 }]);
-    const same = (a: number, b: number): boolean =>
-      Math.hypot((path.tiles[a]?.x ?? 0) - (path.tiles[b]?.x ?? 0), (path.tiles[a]?.y ?? 0) - (path.tiles[b]?.y ?? 0)) < 1e-9;
-    // Then the second pass stands on the first pass's tiles, the exit goes somewhere new, the jump is recorded,
-    // the guide does not cross the jump, and at the jump the crayon turns around the tile before the stretch.
-    expect(same(4, 2) && same(5, 3)).toBe(true);
-    expect(same(6, 2) || same(6, 3) || same(6, 4)).toBe(false);
-    expect(path.rhythm.jumps).toEqual([3]);
-    const landed = path.tiles[3]!;
-    for (const point of path.guide.points.slice(path.anchors[3], path.anchors[4])) {
-      expect(Math.hypot(point.x - landed.x, point.y - landed.y)).toBeLessThan(1e-9);
-    }
-    const jumping = walkingCrayonAt(path, 2)!;
-    expect(jumping.standing).toBe(3);
-    expect(jumping.pivot).toEqual({ x: path.tiles[1]!.x, y: path.tiles[1]!.y });
-    // And the camera does not glide across the jump: just before it, it is near the stretch's end; soon after, near
-    // the stretch's start.
-    const before = cameraAt(path, 1.49);
-    const after = cameraAt(path, 2.7);
-    expect(Math.hypot(before.x - landed.x, before.y - landed.y)).toBeLessThan(1.5);
-    expect(Math.hypot(after.x - path.tiles[4]!.x, after.y - path.tiles[4]!.y)).toBeLessThan(1.5);
   });
 
   test("the finished guide is exactly the travelled road", () => {

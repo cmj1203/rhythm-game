@@ -27,11 +27,6 @@ export type Sweep = {
   readonly pace: Pace;
   readonly isTwirl: boolean;
   readonly tempo?: TempoMap;
-  /**
-   * The spot the crayon turns around during this sweep when it is not the sweep's own tile: at a repeat sign the
-   * crayon is already back on the tile before the repeated stretch, turning into its first tile again.
-   */
-  readonly from?: Point;
 };
 
 /**
@@ -483,56 +478,7 @@ function twiceSummedAt(tiles: readonly Tile[], sums: RoadSums, time: number): Po
  * bending. (The weights fall off evenly to nothing at the reach, which makes the average the second difference of
  * the road summed up twice.)
  */
-export function cameraAt(path: Path, time: number): Point {
-  const stretches = stretchesOf(path);
-  let k = 0;
-  while (k + 1 < stretches.length && (stretches[k + 1]?.[0]?.time ?? Infinity) <= time) k++;
-  const tiles = stretches[k] ?? path.tiles;
-  const here = glidingCameraAt(tiles, time);
-  const jumpAt = stretches[k + 1]?.[0]?.time;
-  const landed = tiles[0]?.time;
-  const earlier = stretches[k - 1];
-  if (jumpAt !== undefined && jumpAt - time < JUMP_LEAD_S) {
-    // Before a repeat sign the camera leans toward the spot the crayon will be set back to, so both are on screen.
-    const back = stretches[k + 1]?.[0];
-    const lean = JUMP_LEAN * Math.min(1, (JUMP_LEAD_S - (jumpAt - time)) / JUMP_LEAN_IN_S);
-    if (back !== undefined) return { x: here.x + (back.x - here.x) * lean, y: here.y + (back.y - here.y) * lean };
-  }
-  if (k > 0 && earlier !== undefined && landed !== undefined && time - landed < JUMP_CUT_S) {
-    // Just after one it cuts over, with a short ease, rather than gliding across the picture.
-    const was = cameraAt({ ...path, tiles: earlier }, landed - 1e-6);
-    const t = (time - landed) / JUMP_CUT_S;
-    const ease = t * t * (3 - 2 * t);
-    return { x: was.x + (here.x - was.x) * ease, y: was.y + (here.y - was.y) * ease };
-  }
-  return here;
-}
-
-/** How long before a repeat sign the camera starts leaning toward the set-back spot, how far it leans, and the cut. */
-const JUMP_LEAD_S = 1.2;
-const JUMP_LEAN_IN_S = 0.4;
-const JUMP_LEAN = 0.5;
-const JUMP_CUT_S = 0.1;
-/** Consecutive tiles further apart than this are on either side of a repeat sign's jump. */
-const JUMP_TILES = 1.5;
-
-const roadStretches = new WeakMap<readonly Tile[], readonly (readonly Tile[])[]>();
-
-/** The road cut into the stretches between its jumps: the camera glides within one and cuts between them. */
-function stretchesOf({ tiles }: Path): readonly (readonly Tile[])[] {
-  const known = roadStretches.get(tiles);
-  if (known !== undefined) return known;
-  const stretches: Tile[][] = [[]];
-  for (const [i, tile] of tiles.entries()) {
-    const before = tiles[i - 1];
-    if (before !== undefined && Math.hypot(tile.x - before.x, tile.y - before.y) > JUMP_TILES) stretches.push([]);
-    stretches[stretches.length - 1]?.push(tile);
-  }
-  roadStretches.set(tiles, stretches);
-  return stretches;
-}
-
-function glidingCameraAt(tiles: readonly Tile[], time: number): Point {
+export function cameraAt({ tiles }: Path, time: number): Point {
   const sums = sumsOf(tiles);
   const before = twiceSummedAt(tiles, sums, time - CAMERA_REACH_S);
   const at = twiceSummedAt(tiles, sums, time);

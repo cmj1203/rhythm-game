@@ -614,9 +614,9 @@
    "id": "eight-arms",
    "title": "Eight Arms",
    "bpm": 176,
-   "duration": 173.44,
+   "duration": 181.6,
    "difficulty": "normal",
-   "notes": 461,
+   "notes": 473,
    "artist": "LiveCanvas",
    "credit": "Piano samples: Salamander Grand Piano V3 by Alexander Holm, licensed under CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/). SFZ mapping by kinwie; retuning by Markus Fiedler. Source: https://github.com/sfzinstruments/SalamanderGrandPiano."
   },
@@ -624,9 +624,9 @@
    "id": "breach",
    "title": "Breach",
    "bpm": 152,
-   "duration": 189.24,
+   "duration": 197.52,
    "difficulty": "normal",
-   "notes": 413,
+   "notes": 439,
    "artist": "LiveCanvas",
    "credit": "Piano samples: Salamander Grand Piano V3 by Alexander Holm, licensed under CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/). SFZ mapping by kinwie; retuning by Markus Fiedler. Source: https://github.com/sfzinstruments/SalamanderGrandPiano."
   }

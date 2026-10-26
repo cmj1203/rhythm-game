@@ -57,6 +57,8 @@ type Screen =
       /** The screen the play began from, for starting the song again after a game over. */
       readonly source: ReadyScreen;
       feedback: Feedback | null;
+      /** Paused: the song and the crayon stand still and presses do nothing until it plays on. */
+      paused: boolean;
     })
   | (Session & {
       readonly kind: "result";
@@ -138,6 +140,8 @@ async function boot(): Promise<void> {
   const renderer = new Renderer(requireElement<HTMLCanvasElement>("#game"));
   const overButtons = requireElement<HTMLElement>("#over");
   const backCorner = requireElement<HTMLElement>("#back");
+  const pauseCorner = requireElement<HTMLElement>("#pause");
+  const pausedButtons = requireElement<HTMLElement>("#paused");
   const player = new SongPlayer();
   const volume = savedVolume();
   player.setVolume(volume);
@@ -191,7 +195,10 @@ async function boot(): Promise<void> {
       let sewing: Sewing;
       switch (chart.road) {
         case "rhythm": {
-          const road = buildRhythmPath(times, chart.tempo, chart.turnScale, chart.twirls, chart.picture?.flips);
+          const road = buildRhythmPath(times, chart.tempo, chart.turnScale, chart.twirls, chart.picture?.flips, {
+            pauses: chart.pauses,
+            midspins: chart.midspins,
+          });
           if (chart.picture === undefined) {
             sewing = { pictureName: "", path: road };
             break;
@@ -342,12 +349,15 @@ async function boot(): Promise<void> {
     player.stop();
     overButtons.hidden = true;
     backCorner.hidden = true;
+    pauseCorner.hidden = true;
+    pausedButtons.hidden = true;
     screen = { kind: "menu" };
     menu.show();
   };
 
   const startPlaying = (ready: ReadyScreen): void => {
     backCorner.hidden = true;
+    pauseCorner.hidden = false;
     player.start(ready.buffer, ready.audioShift, ready.volume, [
       ...ready.countIn,
       ...(query.has("tick") ? ready.play.times : []),
@@ -364,8 +374,56 @@ async function boot(): Promise<void> {
       bursts: [],
       source: ready,
       feedback: null,
+      paused: false,
     };
   };
+
+  const pause = (playing: PlayingScreen): void => {
+    if (playing.paused) return;
+    playing.paused = true;
+    player.pause();
+    pauseCorner.hidden = true;
+    pausedButtons.hidden = false;
+  };
+  const playOn = (playing: PlayingScreen): void => {
+    if (!playing.paused) return;
+    // The paused buttons stay until the audio really plays on: a resume refused (say, during a phone call) leaves
+    // them there to try again or leave.
+    void player.resume().then(() => {
+      // Already resumed by an earlier press, or left for the song list meanwhile.
+      if (!playing.paused || screen !== playing) return;
+      pausedButtons.hidden = true;
+      pauseCorner.hidden = false;
+      playing.paused = false;
+      // Hidden while it was resuming: the visibility handler found it still paused, so pause it here.
+      if (document.hidden && screen === playing) pause(playing);
+    });
+  };
+  const pauseButton = element("button", "start secondary", "일시정지");
+  pauseButton.type = "button";
+  // A tap anywhere else during play is a press; this one must not be.
+  pauseButton.addEventListener("pointerdown", (event) => event.stopPropagation());
+  pauseButton.addEventListener("click", () => {
+    if (screen.kind === "playing") pause(screen);
+  });
+  pauseCorner.append(pauseButton);
+  const playOnButton = element("button", "start", "계속하기");
+  const leaveButton = element("button", "start secondary", "곡 선택");
+  for (const button of [playOnButton, leaveButton]) {
+    button.type = "button";
+    button.addEventListener("pointerdown", (event) => event.stopPropagation());
+  }
+  playOnButton.addEventListener("click", () => {
+    if (screen.kind === "playing") playOn(screen);
+  });
+  leaveButton.addEventListener("click", () => {
+    if (screen.kind === "playing") backToMenu();
+  });
+  pausedButtons.append(element("p", "paused-title", "일시정지"), playOnButton, leaveButton);
+  // Switching away from the game mid-song pauses it, so the song does not run on unheard and unplayed.
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden && screen.kind === "playing") pause(screen);
+  });
 
   /** The same song from the start, waiting for the start key, with nothing played yet. */
   const playAgain = (ended: Extract<Screen, { kind: "over" | "result" }>): void => {
@@ -479,11 +537,17 @@ async function boot(): Promise<void> {
         startPlaying(screen);
         return;
       case "playing":
+        if (screen.paused) {
+          if (event.code === "Escape" || event.code === "Enter") playOn(screen);
+          return;
+        }
         if (event.code === "Escape") {
-          backToMenu();
+          pause(screen);
           return;
         }
         if (event.metaKey || event.ctrlKey || event.altKey) return;
+        // Enter or Space on the focused pause button presses it, not a note.
+        if (event.target instanceof HTMLButtonElement && (event.code === "Enter" || event.code === "Space")) return;
         event.preventDefault();
         press(screen, event.timeStamp);
         return;
@@ -500,7 +564,7 @@ async function boot(): Promise<void> {
   window.addEventListener("pointerdown", (event) => {
     if (screen.kind === "title") intro.skip();
     else if (screen.kind === "ready") startPlaying(screen);
-    else if (screen.kind === "playing") press(screen, event.timeStamp);
+    else if (screen.kind === "playing" && !screen.paused) press(screen, event.timeStamp);
     else if (screen.kind === "calibration" && !(event.target instanceof HTMLButtonElement)) {
       calibration.press(event.timeStamp);
     } else if (screen.kind === "tutorial" && !(event.target instanceof HTMLButtonElement)) {
@@ -550,6 +614,7 @@ async function boot(): Promise<void> {
           };
           placeEndButtons();
           overButtons.hidden = false;
+          pauseCorner.hidden = true;
           return nextFrame();
         }
         // The song may still be playing its outro here; it keeps going under the result screen.
@@ -572,6 +637,7 @@ async function boot(): Promise<void> {
           };
           placeEndButtons();
           overButtons.hidden = false;
+          pauseCorner.hidden = true;
           return nextFrame();
         }
         return {

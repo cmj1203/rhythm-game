@@ -285,6 +285,41 @@ body {
   font-size: 14px;
 }
 
+/* During play: a pause button in the same corner; once paused, the way on and the way out in the middle. */
+#pause {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+}
+
+#pause .start {
+  padding: 8px 14px;
+  font-size: 14px;
+}
+
+#paused {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: color-mix(in srgb, var(--background, #0b0c10) 70%, transparent);
+}
+
+.paused-title {
+  margin: 0 0 8px;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+#pause[hidden],
+#paused[hidden] {
+  display: none;
+}
+
 .difficulty:focus-visible,
 .start:focus-visible {
   outline: 2px solid var(--text);

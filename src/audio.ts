@@ -159,6 +159,28 @@ export class SongPlayer {
    * timing check measured. Song time is moved back by this much, for the judging and the picture alike.
    */
   private lag = 0;
+  /** While paused, the song time heard when it was paused; null while it plays. */
+  private pausedAt: number | null = null;
+  /**
+   * When the song was last resumed (performance clock, ms). Until the browser pairs the audio and performance clocks
+   * again after that, the paired stamp still dates from before the pause and would put the song ahead by the pause.
+   */
+  private resumedAt = 0;
+
+  /** Stops the song where it is, clicks and all: the audio clock itself stops, so song time stands still. */
+  pause(): void {
+    if (this.pausedAt !== null) return;
+    this.pausedAt = this.heardTime(performance.now());
+    void this.context.suspend();
+  }
+
+  /** Plays on from where `pause` stopped. */
+  async resume(): Promise<void> {
+    if (this.pausedAt === null) return;
+    await this.context.resume();
+    this.resumedAt = performance.now();
+    this.pausedAt = null;
+  }
 
   setVolume(share: number): void {
     this.output.gain.value = share;
@@ -247,6 +269,10 @@ export class SongPlayer {
   }
 
   stop(): void {
+    if (this.pausedAt !== null) {
+      this.pausedAt = null;
+      void this.context.resume();
+    }
     this.source?.stop();
     this.source?.disconnect();
     this.source = null;
@@ -261,10 +287,11 @@ export class SongPlayer {
 
   /** Song position (seconds) coming out of the speakers at `performanceMs`, as far as the browser knows. */
   heardTime(performanceMs: number): number {
+    if (this.pausedAt !== null) return this.pausedAt;
     // getOutputTimestamp pairs the audio clock with the performance clock, so a key event's own
     // timestamp can be converted instead of sampling the clock whenever the handler happens to run.
     const stamp = this.context.getOutputTimestamp();
-    if (stamp.contextTime !== undefined && stamp.performanceTime !== undefined && stamp.performanceTime > 0) {
+    if (stamp.contextTime !== undefined && stamp.performanceTime !== undefined && stamp.performanceTime > this.resumedAt) {
       return stamp.contextTime + (performanceMs - stamp.performanceTime) / 1000 - this.startAt;
     }
     const latency = Number.isFinite(this.context.outputLatency) ? this.context.outputLatency : 0;

@@ -3,11 +3,11 @@ export type Judgement = (typeof JUDGEMENTS)[number];
 export type HitJudgement = Exclude<Judgement, "miss">;
 
 const HIT_WINDOWS = [
-  { judgement: "perfect", withinS: 0.04 },
-  { judgement: "great", withinS: 0.08 },
-  { judgement: "good", withinS: 0.12 },
+  { judgement: "perfect", withinS: 0.06 },
+  { judgement: "great", withinS: 0.1 },
+  { judgement: "good", withinS: 0.14 },
 ] as const;
-const MAX_WINDOW_S = 0.12;
+const MAX_WINDOW_S = 0.14;
 const BASE_SCORE = { perfect: 1000, great: 600, good: 300 } as const satisfies Record<HitJudgement, number>;
 const ACCURACY_WEIGHT = { perfect: 1, great: 0.7, good: 0.4, miss: 0 } as const satisfies Record<Judgement, number>;
 const COMBO_BONUS = 10;

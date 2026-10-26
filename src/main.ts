@@ -1,5 +1,6 @@
 import { assertNever } from "./assert";
 import { countIn, decodingShift, LEAD_IN_S, SongPlayer, volumeFor } from "./audio";
+import { bpmAt } from "./tempo";
 import { recordBest } from "./best";
 import { CalibrationScreen } from "./calibration";
 import { SettingsScreen } from "./settings";
@@ -241,7 +242,8 @@ async function boot(): Promise<void> {
         buffer,
         audioShift: decodingShift(buffer, chart.anchors),
         volume: volumeFor(buffer),
-        countIn: countIn(chart.bpm, times),
+        // Counted in at the tempo the song starts at, where the chart has a tempo map.
+        countIn: countIn(chart.tempo === undefined ? chart.bpm : bpmAt(chart.tempo, times[0] ?? 0), times),
         accents: chart.road === "rhythm" ? accentsOf(times, chart.tempo, chart.offset) : [],
       };
     } catch (error) {
@@ -650,6 +652,7 @@ async function boot(): Promise<void> {
           duration: screen.duration,
           feedback: screen.feedback,
           bursts: screen.bursts,
+          countdown: screen.source.countIn,
         };
       }
       case "over":

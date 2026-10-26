@@ -37,9 +37,16 @@ export type PlayingFrame = {
   readonly duration: number;
   readonly feedback: Feedback | null;
   readonly bursts: readonly Feedback[];
+  /** Song times of the count-in clicks; 3, 2, 1 and START show on them, one each. */
+  readonly countdown?: readonly number[];
 };
 
 export const BURST_S = 0.45;
+const COUNTDOWN_WORDS = ["3", "2", "1", "START"] as const;
+const COUNTDOWN_SIZE = 64;
+/** Each word pops in this much bigger and fades this far by the next click. */
+const COUNTDOWN_POP = 0.25;
+const COUNTDOWN_FADE = 0.6;
 /** How far the frozen road is darkened behind the game over notice. */
 const GAME_OVER_SHADE = 0.6;
 /** Near a game over the screen's edges glow miss red, at most this strongly, fading out this share of its shorter side in. */
@@ -663,6 +670,24 @@ function drawFeedback(painter: Painter, feedback: Feedback | null, songTime: num
   ctx.restore();
 }
 
+/** Each word shows from its click until the next one (the last for as long again), popping in and fading out. */
+function drawCountdown(painter: Painter, clicks: readonly number[], songTime: number, at: Point): void {
+  const { ctx } = painter;
+  for (const [k, word] of COUNTDOWN_WORDS.entries()) {
+    const shownAt = clicks[k];
+    const before = clicks[k - 1];
+    if (shownAt === undefined) continue;
+    const until = clicks[k + 1] ?? shownAt + (before === undefined ? 0.5 : shownAt - before);
+    if (songTime < shownAt || songTime >= until) continue;
+    const age = (songTime - shownAt) / (until - shownAt);
+    const pop = REDUCED_MOTION.matches ? 0 : COUNTDOWN_POP * (1 - age);
+    ctx.save();
+    ctx.globalAlpha *= 1 - COUNTDOWN_FADE * age;
+    painter.text(word, at, { size: COUNTDOWN_SIZE * (1 + pop), weight: 800 });
+    ctx.restore();
+  }
+}
+
 function drawHud(painter: Painter, frame: PlayingFrame, { width, height }: Size): void {
   const { ctx } = painter;
   const { play, feedback, songTime } = frame;
@@ -685,6 +710,7 @@ function drawHud(painter: Painter, frame: PlayingFrame, { width, height }: Size)
   if (frame.phase === "ready") {
     painter.text("누르면 시작", { x, y: height * 0.2 }, { size: 28, weight: 800 });
   }
+  if (frame.phase === "playing") drawCountdown(painter, frame.countdown ?? [], songTime, { x, y: height * 0.2 });
   drawFeedback(painter, feedback, songTime, { x, y: height * 0.76 });
 }
 

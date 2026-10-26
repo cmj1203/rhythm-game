@@ -132,7 +132,7 @@ export function drawCloth(painter: Painter, view: View, { width, height }: Size)
  */
 export function drawGuide(
   painter: Painter,
-  { tiles, rhythm }: Path,
+  { tiles, sweeps, rhythm }: Path,
   view: View,
   from: number,
   to: number,
@@ -148,7 +148,7 @@ export function drawGuide(
   ctx.lineCap = "round";
   ctx.lineWidth = Math.max(1.5, view.tileSize * (rhythm === undefined ? GUIDE_WIDTH : RHYTHM_GUIDE_WIDTH));
   for (let i = from; i < to; i++) {
-    const tile = tiles[i];
+    const tile = tiles[sweeps[i]?.around ?? i];
     const next = tiles[i + 1];
     if (tile === undefined || next === undefined) continue;
     const start = toScreen(view, tile);
@@ -209,7 +209,7 @@ function strokeLine(ctx: CanvasRenderingContext2D, line: readonly Point[]): void
  */
 export function drawStitches(
   painter: Painter,
-  { tiles, anchors, weights, guide, rhythm }: Path,
+  { tiles, sweeps, anchors, weights, guide, rhythm }: Path,
   history: readonly Judgement[],
   view: View,
   taut: number,
@@ -226,7 +226,8 @@ export function drawStitches(
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
   history.forEach((judgement, note) => {
-    const fromTile = tiles[note];
+    // After a midspin the stroke starts from the tile the crayon kept turning around.
+    const fromTile = tiles[sweeps[note]?.around ?? note];
     const toTile = tiles[note + 1];
     const start = anchors[note];
     const end = anchors[note + 1];

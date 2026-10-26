@@ -61,12 +61,14 @@ export function drawWalkingCrayon(
   const center = toScreen(view, pose.pivot);
   const tip = toScreen(view, pose.tip);
   const color = crayonColor(path, pose.standing);
-  const pointStands = pose.standing % 2 === 1;
+  const pointStands = pose.tip === pose.pivot;
   const landed = hit !== null && hit.landing === pose.standing ? hit : null;
   const swell = landed === null || CALM.matches ? 0 : landed.swell;
+  const sweep = path.sweeps[pose.standing];
+  // Past a midspin the end that touched the tile swings on, so that end is the one that swells and lights.
+  const pointLanded = sweep?.around === undefined ? pointStands : !pointStands;
   ctx.save();
 
-  const sweep = path.sweeps[pose.standing];
   if (sweep !== undefined) {
     painter.circle(center, size);
     ctx.strokeStyle = PACE_RING[sweep.pace];
@@ -102,8 +104,8 @@ export function drawWalkingCrayon(
   ctx.translate(tip.x, tip.y);
   ctx.rotate(pose.heading + view.angle + Math.PI);
   ctx.scale(size, size);
-  const pointHalf = HALF * (pointStands ? 1 + swell : 1);
-  const buttHalf = HALF * (pointStands ? 1 : 1 + swell);
+  const pointHalf = HALF * (pointLanded ? 1 + swell : 1);
+  const buttHalf = HALF * (pointLanded ? 1 : 1 + swell);
   ctx.beginPath();
   ctx.moveTo(0, -TIP_HALF);
   ctx.lineTo(POINT, -pointHalf);
@@ -129,7 +131,7 @@ export function drawWalkingCrayon(
     ctx.clip();
     ctx.fillStyle = mixColors(color, COLOR.text, FLASH_WHITE * landed.flash);
     const reach = 1 - BUTT;
-    ctx.fillRect(pointStands ? 0 : BUTT, -HALF * 2, reach, HALF * 4);
+    ctx.fillRect(pointLanded ? 0 : BUTT, -HALF * 2, reach, HALF * 4);
     ctx.restore();
   }
   ctx.restore();

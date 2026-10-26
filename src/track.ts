@@ -240,6 +240,184 @@ function nearness(steps: number): number {
   return Math.max(0, 1 - (steps / TILES_AHEAD) ** 2);
 }
 
+/** The stroke of the signs on the road ahead, in tiles but never thinner than `minWidth` pixels, and their arrowheads. */
+const SIGN = { width: 0.05, minWidth: 2.5, head: 0.13 } as const;
+
+/** An open arrowhead at `tip`, pointing along `angle`. */
+function arrowHead(ctx: CanvasRenderingContext2D, tip: Point, angle: number, size: number): void {
+  ctx.beginPath();
+  for (const side of [-1, 1]) {
+    const back = angle + Math.PI + side * 0.55;
+    ctx.moveTo(tip.x, tip.y);
+    ctx.lineTo(tip.x + Math.cos(back) * size, tip.y + Math.sin(back) * size);
+  }
+  ctx.stroke();
+}
+
+/** Points on an arc round `center` of radius `r`, from angle `from` to `to`. */
+function arcPoints(center: Point, r: number, from: number, to: number, count = 24): Point[] {
+  return Array.from({ length: count + 1 }, (_, i) => {
+    const a = from + ((to - from) * i) / count;
+    return { x: center.x + Math.cos(a) * r, y: center.y + Math.sin(a) * r };
+  });
+}
+
+/** A line through `points` with an arrowhead at its last point, pointing the way the line runs there. */
+function arrowLine(ctx: CanvasRenderingContext2D, points: readonly Point[], head: number): void {
+  ctx.beginPath();
+  points.forEach((point, i) => (i === 0 ? ctx.moveTo(point.x, point.y) : ctx.lineTo(point.x, point.y)));
+  ctx.stroke();
+  const tip = points[points.length - 1];
+  const before = points[points.length - 2];
+  if (tip !== undefined && before !== undefined) arrowHead(ctx, tip, Math.atan2(tip.y - before.y, tip.x - before.x), head);
+}
+
+/** Sets `ctx` up to draw the signs on the road ahead. */
+function signStroke(ctx: CanvasRenderingContext2D, view: View): void {
+  ctx.strokeStyle = COLOR.text;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.lineWidth = Math.max(SIGN.minWidth, view.tileSize * SIGN.width);
+}
+
+/**
+ * A point near the tile `at`, reached along the road from `from`: `x` tiles on along the road from the tile
+ * (negative: back toward `from`), `y` tiles to its side. All on the screen.
+ */
+function alongRoad(view: View, from: Point, at: Point): (x: number, y: number) => Point {
+  const along = Math.atan2(at.y - from.y, at.x - from.x);
+  const ux = Math.cos(along) * view.tileSize;
+  const uy = Math.sin(along) * view.tileSize;
+  return (x, y) => ({ x: at.x + ux * x - uy * y, y: at.y + uy * x + ux * y });
+}
+
+/** A turn-back's arrow, in tiles: how far it runs to the side of the road, and how far from the tile before it starts. */
+const TURN_BACK = { side: 0.3, start: 0.28 } as const;
+
+/**
+ * Where the crayon goes one tile out and straight back along the same line, the line alone would show one tile. A
+ * U-turn arrow runs beside it, as in a stroke-order drawing: out along one side, round the tile, back along the other.
+ */
+function drawTurnBacks(
+  painter: Painter,
+  path: Path,
+  view: View,
+  standing: number,
+  end: number,
+  clarity: (steps: number) => number,
+): void {
+  const { ctx } = painter;
+  const opacity = ctx.globalAlpha;
+  ctx.save();
+  signStroke(ctx, view);
+  for (let k = Math.max(1, standing); k < end; k++) {
+    const from = path.tiles[k - 1];
+    const turn = path.tiles[k];
+    const back = path.tiles[k + 1];
+    if (from === undefined || turn === undefined || back === undefined) continue;
+    if (Math.hypot(from.x - back.x, from.y - back.y) > 1e-3) continue;
+    const a = toScreen(view, from);
+    const b = toScreen(view, turn);
+    const local = alongRoad(view, a, b);
+    const along = Math.atan2(b.y - a.y, b.x - a.x);
+    const start = TURN_BACK.start - Math.hypot(b.x - a.x, b.y - a.y) / view.tileSize;
+    ctx.globalAlpha = opacity * clarity(k - standing);
+    arrowLine(ctx, [
+      local(start, TURN_BACK.side),
+      local(0, TURN_BACK.side),
+      ...arcPoints(b, view.tileSize * TURN_BACK.side, along + Math.PI / 2, along - Math.PI / 2).slice(1),
+      local(start, -TURN_BACK.side),
+    ], view.tileSize * SIGN.head);
+  }
+  ctx.restore();
+}
+
+/** A midspin's arrow on its tile, in tiles: how far back it starts and ends, how wide it opens, how far past the tile its point is, its head. */
+const MIDSPIN = { back: 0.42, spread: 0.32, point: 0.26, head: 0.16 } as const;
+
+/**
+ * Where the crayon touches a tile without stopping and swings on around the tile before (a midspin), a sharp V-turn
+ * arrow lies on the tile: in to a point just past it and straight back, as the crayon goes.
+ */
+function drawMidspins(
+  painter: Painter,
+  path: Path,
+  view: View,
+  standing: number,
+  end: number,
+  clarity: (steps: number) => number,
+): void {
+  const { ctx } = painter;
+  const opacity = ctx.globalAlpha;
+  ctx.save();
+  signStroke(ctx, view);
+  for (let k = Math.max(1, standing); k <= end; k++) {
+    const around = path.sweeps[k]?.around;
+    const from = around === undefined ? undefined : path.tiles[around];
+    const point = path.tiles[k];
+    if (from === undefined || point === undefined) continue;
+    const local = alongRoad(view, toScreen(view, from), toScreen(view, point));
+    ctx.globalAlpha = opacity * clarity(k - standing);
+    arrowLine(
+      ctx,
+      [local(-MIDSPIN.back, MIDSPIN.spread), local(MIDSPIN.point, 0), local(-MIDSPIN.back, -MIDSPIN.spread)],
+      view.tileSize * MIDSPIN.head,
+    );
+  }
+  ctx.restore();
+}
+
+/** A pause's arrow round its tile, in tiles: the radius of the first lap, how much wider each further lap is, its arc and head. */
+const PAUSE = { radius: 0.42, step: 0.1, arc: (5 * Math.PI) / 3, head: 0.13 } as const;
+
+/**
+ * Where the crayon spends a rest in whole extra turns around its tile (a pause), an arrow runs round that tile the
+ * way the crayon will turn, one arrow for each extra turn, so the road ahead shows it going round there.
+ */
+function drawPauses(
+  painter: Painter,
+  path: Path,
+  view: View,
+  standing: number,
+  end: number,
+  clarity: (steps: number) => number,
+): void {
+  const { ctx } = painter;
+  const opacity = ctx.globalAlpha;
+  for (let k = Math.max(1, standing); k <= end; k++) {
+    const sweep = path.sweeps[k];
+    const tile = path.tiles[sweep?.around ?? k];
+    if (sweep?.laps === undefined || tile === undefined) continue;
+    const center = toScreen(view, tile);
+    const spin = sweep.angle < 0 ? -1 : 1;
+    const start = sweep.startAngle + view.angle;
+    ctx.globalAlpha = opacity * clarity(k - standing);
+    ctx.strokeStyle = COLOR.text;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.lineWidth = Math.max(SIGN.minWidth, view.tileSize * SIGN.width);
+    for (let lap = 0; lap < sweep.laps; lap++) {
+      const radius = view.tileSize * (PAUSE.radius + PAUSE.step * lap);
+      const finish = start + spin * PAUSE.arc;
+      ctx.beginPath();
+      ctx.arc(center.x, center.y, radius, start, finish, spin < 0);
+      ctx.stroke();
+      // The head points along the turn at the arc's end.
+      const tip = { x: center.x + Math.cos(finish) * radius, y: center.y + Math.sin(finish) * radius };
+      const ahead = finish + (spin * Math.PI) / 2;
+      const head = view.tileSize * PAUSE.head;
+      ctx.beginPath();
+      for (const side of [-1, 1]) {
+        const back = ahead + Math.PI + side * 0.6;
+        ctx.moveTo(tip.x, tip.y);
+        ctx.lineTo(tip.x + Math.cos(back) * head, tip.y + Math.sin(back) * head);
+      }
+      ctx.stroke();
+    }
+  }
+  ctx.globalAlpha = opacity;
+}
+
 /** The road still to sew, with the rhythm markers on its tiles and a ring on the tile to hit next. */
 function drawAhead(painter: Painter, { path, play, songTime }: PlayingFrame, view: View): void {
   const { ctx } = painter;
@@ -253,6 +431,11 @@ function drawAhead(painter: Painter, { path, play, songTime }: PlayingFrame, vie
   const clarity = isRhythm ? (steps: number): number => aheadClarity(steps, end - standing) : nearness;
   const later = path.rhythm === undefined ? new Set<number>() : laterPasses({ ...path, rhythm: path.rhythm }, standing, end);
   drawGuide(painter, path, view, standing, end, clarity, () => COLOR.text);
+  if (isRhythm) {
+    drawTurnBacks(painter, path, view, standing, end, clarity);
+    drawMidspins(painter, path, view, standing, end, clarity);
+    drawPauses(painter, path, view, standing, end, clarity);
+  }
 
   for (let i = standing; i <= end; i++) {
     const tile = path.tiles[i];
@@ -260,7 +443,8 @@ function drawAhead(painter: Painter, { path, play, songTime }: PlayingFrame, vie
     if (tile === undefined || sweep === undefined || later.has(i)) continue;
     const center = toScreen(view, tile);
     ctx.globalAlpha = opacity * clarity(i - standing);
-    const isMarked = sweep.pace !== "normal" || sweep.isTwirl;
+    const isMarked = sweep.isTwirl ||
+      (isRhythm ? speedMarkColor(path.rhythm?.marks[i]) !== null : sweep.pace !== "normal");
     painter.circle(center, view.tileSize * (isMarked ? markers.markedDot : markers.dot));
     // On a rhythm road a note is sky or pink only where the speed changes (its tempo mark), so a run of rests turned
     // at the same slow speed shows one sky note, not one per rest.

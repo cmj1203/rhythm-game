@@ -48,12 +48,16 @@ function sweepAngle(units: number): number {
   return (Math.PI * units) / divisor;
 }
 
-/** The guide is the travelled line itself, sampled exactly at each tile, not fitted to a picture. */
-function guideOf(tiles: readonly Tile[]): Guide {
+/**
+ * The guide is the travelled line itself, sampled exactly at each tile, not fitted to a picture. The piece to tile
+ * i + 1 starts at the tile its sweep turns around: after a midspin that is the tile before, not tile i.
+ */
+function guideOf(tiles: readonly Tile[], sweeps: readonly Sweep[]): Guide {
   const points: Point[] = [];
-  for (const [i, tile] of tiles.entries()) {
+  for (const i of tiles.keys()) {
+    const tile = tiles[sweeps[i]?.around ?? i];
     const next = tiles[i + 1];
-    if (next === undefined) break;
+    if (next === undefined || tile === undefined) break;
     for (let k = 0; k < SAMPLES_PER_TILE; k++) {
       const along = k / SAMPLES_PER_TILE;
       points.push({ x: tile.x + (next.x - tile.x) * along, y: tile.y + (next.y - tile.y) * along });
@@ -106,6 +110,11 @@ export function accentsOf(times: readonly number[], tempo: TempoMap, offset: num
  * After a note at one of the times in `twirls` the crayon turns back the other way, wherever that leaves room.
  * Given `flips` (note indices), the crayon turns back after exactly those notes and nowhere else, as a picture's road
  * was laid out; a phrase is then marked as repeated only where its twirls are the same as the earlier one's.
+ * `pauses` and `midspins` are note indices too, as A Dance of Fire and Ice has them. After a pause note the crayon
+ * spends the rest in whole extra turns at its usual speed (2 beats each, as many as fit while at most 2 beats are
+ * left), so the rest neither bends the road nor slows the crayon: the road turns as the gap without the rest would.
+ * At a midspin note the crayon touches its tile without stopping and keeps turning around the tile before, so the
+ * road goes out to it and back, and the next gap turns from there the other way round: a sharp point at no beat.
  */
 export function buildRhythmPath(
   times: readonly number[],
@@ -113,8 +122,12 @@ export function buildRhythmPath(
   turnScale?: TempoMap,
   twirls: readonly number[] = [],
   flips?: readonly number[],
+  { pauses = [], midspins = [] }: { readonly pauses?: readonly number[] | undefined; readonly midspins?: readonly number[] | undefined } = {},
 ): RhythmPath {
   const tempo = scaledTempo(songTempo, turnScale);
+  const pausing = new Set(pauses);
+  const spinning = new Set(midspins);
+  const sameTiles = (a: number, b: number): boolean => pausing.has(a) === pausing.has(b) && spinning.has(a) === spinning.has(b);
   const forced = new Set(times.flatMap((time, i) => (twirls.some((at) => Math.abs(at - time) < TWIRL_MATCH_S) ? [i] : [])));
   const exact = flips === undefined ? null : new Set(flips);
   const first = times[0] ?? 0;
@@ -141,7 +154,8 @@ export function buildRhythmPath(
   let replayAt = 0;
 
   for (const [i, gap] of units.entries()) {
-    const pivot = tiles[i + 1];
+    const around = spinning.has(i) ? i : i + 1;
+    const pivot = tiles[around];
     const from = times[i];
     const to = times[i + 1];
     if (pivot === undefined || from === undefined || to === undefined) break;
@@ -151,6 +165,7 @@ export function buildRhythmPath(
       for (const phrase of phrases.get(i) ?? []) {
         if (Math.sign(sweeps[phrase.from]?.angle ?? Math.PI) !== spin) continue;
         const proposed = decisions.slice(phrase.from, phrase.from + phrase.count);
+        if (!proposed.every((_, j) => sameTiles(i + j, phrase.from + j))) continue;
         if (exact !== null) {
           if (proposed.every((twirl, j) => twirl === exact.has(i + j))) {
             replay = proposed;
@@ -184,9 +199,14 @@ export function buildRhythmPath(
       }
     }
 
-    const angle = sweepAngle(gap);
-    const forward = step(pivot, heading + Math.PI + spin * angle);
-    const backward = step(pivot, heading + Math.PI - spin * angle);
+    const laps = pausing.has(i) ? Math.max(0, Math.ceil(gap / 2) - 1) : 0;
+    const angle = sweepAngle(gap - 2 * laps);
+    const swept = angle + 2 * Math.PI * laps;
+    // From the tile it stands on the crayon sets out pointing back where it came from; on past a midspin it is still
+    // pointing at the tile it just touched.
+    const setOut = around === i ? heading : heading + Math.PI;
+    const forward = step(pivot, setOut + spin * angle);
+    const backward = step(pivot, setOut - spin * angle);
     const avoidsOverlap = crowded(tiles, forward) && !crowded(tiles, backward);
     const isReplayed = replayAt < replay.length;
     if (isReplayed) replayAt++;
@@ -196,20 +216,22 @@ export function buildRhythmPath(
         ? replay[replayAt - 1] === true
         : avoidsOverlap || (forced.has(i) && !crowded(tiles, backward));
     if (twirl) spin *= -1;
-    heading = (heading + Math.PI + spin * angle) % (Math.PI * 2);
+    heading = (setOut + spin * angle) % (Math.PI * 2);
     decisions.push(twirl);
     sweeps.push({
-      startAngle: heading - spin * angle,
-      angle: spin * angle,
+      startAngle: heading - spin * swept,
+      angle: spin * swept,
       startTime: from,
       endTime: to,
-      pace: gap > 2 ? "slow" : "normal",
+      pace: gap - 2 * laps > 2 ? "slow" : "normal",
       isTwirl: twirl,
       tempo,
+      ...(around === i ? { around } : {}),
+      ...(laps > 0 ? { laps } : {}),
     });
     tiles.push({ ...step(pivot, heading), time: to });
     weights.push(Math.min(1.8, Math.max(0.6, Math.sqrt(gap))));
-    factors.push(angle / (Math.PI * gap));
+    factors.push(swept / (Math.PI * gap));
   }
   const last = tiles.at(-1) ?? tiles[0];
   const endTime = last?.time ?? first;
@@ -235,7 +257,7 @@ export function buildRhythmPath(
   return {
     tiles, sweeps, weights,
     anchors: tiles.map((_, i) => i * SAMPLES_PER_TILE),
-    guide: guideOf(tiles),
+    guide: guideOf(tiles, sweeps),
     drift: 0,
     rhythm: { tempo: songTempo, turns: tempo, marks, phrases: reproduced },
   };

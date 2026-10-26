@@ -4,6 +4,7 @@ import type { Route } from "../src/drawing";
 import { buildPath, orbiterAngle } from "../src/path";
 import { buildRhythmPath } from "../src/rhythm-road";
 import { beatsBetween } from "../src/tempo";
+import { walkingCrayonAt } from "../src/walking-crayon";
 
 const tempo = [[0, 120]] as const;
 const wrap = (radians: number): number => Math.atan2(Math.sin(radians), Math.cos(radians));
@@ -252,4 +253,37 @@ test("rhythm charts require an ordered tempo map starting at zero", () => {
     .map((map) => chartSchema.safeParse({ ...base, tempo: map }).success);
   // Then none reaches the layout as a rhythm chart.
   expect(results).toEqual([false, false, false, false, false]);
+});
+
+test("a pause spends its rest in an extra turn, so the road goes on as the gap without the rest", () => {
+  // Given a beat, then three beats with the rest on a pause, then a beat.
+  const times = [0, 0.5, 2, 2.5];
+  // When the road is laid.
+  const path = buildRhythmPath(times, tempo, undefined, [], [], { pauses: [1] });
+  // Then it stays straight, the rest is one more full turn at the usual speed, and no speed mark shows.
+  expect(path.tiles.every((tile, i) => Math.abs(tile.y) < 1e-9 && Math.abs(tile.x - i) < 1e-9)).toBe(true);
+  expect(path.sweeps[2]?.laps).toBe(1);
+  expect(Math.abs(path.sweeps[2]?.angle ?? 0)).toBeCloseTo(3 * Math.PI, 9);
+  expect(path.sweeps[2]?.pace).toBe("normal");
+  expect(path.rhythm.marks.every((mark) => mark === null)).toBe(true);
+});
+
+test("a midspin goes out to its tile and back at no beat, and the crayon never jumps", () => {
+  // Given a beat, then half a beat after a midspin note.
+  const times = [0, 0.5, 0.75];
+  // When the road is laid.
+  const path = buildRhythmPath(times, tempo, undefined, [], [], { midspins: [1] });
+  const [, from, point, next] = path.tiles;
+  if (from === undefined || point === undefined || next === undefined) throw new Error("tiles missing");
+  // Then the next tile is a quarter turn round the tile before the point, one tile from it.
+  expect(path.sweeps[2]?.around).toBe(1);
+  expect(Math.hypot(next.x - from.x, next.y - from.y)).toBeCloseTo(1, 9);
+  const turn = wrap(Math.atan2(next.y - from.y, next.x - from.x) - Math.atan2(point.y - from.y, point.x - from.x));
+  expect(Math.abs(turn)).toBeCloseTo(Math.PI / 2, 9);
+  // And through the midspin both ends of the crayon move on smoothly: the one standing stays, the other swings on.
+  const before = walkingCrayonAt(path, 0.5 - 1e-4);
+  const after = walkingCrayonAt(path, 0.5 + 1e-4);
+  if (before === null || after === null) throw new Error("no crayon");
+  expect(Math.hypot(before.tip.x - after.tip.x, before.tip.y - after.tip.y)).toBeLessThan(0.01);
+  expect(Math.hypot(before.flat.x - after.flat.x, before.flat.y - after.flat.y)).toBeLessThan(0.01);
 });

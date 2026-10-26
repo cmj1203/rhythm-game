@@ -37,9 +37,10 @@ export default async function checkMarkers(page, { device, outDir }) {
     const { PlayState } = await import("/src/judge.ts");
     const notes = [1, 2, 3, 4, 5, 6];
     const base = buildRhythmPath(notes, [[0, 60]]);
+    // Pace, twirl, and the rhythm road's tempo mark: there only a change of speed (or a twirl) is marked.
     const cases = [
-      ["slow", false], ["normal", false], ["fast", false], ["slow", false],
-      ["normal", true], ["slow", true], ["fast", true],
+      ["slow", false, "slower"], ["normal", false, "faster"], ["fast", false, "faster"], ["slow", false, null],
+      ["normal", true, null], ["slow", true, "slower"], ["fast", true, "faster"],
     ];
     const sweeps = base.sweeps.map((sweep, i) => ({
       ...sweep, pace: cases[i][0], isTwirl: cases[i][1],
@@ -76,18 +77,20 @@ export default async function checkMarkers(page, { device, outDir }) {
       }
       drawPlaying(painter, {
         kind: "playing", phase: "playing", play: new PlayState(notes),
-        path: mode === "rhythm" ? { ...base, sweeps } : { ...picture, sweeps },
+        path: mode === "rhythm" ? { ...base, sweeps, rhythm: { ...rhythm, marks: cases.map(([, , mark]) => mark) } }
+          : { ...picture, sweeps },
         sections: [], songTime: 0.2, duration: 7, feedback: null, bursts: [],
       }, size);
       const fills = calls.filter((call) => call.operation === "fill").slice(0, cases.length);
       if (fills.length !== cases.length) throw new Error(`${mode}: 점 개수 불일치`);
       const normalize = (color) => { ctx.fillStyle = color; return ctx.fillStyle; };
-      cases.forEach(([pace, twirl], i) => {
-        const marked = pace !== "normal" || twirl;
+      cases.forEach(([pace, twirl, mark], i) => {
         const isRhythm = mode === "rhythm";
+        const speedColor = mark === "faster" ? COLOR.pink : mark === "slower" ? COLOR.sky : null;
+        const marked = twirl || (isRhythm ? speedColor !== null : pace !== "normal");
         const paceColor = { normal: COLOR.text, fast: COLOR.pink, slow: COLOR.sky }[pace];
-        const marker = twirl ? COLOR.violet : paceColor;
-        const dot = isRhythm ? (pace !== "normal" && twirl ? paceColor : COLOR.text)
+        const marker = twirl ? COLOR.violet : isRhythm ? speedColor ?? COLOR.text : paceColor;
+        const dot = isRhythm ? (speedColor !== null && twirl ? speedColor : COLOR.text)
           : (pace === "normal" ? marker : paceColor);
         const radius = isRhythm ? (marked ? 0.055 : 0.07) : (marked ? 0.07 : 0.11);
         const fill = fills[i];

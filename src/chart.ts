@@ -57,6 +57,9 @@ export const chartSchema = z.union([
     turnScale: tempoMapSchema.optional(),
     /** Times of notes after which the crayon turns back the other way, set by hand. */
     twirls: z.array(z.number().nonnegative()).optional(),
+    /** Indices of notes whose rest the crayon spends in whole extra turns, and of notes it passes in a midspin. */
+    pauses: z.array(z.number().int().nonnegative()).optional(),
+    midspins: z.array(z.number().int().nonnegative()).optional(),
     picture: roadPictureSchema.optional(),
   }),
 ]);

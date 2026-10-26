@@ -4,6 +4,16 @@
 // song to, and the placement that puts the played road onto the picture for the result screen.
 //   bun tools/picture_rhythm.ts <picture-id> --geometry <file> --tiles 320 --out road.json
 //   bun tools/picture_rhythm.ts <picture-id> --line --tiles 480 --out road.json   (along the picture's one-stroke line)
+//   --grid: whole bars from a few rhythm patterns, each bar preferring to repeat the one before, so the rhythm can be
+//   learnt by ear; the road keeps to the line less exactly. Where the last bars close into a loop, it may walk the
+//   loop once more with the same rhythm, on over the very same tiles, as Last Fortress does (`repeats` in the output).
+//   --no-loops: no loops and no repeat signs.
+//   --midspin: where the line comes to a sharp point, a note may be a midspin (src/rhythm-road.ts): the crayon touches
+//   the point and swings on around the tile before, so the road goes out to the point and back at no beat, and a plain
+//   gap turns the road sharply. Allowed only where the line itself turns by `--sharp` degrees or more within a tile.
+//   --breaths <fractions>: with --grid, a bar crossing one of these places on the line (where the song moves to its
+//   next part) may end on a pause: its last note's rest is spent in an extra turn of the crayon (2 beats), so the
+//   band can breathe there while the road turns as if there were no rest (`pauses` in the output).
 import { readFile, writeFile } from "node:fs/promises";
 import { parseArgs } from "node:util";
 import { buildRhythmPath } from "../src/rhythm-road";
@@ -17,6 +27,15 @@ const { positionals, values: args } = parseArgs({
     beam: { type: "string", default: "300" },
     reverse: { type: "boolean", default: false },
     line: { type: "boolean", default: false },
+    grid: { type: "boolean", default: false },
+    repeat: { type: "string", default: "1.2" },
+    sign: { type: "string", default: "0" },
+    "no-loops": { type: "boolean", default: false },
+    midspin: { type: "boolean", default: false },
+    sharp: { type: "string", default: "140" },
+    "midspin-cost": { type: "string", default: "1" },
+    breaths: { type: "string" },
+    rests: { type: "string", default: "slow" },
   },
 });
 const pictureId = positionals[0];
@@ -107,6 +126,35 @@ for (let i = 1; i < outline.length; i++) arc.push(arc[i - 1]! + Math.hypot(outli
 const length = arc.at(-1)!;
 const z = length / Number(args.tiles);
 
+/** The point of the outline `s` along it. */
+function pointAt(s: number): P {
+  const t = Math.max(0, Math.min(length, s));
+  let lo = 0, hi = arc.length - 1;
+  while (lo < hi - 1) { const mid = (lo + hi) >> 1; if (arc[mid]! <= t) lo = mid; else hi = mid; }
+  const a = outline[lo]!, b = outline[hi]!;
+  const u = (t - arc[lo]!) / (arc[hi]! - arc[lo]! || 1);
+  return { x: a.x + (b.x - a.x) * u, y: a.y + (b.y - a.y) * u };
+}
+/** How sharply (degrees) the outline turns at `s`: between its heading over the tile before and the tile after. */
+function sharpnessAt(s: number): number {
+  const back = pointAt(s - z), here = pointAt(s), ahead = pointAt(s + z);
+  const a = Math.atan2(here.y - back.y, here.x - back.x), b = Math.atan2(ahead.y - here.y, ahead.x - here.x);
+  return Math.abs(Math.atan2(Math.sin(b - a), Math.cos(b - a))) * 180 / Math.PI;
+}
+/** The sharpest turn of the outline within half a tile of `s`. */
+function sharpestNear(s: number): number {
+  let best = 0;
+  for (let k = -2; k <= 2; k++) best = Math.max(best, sharpnessAt(s + k * z / 4));
+  return best;
+}
+const SHARP = Number(args.sharp);
+const MIDSPIN_COST = Number(args["midspin-cost"]);
+const BREATHS = (args.breaths ?? "").split(",").filter(Boolean).map((f) => Number(f) * length);
+/** A pause bar where the song needs a breath is wanted (it costs less than nothing); elsewhere it is not used. */
+const BREATH_COST = -4;
+/** What a bar with a rest costs anywhere else, with --rests pause: as much as a slow rest bar. */
+const REST_COST = 3;
+
 /** Turns as src/rhythm-road.ts sweeps them: a gap of `units` beats sweeps PI*units, halved until it is 2PI or less. */
 function sweepAngle(units: number): number {
   let divisor = 1;
@@ -143,6 +191,83 @@ const CELLS: { gaps: number[]; cost: number }[] = [
   { gaps: [4], cost: 3 },
 ];
 
+/**
+ * With --grid, whole bars (four beats) from these patterns only: halves, beats, dotted beats and the dotted-eighth
+ * pairs that turn the road 45 degrees, plus bars with a rest. No triplets. A bar unlike the one before it costs
+ * `--repeat` (`SWITCH_COST`), and unlike the one two bars before half as much again, so bars come in twos and fours.
+ */
+const BAR_PATTERNS: { gaps: number[]; cost: number }[] = [
+  { gaps: [1, 1, 1, 1], cost: 0 },
+  { gaps: [1, 1, 1 / 2, 1 / 2, 1], cost: 0.05 },
+  { gaps: [1, 1 / 2, 1 / 2, 1, 1], cost: 0.05 },
+  { gaps: [1 / 2, 1 / 2, 1, 1 / 2, 1 / 2, 1], cost: 0.05 },
+  { gaps: [1 / 2, 1, 1 / 2, 1, 1], cost: 0.05 },
+  { gaps: [1, 1, 1 / 2, 1 / 2, 1 / 2, 1 / 2], cost: 0.05 },
+  { gaps: [1 / 2, 1 / 2, 1 / 2, 1 / 2, 1, 1], cost: 0.05 },
+  { gaps: [1 / 2, 1 / 2, 1 / 2, 1 / 2, 1 / 2, 1 / 2, 1 / 2, 1 / 2], cost: 0.1 },
+  { gaps: [3 / 2, 3 / 2, 1], cost: 0.1 },
+  { gaps: [1, 3 / 2, 3 / 2], cost: 0.1 },
+  { gaps: [3 / 2, 3 / 2, 1 / 2, 1 / 2], cost: 0.1 },
+  { gaps: [1 / 2, 3 / 2, 1 / 2, 3 / 2], cost: 0.1 },
+  { gaps: [3 / 2, 1 / 2, 3 / 2, 1 / 2], cost: 0.1 },
+  { gaps: [3 / 2, 1 / 2, 1, 1], cost: 0.1 },
+  { gaps: [1, 1, 3 / 2, 1 / 2], cost: 0.1 },
+  { gaps: [3 / 4, 5 / 4, 3 / 4, 5 / 4], cost: 0.15 },
+  { gaps: [5 / 4, 3 / 4, 5 / 4, 3 / 4], cost: 0.15 },
+  { gaps: [3 / 4, 3 / 4, 1 / 2, 3 / 4, 3 / 4, 1 / 2], cost: 0.15 },
+  { gaps: [3 / 4, 3 / 4, 1 / 2, 1, 1], cost: 0.15 },
+  { gaps: [1, 1, 3 / 4, 3 / 4, 1 / 2], cost: 0.15 },
+  { gaps: [1, 3 / 4, 5 / 4, 1], cost: 0.15 },
+  { gaps: [3, 1], cost: 3 },
+  { gaps: [1, 3], cost: 3 },
+  { gaps: [1 / 2, 1 / 2, 3], cost: 3 },
+];
+/**
+ * With --grid, loops as Last Fortress walks them: a bar that closes on itself (four half beats make a square, two
+ * halves, a beat, two halves and a beat a two-by-one box), walked twice in a row, so the second time round the
+ * crayon steps on the very tiles it just laid, with the road unbroken. The loop leaves the picture's line for its
+ * length, so only the first round is measured against it.
+ */
+const LOOPS: { gaps: number[]; cost: number }[] = [
+  { gaps: [1 / 2, 1 / 2, 1 / 2, 1 / 2], cost: 0.2 },
+  { gaps: [1 / 2, 1 / 2, 1, 1 / 2, 1 / 2, 1], cost: 0.2 },
+  { gaps: [1, 1 / 2, 1 / 2, 1, 1 / 2, 1 / 2], cost: 0.2 },
+];
+/** With --grid and --breaths: bars whose last note is a pause, its gap the rest of the bar (an extra turn, 2 beats). */
+const PAUSE_BARS: { gaps: number[]; cost: number }[] = [
+  { gaps: [1, 3], cost: 0 },
+  { gaps: [1 / 2, 1 / 2, 3], cost: 0 },
+  { gaps: [3 / 2, 5 / 2], cost: 0 },
+  { gaps: [1 / 2, 7 / 2], cost: 0 },
+  { gaps: [1, 1, 1 / 2, 5 / 2], cost: 0.05 },
+  { gaps: [1, 1 / 2, 5 / 2], cost: 0.05 },
+  { gaps: [1 / 2, 1, 5 / 2], cost: 0.05 },
+  { gaps: [1 / 2, 1 / 2, 1 / 2, 5 / 2], cost: 0.05 },
+];
+const SWITCH_COST = Number(args.repeat);
+const SWITCH_COST_TWO_BACK = SWITCH_COST / 2;
+/**
+ * A repeat sign walks the last `REPEAT_BARS` bars again; it costs `--sign` (less than nothing to ask for them) and
+ * may follow the last one only after `REPEAT_GAP_BARS` fresh bars.
+ */
+const REPEAT_BARS = 2;
+const REPEAT_GAP_BARS = 4;
+const SIGN_COST = Number(args.sign);
+/**
+ * --rests, with --grid: "slow" keeps the bars with a rest, turned slowly; "none" drops them; "pause" drops them too,
+ * and any bar may end on a pause instead, at what a rest bar costs, so a rest never slows the crayon or bends the road.
+ */
+const RESTS = args.rests;
+if (!["slow", "none", "pause"].includes(RESTS)) throw new TypeError("--rests must be slow, none or pause");
+const PIECES = args.grid ? BAR_PATTERNS.filter(({ gaps }) => RESTS === "slow" || gaps.every((gap) => gap <= 2)) : CELLS;
+
+/** With --grid, what a bar costs beyond its own: more for one unlike the bar before, and the one before that. */
+function switchCost(cells: number[], c: number): number {
+  if (!args.grid) return 0;
+  return (cells.at(-1) !== undefined && cells.at(-1) !== c ? SWITCH_COST : 0)
+    + (cells.at(-2) !== undefined && cells.at(-2) !== c ? SWITCH_COST_TWO_BACK : 0);
+}
+
 const d2 = (a: P, b: P) => (a.x - b.x) ** 2 + (a.y - b.y) ** 2;
 /** The nearest point of the outline to `p` within arc lengths `from` to `to`, as [arc length, squared distance]. */
 function nearest(p: P, from: number, to: number): [number, number] {
@@ -160,7 +285,13 @@ function nearest(p: P, from: number, to: number): [number, number] {
   return best;
 }
 
-type State = { tiles: P[]; heading: number; along: number; gaps: number[]; cells: number[]; cost: number };
+type Repeat = { from: number; count: number };
+type State = {
+  tiles: P[]; heading: number; along: number; gaps: number[]; cells: number[]; cost: number;
+  barTiles: number[]; repeats: Repeat[]; freshBars: number;
+  /** Note indices: midspins (with how sharp the line is there) and pauses. */
+  midspins: { note: number; sharp: number }[]; pauses: number[];
+};
 // The game's first two tiles stand one tile apart along the outline's start.
 const startHeading = Math.atan2(outline[5]!.y - outline[0]!.y, outline[5]!.x - outline[0]!.x);
 const start: State = {
@@ -170,22 +301,128 @@ const start: State = {
   gaps: [],
   cells: [],
   cost: 0,
+  barTiles: [],
+  repeats: [],
+  freshBars: 0,
+  midspins: [],
+  pauses: [],
 };
+
+/**
+ * The state after walking the last bars once more, if they close into a loop: stepped on from the last tile with
+ * the same gaps, the crayon lands on each of their tiles again, with no jump, as the road keeps going. One or two
+ * bars, whichever closes.
+ */
+function repeated(state: State): State | null {
+  if (!args.grid || args["no-loops"] || state.freshBars < REPEAT_GAP_BARS) return null;
+  for (const bars of [1, REPEAT_BARS]) {
+    if (state.barTiles.length < bars) continue;
+    const count = state.barTiles.slice(-bars).reduce((sum, n) => sum + n, 0);
+    const stretch = state.tiles.slice(-count);
+    const gaps = state.gaps.slice(-count);
+    let heading = state.heading;
+    let at = state.tiles.at(-1)!;
+    const closes = gaps.every((gap, k) => {
+      heading += Math.PI + sweepAngle(gap);
+      at = { x: at.x + z * Math.cos(heading), y: at.y + z * Math.sin(heading) };
+      return Math.sqrt(d2(at, stretch[k]!)) < 0.02 * z;
+    });
+    if (closes) return walkAgain(state, bars, count, stretch, gaps, heading);
+  }
+  return null;
+}
+
+function walkAgain(state: State, bars: number, count: number, stretch: P[], gaps: number[], heading: number): State {
+  return {
+    ...state,
+    heading,
+    tiles: [...state.tiles, ...stretch],
+    gaps: [...state.gaps, ...gaps],
+    cells: [...state.cells, ...state.cells.slice(-bars)],
+    cost: state.cost + SIGN_COST,
+    barTiles: [...state.barTiles, ...state.barTiles.slice(-bars)],
+    repeats: [...state.repeats, { from: state.tiles.length - count - 1, count }],
+    freshBars: 0,
+  };
+}
 
 let beam: State[] = [start];
 const finished: State[] = [];
 const BEAM = Number(args.beam);
+let firstDone = -1;
 for (let round = 0; round < 2000 && beam.length > 0; round++) {
   const next: State[] = [];
   for (const state of beam) {
-    for (const [c, cell] of CELLS.entries()) {
+    const again = repeated(state);
+    if (again !== null) next.push(again);
+    if (args.grid && !args["no-loops"] && state.freshBars >= REPEAT_GAP_BARS) {
+      for (const loop of LOOPS) {
+        let { heading } = state;
+        const tiles = [...state.tiles];
+        let cost = state.cost + loop.cost + SIGN_COST;
+        for (const gap of loop.gaps) {
+          heading += Math.PI + sweepAngle(gap);
+          const pivot = tiles.at(-1)!;
+          const tile = { x: pivot.x + z * Math.cos(heading), y: pivot.y + z * Math.sin(heading) };
+          cost += 3 * nearest(tile, state.along - 2 * z, state.along + 2 * z)[1] / (z * z);
+          tiles.push(tile);
+        }
+        const firstRound = tiles.slice(state.tiles.length);
+        // The second round lands on the first round's tiles, with the same turns.
+        for (const gap of loop.gaps) heading += Math.PI + sweepAngle(gap);
+        const from = state.gaps.length + 1;
+        const looped: State = {
+          tiles: [...tiles, ...firstRound],
+          heading,
+          along: state.along,
+          gaps: [...state.gaps, ...loop.gaps, ...loop.gaps],
+          cells: [...state.cells, -1, -1],
+          cost,
+          barTiles: [...state.barTiles, loop.gaps.length, loop.gaps.length],
+          repeats: [...state.repeats, { from, count: loop.gaps.length }],
+          freshBars: 0,
+          midspins: state.midspins,
+          pauses: state.pauses,
+        };
+        next.push(looped);
+      }
+    }
+    // A bar of this piece may end on a pause where it crosses a breath; any one note of it (none twice running) may
+    // be a midspin where the line is sharp. Each piece is tried plain, and with each of those.
+    const options: { c: number; cell: { gaps: number[]; cost: number }; spinAt: number; pause: boolean }[] = [];
+    // A breath is near when its place on the line is within this bar, give or take two tiles; one pause per breath.
+    const pausedLately = state.cells.slice(-4).some((c) => c >= PIECES.length);
+    const crossesBreath = (end: number) => !pausedLately && BREATHS.some((b) => state.along - 2 * z < b && b <= end + 2 * z);
+    for (const [c, cell] of PIECES.entries()) {
+      options.push({ c, cell, spinAt: -1, pause: false });
+      if (args.midspin) for (let j = 0; j < cell.gaps.length; j++) options.push({ c, cell, spinAt: j, pause: false });
+    }
+    if (args.grid && (BREATHS.length > 0 || RESTS === "pause")) {
+      for (const [p, cell] of PAUSE_BARS.entries()) options.push({ c: PIECES.length + p, cell, spinAt: -1, pause: true });
+    }
+    for (const { c, cell, spinAt, pause } of options) {
       let { heading, along } = state;
       const tiles = [...state.tiles];
-      let cost = state.cost + cell.cost;
+      let cost = state.cost + cell.cost + switchCost(state.cells, c);
       let ok = true;
-      for (const gap of cell.gaps) {
-        heading += Math.PI + sweepAngle(gap);
-        const pivot = tiles.at(-1)!;
+      const midspins = state.midspins;
+      let spun: { note: number; sharp: number } | null = null;
+      for (const [j, gap] of cell.gaps.entries()) {
+        let pivot = tiles.at(-1)!;
+        if (j === spinAt) {
+          // The note before this gap is touched in passing: the line must come to a point there, and the crayon
+          // keeps turning around the tile before it.
+          const note = state.gaps.length + j;
+          const sharp = sharpestNear(nearest(pivot, along - 0.5 * z, along + 0.5 * z)[0]);
+          if (note < 2 || sharp < SHARP || midspins.at(-1)?.note === note - 1) { ok = false; break; }
+          spun = { note, sharp: Math.round(sharp) };
+          pivot = tiles.at(-2)!;
+          heading += sweepAngle(gap);
+          cost += MIDSPIN_COST;
+        } else {
+          const last = pause && j === cell.gaps.length - 1;
+          heading += Math.PI + sweepAngle(last ? gap - 2 : gap);
+        }
         const tile = { x: pivot.x + z * Math.cos(heading), y: pivot.y + z * Math.sin(heading) };
         const [at, dd] = nearest(tile, along - 0.3 * z, along + 2.5 * z);
         const advance = at - along;
@@ -197,7 +434,17 @@ for (let round = 0; round < 2000 && beam.length > 0; round++) {
         along = Math.max(along, at);
       }
       if (!ok) continue;
-      const done = { tiles, heading, along, gaps: [...state.gaps, ...cell.gaps], cells: [...state.cells, c], cost };
+      if (pause) {
+        if (crossesBreath(along)) cost += BREATH_COST;
+        else if (RESTS === "pause") cost += REST_COST;
+        else continue;
+      }
+      const done: State = {
+        tiles, heading, along, gaps: [...state.gaps, ...cell.gaps], cells: [...state.cells, c], cost,
+        barTiles: [...state.barTiles, cell.gaps.length], repeats: state.repeats, freshBars: state.freshBars + 1,
+        midspins: spun === null ? midspins : [...midspins, spun],
+        pauses: pause ? [...state.pauses, state.gaps.length + cell.gaps.length - 1] : state.pauses,
+      };
       if (along >= length - 1.2 * z) finished.push(done);
       else next.push(done);
     }
@@ -214,7 +461,9 @@ for (let round = 0; round < 2000 && beam.length > 0; round++) {
     beam.push(s);
     if (beam.length >= BEAM) break;
   }
-  if (finished.length >= 20) break;
+  if (finished.length > 0 && firstDone < 0) firstDone = round;
+  // Pause bars take four beats over two tiles, so a road with its breaths reaches the end some bars after the first.
+  if (finished.length >= 20 && (BREATHS.length === 0 || round - firstDone >= 8)) break;
 }
 finished.sort((a, b) => a.cost - b.cost);
 const best = finished[0];
@@ -223,7 +472,10 @@ if (best === undefined) throw new RangeError("no road reached the end of the out
 // Check against the game: the same gaps at one beat a second, laid with no twirls, must give the same shape.
 const times = [0];
 for (const gap of best.gaps) times.push(times.at(-1)! + gap);
-const played = buildRhythmPath(times, [[0, 60]], undefined, [], []);
+const played = buildRhythmPath(times, [[0, 60]], undefined, [], [], {
+  pauses: best.pauses,
+  midspins: best.midspins.map(({ note }) => note),
+});
 const a = played.tiles[0]!, b = played.tiles[1]!;
 const A = best.tiles[0]!, B = best.tiles[1]!;
 const scale = Math.hypot(B.x - A.x, B.y - A.y) / Math.hypot(b.x - a.x, b.y - a.y);
@@ -241,9 +493,17 @@ const offLine = best.tiles.map((t) => Math.sqrt(nearest(t, 0, length)[1])).reduc
 const beats = best.gaps.reduce((s, g) => s + g, 0);
 // How far along the line each tile stands (0 to 1), followed forward the way the search walked it.
 let walked = 0;
-const fractions = best.tiles.map((t) => {
+const sourceOf = new Map<number, number>();
+for (const { from, count } of best.repeats) for (let k = 0; k < count; k++) sourceOf.set(from + count + k + 1, from + k + 1);
+const fractions: number[] = [];
+best.tiles.forEach((t, i) => {
+  const source = sourceOf.get(i);
+  if (source !== undefined) {
+    fractions.push(fractions[source]!);
+    return;
+  }
   walked = Math.max(walked, nearest(t, walked - 0.3 * z, walked + 2.5 * z)[0]);
-  return +(walked / length).toFixed(4);
+  fractions.push(+(walked / length).toFixed(4));
 });
 const result = {
   picture: pictureId,
@@ -252,11 +512,15 @@ const result = {
   beats,
   offLineTiles: +offLine.toFixed(3),
   gaps: best.gaps,
-  cells: best.cells.map((c) => CELLS[c]!.gaps),
+  cells: best.cells.map((c) => PIECES[c]?.gaps ?? PAUSE_BARS[c - PIECES.length]?.gaps ?? "loop"),
+  midspins: best.midspins,
+  pauses: best.pauses,
   piece: { from: 0, scale, angle, x, y },
   tiles: best.tiles,
   fractions,
+  repeats: best.repeats,
   outline,
 };
-console.log(`ROAD ${pictureId}: ${result.notes} notes over ${beats} beats, off the outline ${result.offLineTiles} tiles on average`);
+console.log(`ROAD ${pictureId}: ${result.notes} notes over ${beats} beats, off the outline ${result.offLineTiles} tiles on average, ${best.repeats.length} repeat signs, `
+  + `midspins ${JSON.stringify(best.midspins)}, pauses ${JSON.stringify(best.pauses)}`);
 if (args.out !== undefined) await writeFile(args.out, JSON.stringify(result));

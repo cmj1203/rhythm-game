@@ -27,10 +27,17 @@ export type Sweep = {
   readonly pace: Pace;
   readonly isTwirl: boolean;
   readonly tempo?: TempoMap;
+  /**
+   * Rhythm roads only. `around`: the tile this sweep turns around when it is not its own, after a midspin: the
+   * crayon touches its tile without stopping and keeps turning around the tile before. `laps`: whole extra turns
+   * the crayon makes over a rest, at its usual speed, before it comes round to the next tile.
+   */
+  readonly around?: number;
+  readonly laps?: number;
 };
 
 /**
- * `tiles[0]` is the start; `tiles[i + 1]` belongs to note i. `sweeps[i]` turns around `tiles[i]`.
+ * `tiles[0]` is the start; `tiles[i + 1]` belongs to note i. `sweeps[i]` turns around `tiles[i]` (or `around`).
  * The road only follows the picture in broad strokes: it wanders for the sake of rhythm and skips what is too
  * fine for it. `anchors[i]` is the point of `guide` tile i stands for, so the stitch of note i is the piece of
  * the picture from `anchors[i]` to `anchors[i + 1]`. `weights[i]` is how thick that stitch is sewn, 1 being

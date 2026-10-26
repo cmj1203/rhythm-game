@@ -39,7 +39,7 @@ export class TutorialScreen {
     figure.append(this.canvas, this.now);
     this.judged.setAttribute("aria-live", "polite");
     options.root.append(
-      element("h1", "menu-title", "하는 법"),
+      element("h1", "menu-title", "플레이 방법"),
       figure,
       this.judged,
       done,

@@ -9,7 +9,8 @@ import type { Feedback, PlayingFrame } from "./track";
  */
 export const PRACTICE_BPM = 120;
 export const PRACTICE_LAP = [3, 0.5, 1, 0.5, 1, 1, 0.5, 1, 0.5, 0.5, 0.5, 0.5] as const;
-const PRACTICE_TWIRLS = [1, 10] as const;
+// Not on the note after the rest: that one already speeds up again (pink), and the two must not share a tile.
+const PRACTICE_TWIRLS = [9, 10] as const;
 /** Laps laid in all; the crayon walks the one at `WALKED_LAP`, with sewn laps under it and laps to come ahead. */
 const LAPS = 5;
 const WALKED_LAP = 2;

@@ -230,10 +230,11 @@ const route: Route = {
   length: 42,
 };
 
+// 지문은 리듬 길을 넣기 바로 앞 커밋(bd8b4c8^)의 buildPath 결과다. 그 뒤 main 까지 값이 바뀐 적이 없다.
 test.each([
-  ["sunday-dub", "07135e7600b326a11365001559bb2737def690e194fd0945930cdbe59e02faa1"],
-  ["adventures-of-yuki", "4d1c1c60c51af4aaacc68bf90e08dcab6839bdd2d755deacdaa50bf6c0c38642"],
-  ["blippy-trance", "8648ec52fd226f702a6d454bb8b01240d4bc7862ae1c13fbf142b5f0180c588d"],
+  ["sunday-dub", "d64f99a2968de89958e1720a767a781596d053a15b5d8a62bcc61047302ba240"],
+  ["adventures-of-yuki", "c3d6e7f987e8a61b119f62a4627904f1d5f1788e18d23637616344540a205744"],
+  ["blippy-trance", "5b5d163bb52468f3e4d77e4460618113b4756f3cf8cf23e005ea8004ceaae463"],
 ])("unflagged %s retains every legacy tile, sweep and guide point", async (id, expected) => {
   // Given a real legacy chart and a fixed guide, with the pre-change path fingerprint.
   const chart = chartSchema.parse(await Bun.file(new URL(`../public/songs/${id}/chart.json`, import.meta.url)).json());

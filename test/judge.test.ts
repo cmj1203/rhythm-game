@@ -189,3 +189,58 @@ describe("pressAt and missesAtFrame", () => {
     expect(pressAt(play, 6)).toEqual({ misses: [], hit: null });
   });
 });
+
+// 코드 리뷰 2026-11-04 낮음: 창 경계와 카운트인 누르기.
+describe("창 경계의 부동소수 오차", () => {
+  test("노트 시각을 빼서 나온 오차가 정확히 창 경계면 그 창에 든다", () => {
+    expect(judgementOf(1.06 - 1)).toBe("perfect");
+    expect(judgementOf(1.1 - 1)).toBe("great");
+    expect(judgementOf(3.14 - 3)).toBe("good");
+    expect(judgementOf(100.14 - 100)).toBe("good");
+    expect(judgementOf(0.86 - 1)).toBe("good");
+  });
+
+  test("누르기 판정도 같은 경계를 쓴다", () => {
+    expect(new PlayState([1]).press(1.06)?.judgement).toBe("perfect");
+    expect(new PlayState([1]).press(1.1)?.judgement).toBe("great");
+    expect(new PlayState([3]).press(3.14)?.judgement).toBe("good");
+    expect(new PlayState([100]).press(100.14)?.judgement).toBe("good");
+  });
+
+  test("경계 시각의 advance 는 아직 놓침으로 정하지 않아, 같은 시각의 누르기가 맞는다", () => {
+    const play = new PlayState([100]);
+    expect(play.advance(100.14)).toEqual([]);
+    expect(pressAt(play, 100.14).hit?.judgement).toBe("good");
+  });
+
+  test("경계를 1µs 라도 넘으면 창 밖이다", () => {
+    expect(judgementOf(0.140001)).toBeNull();
+    expect(new PlayState([1]).advance(1.140001)).toHaveLength(1);
+  });
+});
+
+describe("노트보다 한참 이른 누르기", () => {
+  test("카운트인 중의 누르기는 첫 노트를 '눌렀는데 놓침'으로 만들지 않는다", () => {
+    const play = new PlayState([1]);
+    play.press(-2);
+    play.advance(2);
+    expect(play.missPressed).toBe(0);
+    expect(play.missUnpressed).toBe(1);
+  });
+
+  test("노트 0.5초 전부터의 누르기는 그 노트를 누른 것으로 센다", () => {
+    const play = new PlayState([1]);
+    play.press(0.5);
+    play.advance(2);
+    expect(play.missPressed).toBe(1);
+    expect(play.missUnpressed).toBe(0);
+  });
+
+  test("0.5초보다 이른 누르기 뒤에 다시 가까이 누르면 누른 것으로 센다", () => {
+    const play = new PlayState([2]);
+    play.press(1.2);
+    play.press(1.7);
+    play.advance(3);
+    expect(play.missPressed).toBe(1);
+  });
+});

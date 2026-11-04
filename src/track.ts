@@ -1,5 +1,6 @@
 import { COLOR, JUDGEMENT_COLOR, mixColors, type Painter, type Point, type Size } from "./canvas";
 import { drawCrayon } from "./crayon";
+import { easeInOutCubic, easeOutCubic } from "./easing";
 import {
   blendViews,
   clothRect,
@@ -102,7 +103,8 @@ const GLOW_OPACITY = ["14", "1f", "29", "33"] as const;
 const BURST_OPACITY = 0.7;
 const GLOW_REACH = 2.2;
 const GLOW_REACH_PER_TIER = 0.5;
-const PACE_COLOR = { normal: COLOR.text, fast: COLOR.pink, slow: COLOR.sky } as const satisfies Record<Pace, string>;
+/** 길 위 표시(고리·원)의 빠르기 색. 크레용 몸통 색(`walking-crayon-draw.ts` 의 CRAYON_PACE_COLOR)과 다르다. */
+const PACE_SIGN_COLOR = { normal: COLOR.text, fast: COLOR.pink, slow: COLOR.sky } as const satisfies Record<Pace, string>;
 
 /** Pink for a note the crayon speeds up from, sky for one it slows down from, none for the rest. */
 function speedMarkColor(mark: TempoMark | null | undefined): string | null {
@@ -236,14 +238,6 @@ function followView({ width, height }: Size, frame: PlayingFrame): View {
   };
 }
 
-function easeOut(t: number): number {
-  return 1 - (1 - t) ** 3;
-}
-
-function easeInOut(t: number): number {
-  return t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2;
-}
-
 /** How clearly the road shows `steps` tiles ahead of the last stitch: in full there, gone `TILES_AHEAD` on. */
 function nearness(steps: number): number {
   return Math.max(0, 1 - (steps / TILES_AHEAD) ** 2);
@@ -252,11 +246,11 @@ function nearness(steps: number): number {
 /** The stroke of the signs on the road ahead, in tiles but never thinner than `minWidth` pixels, and their arrowheads. */
 const SIGN = { width: 0.05, minWidth: 2.5, head: 0.13 } as const;
 
-/** An open arrowhead at `tip`, pointing along `angle`. */
-function arrowHead(ctx: CanvasRenderingContext2D, tip: Point, angle: number, size: number): void {
+/** An open arrowhead at `tip`, pointing along `angle`, each side `spread` radians off the line back. */
+function arrowHead(ctx: CanvasRenderingContext2D, tip: Point, angle: number, size: number, spread = 0.55): void {
   ctx.beginPath();
   for (const side of [-1, 1]) {
-    const back = angle + Math.PI + side * 0.55;
+    const back = angle + Math.PI + side * spread;
     ctx.moveTo(tip.x, tip.y);
     ctx.lineTo(tip.x + Math.cos(back) * size, tip.y + Math.sin(back) * size);
   }
@@ -377,7 +371,7 @@ function drawMidspins(
 }
 
 /** A pause's arrow round its tile, in tiles: the radius of the first lap, how much wider each further lap is, its arc and head. */
-const PAUSE = { radius: 0.42, step: 0.1, arc: (5 * Math.PI) / 3, head: 0.13 } as const;
+const PAUSE = { radius: 0.42, step: 0.1, arc: (5 * Math.PI) / 3, head: 0.13, spread: 0.6 } as const;
 
 /**
  * Where the crayon spends a rest in whole extra turns around its tile (a pause), an arrow runs round that tile the
@@ -401,10 +395,7 @@ function drawPauses(
     const spin = sweep.angle < 0 ? -1 : 1;
     const start = sweep.startAngle + view.angle;
     ctx.globalAlpha = opacity * clarity(k - standing);
-    ctx.strokeStyle = COLOR.text;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    ctx.lineWidth = Math.max(SIGN.minWidth, view.tileSize * SIGN.width);
+    signStroke(ctx, view);
     for (let lap = 0; lap < sweep.laps; lap++) {
       const radius = view.tileSize * (PAUSE.radius + PAUSE.step * lap);
       const finish = start + spin * PAUSE.arc;
@@ -413,15 +404,7 @@ function drawPauses(
       ctx.stroke();
       // The head points along the turn at the arc's end.
       const tip = { x: center.x + Math.cos(finish) * radius, y: center.y + Math.sin(finish) * radius };
-      const ahead = finish + (spin * Math.PI) / 2;
-      const head = view.tileSize * PAUSE.head;
-      ctx.beginPath();
-      for (const side of [-1, 1]) {
-        const back = ahead + Math.PI + side * 0.6;
-        ctx.moveTo(tip.x, tip.y);
-        ctx.lineTo(tip.x + Math.cos(back) * head, tip.y + Math.sin(back) * head);
-      }
-      ctx.stroke();
+      arrowHead(ctx, tip, finish + (spin * Math.PI) / 2, view.tileSize * PAUSE.head, PAUSE.spread);
     }
   }
   ctx.globalAlpha = opacity;
@@ -458,10 +441,10 @@ function drawAhead(painter: Painter, { path, play, songTime }: PlayingFrame, vie
     // On a rhythm road a note is sky or pink only where the speed changes (its tempo mark), so a run of rests turned
     // at the same slow speed shows one sky note, not one per rest.
     const speedColor = speedMarkColor(path.rhythm?.marks[i]);
-    const marker = sweep.isTwirl ? COLOR.violet : isRhythm ? speedColor ?? COLOR.text : PACE_COLOR[sweep.pace];
+    const marker = sweep.isTwirl ? COLOR.violet : isRhythm ? speedColor ?? COLOR.text : PACE_SIGN_COLOR[sweep.pace];
     const dot = isRhythm
       ? (speedColor !== null && sweep.isTwirl ? speedColor : COLOR.text)
-      : (sweep.pace === "normal" ? marker : PACE_COLOR[sweep.pace]);
+      : (sweep.pace === "normal" ? marker : PACE_SIGN_COLOR[sweep.pace]);
     ctx.fillStyle = isRhythm ? mixColors(COLOR.background, dot, DOT_STRENGTH) : dot;
     ctx.fill();
     if (isMarked) {
@@ -491,7 +474,7 @@ function drawAhead(painter: Painter, { path, play, songTime }: PlayingFrame, vie
     ? COLOR.violet
     : isRhythm
       ? speedMarkColor(targetMark) ?? COLOR.text
-      : targetSweep !== undefined && targetSweep.pace !== "normal" ? PACE_COLOR[targetSweep.pace] : COLOR.text;
+      : targetSweep !== undefined && targetSweep.pace !== "normal" ? PACE_SIGN_COLOR[targetSweep.pace] : COLOR.text;
   if (target !== undefined) {
     const width = Math.max(TARGET_MIN_WIDTH_PX, view.tileSize * TARGET_WIDTH);
     painter.circle(toScreen(view, target), view.tileSize * TARGET_RADIUS);
@@ -537,7 +520,7 @@ function drawCircling(painter: Painter, frame: PlayingFrame, view: View): void {
   // While the crayon turns fast or slowly, its circle is drawn in the colour of the tile it set out from.
   const isPaced = sweep.pace !== "normal";
   painter.circle(center, size);
-  ctx.strokeStyle = isPaced ? PACE_COLOR[sweep.pace] : COLOR.dim;
+  ctx.strokeStyle = isPaced ? PACE_SIGN_COLOR[sweep.pace] : COLOR.dim;
   ctx.lineWidth = isPaced ? 2 : 1;
   ctx.stroke();
 
@@ -573,12 +556,12 @@ function drawBursts(painter: Painter, { bursts, path, play, songTime }: PlayingF
     ctx.save();
     ctx.globalAlpha = BURST_OPACITY * (1 - age);
     const held = isRhythm ? Math.max(0, (songTime - burst.at - RING_HOLD_S) / (BURST_S - RING_HOLD_S)) : age;
-    painter.circle(center, radius * (REDUCED_MOTION.matches ? 1 : 1 + (isRhythm ? 1.1 : 0.9) * easeOut(held)));
+    painter.circle(center, radius * (REDUCED_MOTION.matches ? 1 : 1 + (isRhythm ? 1.1 : 0.9) * easeOutCubic(held)));
     ctx.strokeStyle = color;
     ctx.lineWidth = radius * (isRhythm ? 0.24 : 0.16) * (REDUCED_MOTION.matches ? 1 : 1 - age);
     ctx.stroke();
     if (!REDUCED_MOTION.matches && tier >= 2) {
-      painter.circle(center, radius * (1 + 1.7 * easeOut(age)));
+      painter.circle(center, radius * (1 + 1.7 * easeOutCubic(age)));
       ctx.strokeStyle = COLOR.text;
       ctx.lineWidth = radius * 0.08 * (1 - age);
       ctx.stroke();
@@ -588,7 +571,7 @@ function drawBursts(painter: Painter, { bursts, path, play, songTime }: PlayingF
     const count = REDUCED_MOTION.matches || isRhythm ? 0 : SPARKLES_BY_JUDGEMENT[burst.judgement] + 2 * tier;
     for (let i = 0; i < count; i++) {
       const direction = (i / count) * Math.PI * 2 + burst.index * 0.7;
-      const distance = radius * (1.2 + (1.8 + 0.5 * tier) * easeOut(age));
+      const distance = radius * (1.2 + (1.8 + 0.5 * tier) * easeOutCubic(age));
       painter.sparkle(
         { x: center.x + Math.cos(direction) * distance, y: center.y + Math.sin(direction) * distance },
         radius * 0.3 * (1 - age * 0.7),
@@ -627,7 +610,7 @@ function drawLanding(painter: Painter, { judgement, index }: Feedback, ageS: num
   ctx.restore();
   if (REDUCED_MOTION.matches || ageS >= DUST_S) return;
   const count = DUST_BY_JUDGEMENT[judgement];
-  const along = easeOut(ageS / DUST_S);
+  const along = easeOutCubic(ageS / DUST_S);
   ctx.save();
   ctx.globalAlpha *= 1 - ageS / DUST_S;
   for (let i = 0; i < count; i++) {
@@ -724,13 +707,13 @@ export function drawPlaying(painter: Painter, frame: PlayingFrame, size: Size): 
   const visualFinale = REDUCED_MOTION.matches && finale > 0 ? 1 : finale;
   const follow = followView(size, frame);
   // While the camera pulls back, the thread is pulled tight, so the sewn road settles into the picture.
-  const taut = easeInOut(visualFinale);
+  const taut = easeInOutCubic(visualFinale);
   const view = visualFinale > 0 ? blendViews(follow, fitView(frame.path, clothRect(size)), taut) : follow;
 
   drawCloth(painter, view, size);
   // The sewn road stays in the background until the piece is finished; the road ahead is drawn over it.
   const pastOpacity = frame.path.rhythm === undefined ? PAST_OPACITY : 0.15;
-  drawStitches(painter, frame.path, frame.play.history, view, taut, pastOpacity + (1 - pastOpacity) * taut);
+  drawStitches(painter, frame.path, frame.play.history, view, taut, pastOpacity + (1 - pastOpacity) * taut, size);
   ctx.save();
   ctx.globalAlpha = 1 - visualFinale;
   drawAhead(painter, frame, view);
@@ -749,7 +732,7 @@ export function drawPlaying(painter: Painter, frame: PlayingFrame, size: Size): 
 export function drawRoadOnly(painter: Painter, frame: PlayingFrame, size: Size): void {
   const view = followView(size, frame);
   drawCloth(painter, view, size);
-  drawStitches(painter, frame.path, frame.play.history, view, 0, frame.path.rhythm === undefined ? PAST_OPACITY : 0.15);
+  drawStitches(painter, frame.path, frame.play.history, view, 0, frame.path.rhythm === undefined ? PAST_OPACITY : 0.15, size);
   drawAhead(painter, frame, view);
   drawBursts(painter, frame, view);
   drawCircling(painter, frame, view);

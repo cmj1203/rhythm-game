@@ -1,5 +1,7 @@
 import type { Point } from "./canvas";
-import { orbiterAngle, type Path, type Sweep, type Tile } from "./path";
+import { orbiterAngle, type Path, standingAt, type Sweep } from "./path";
+
+export { standingAt };
 
 export const LANDING_SETTLE_S = 0.08;
 
@@ -12,17 +14,6 @@ export type WalkingCrayon = {
   readonly settle: number;
 };
 
-/** The clock, not the number of judged notes, chooses which end stands. */
-export function standingAt(tiles: readonly Tile[], time: number): number {
-  let low = 0;
-  let high = tiles.length - 1;
-  while (low < high) {
-    const middle = (low + high + 1) >> 1;
-    if ((tiles[middle]?.time ?? Infinity) <= time) low = middle;
-    else high = middle - 1;
-  }
-  return low;
-}
 
 const midspinCounts = new WeakMap<readonly Sweep[], readonly number[]>();
 

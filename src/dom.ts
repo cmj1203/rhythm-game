@@ -17,3 +17,20 @@ export function focusScreen(heading: HTMLElement): void {
   heading.tabIndex = -1;
   heading.focus({ preventScroll: true });
 }
+
+/**
+ * 화면 버튼: `type="button"` 이고 누르면 `onClick`. `overGame` 이면 게임 화면 위에 있어서, 그 밖의 곳을 누르면
+ * 노트 누름이나 곡 시작이 되는 pointerdown 이 이 버튼에서는 번지지 않게 막는다.
+ */
+export function screenButton(
+  className: string,
+  text: string,
+  onClick: () => void,
+  { overGame = false }: { readonly overGame?: boolean } = {},
+): HTMLButtonElement {
+  const button = element("button", className, text);
+  button.type = "button";
+  if (overGame) button.addEventListener("pointerdown", (event) => event.stopPropagation());
+  button.addEventListener("click", onClick);
+  return button;
+}

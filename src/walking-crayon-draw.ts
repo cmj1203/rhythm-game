@@ -1,5 +1,6 @@
 import { REDUCED_MOTION } from "./motion";
 import { COLOR, mixColors, type Painter } from "./canvas";
+import { sealCrayon } from "./crayon";
 import { toScreen, type View } from "./embroidery";
 import type { Pace, Path } from "./path";
 import { walkingCrayonAt } from "./walking-crayon";
@@ -26,20 +27,22 @@ const TRAIL_STEPS = 14;
 const TRAIL_OPACITY = 0.8;
 const TRAIL_WIDTH = 0.16;
 const PACE_RING = { normal: COLOR.dim, fast: COLOR.pink, slow: COLOR.sky } as const satisfies Record<Pace, string>;
-/** The crayon is one colour, but while a note it stepped on has changed its speed it takes that note's colour. */
-const PACE_COLOR = { normal: COLOR.thread, fast: COLOR.pink, slow: COLOR.sky } as const satisfies Record<Pace, string>;
+/**
+ * The crayon is one colour, but while a note it stepped on has changed its speed it takes that note's colour.
+ * 길 위 표시의 빠르기 색(`track.ts` 의 PACE_SIGN_COLOR)과 보통 색이 다르다.
+ */
+const CRAYON_PACE_COLOR = { normal: COLOR.thread, fast: COLOR.pink, slow: COLOR.sky } as const satisfies Record<Pace, string>;
 const TEMPO_COLOR = { faster: COLOR.pink, slower: COLOR.sky } as const;
 const PACE_WIDTH = { normal: 1, fast: 2, slow: 2 } as const satisfies Record<Pace, number>;
-const CALM = REDUCED_MOTION;
 
 type ClockedRoad = { readonly path: Path; readonly songTime: number };
 
 /** The crayon's colour while it stands on tile `standing`. */
 function crayonColor(path: Path, standing: number): string {
   const pace = path.sweeps[standing]?.pace ?? "normal";
-  if (pace !== "normal") return PACE_COLOR[pace];
+  if (pace !== "normal") return CRAYON_PACE_COLOR[pace];
   const mark = path.rhythm?.marks[standing];
-  return mark === undefined || mark === null ? PACE_COLOR.normal : TEMPO_COLOR[mark];
+  return mark === undefined || mark === null ? CRAYON_PACE_COLOR.normal : TEMPO_COLOR[mark];
 }
 
 /**
@@ -64,7 +67,7 @@ export function drawWalkingCrayon(
   const color = crayonColor(path, pose.standing);
   const pointStands = pose.tip === pose.pivot;
   const landed = hit !== null && hit.landing === pose.standing ? hit : null;
-  const swell = landed === null || CALM.matches ? 0 : landed.swell;
+  const swell = landed === null || REDUCED_MOTION.matches ? 0 : landed.swell;
   const sweep = path.sweeps[pose.standing];
   // Past a midspin the end that touched the tile swings on, so that end is the one that swells and lights.
   const pointLanded = sweep?.around === undefined ? pointStands : !pointStands;
@@ -77,7 +80,7 @@ export function drawWalkingCrayon(
     ctx.stroke();
   }
 
-  if (!CALM.matches) {
+  if (!REDUCED_MOTION.matches) {
     // Keep the identities of the two ends through a landing. The old arc fades in place.
     const opacity = ctx.globalAlpha;
     ctx.lineCap = "round";
@@ -107,28 +110,14 @@ export function drawWalkingCrayon(
   ctx.scale(size, size);
   const pointHalf = HALF * (pointLanded ? 1 + swell : 1);
   const buttHalf = HALF * (pointLanded ? 1 : 1 + swell);
-  ctx.beginPath();
-  ctx.moveTo(0, -TIP_HALF);
-  ctx.lineTo(POINT, -pointHalf);
-  ctx.lineTo(BUTT, -HALF);
-  ctx.lineTo(1, -buttHalf);
-  ctx.lineTo(1, buttHalf);
-  ctx.lineTo(BUTT, HALF);
-  ctx.lineTo(POINT, pointHalf);
-  ctx.lineTo(0, TIP_HALF);
-  ctx.closePath();
   // A dark edge and a little dark haze keep the crayon apart from the road and the effects of a hit.
-  ctx.lineJoin = "round";
-  ctx.lineWidth = EDGE_PX / size;
-  ctx.strokeStyle = COLOR.background;
-  ctx.shadowColor = COLOR.background;
-  ctx.shadowBlur = size * HAZE;
-  ctx.stroke();
-  ctx.shadowBlur = 0;
-  ctx.fillStyle = color;
-  ctx.fill();
+  sealCrayon(
+    ctx,
+    [[0, -TIP_HALF], [POINT, -pointHalf], [BUTT, -HALF], [1, -buttHalf], [1, buttHalf], [BUTT, HALF], [POINT, pointHalf], [0, TIP_HALF]],
+    { edge: EDGE_PX / size, haze: size * HAZE, color },
+  );
   // 움직임 줄이기에서는 끝을 부풀리지 않듯 흰 번쩍임도 그리지 않는다.
-  if (landed !== null && landed.flash > 0 && !CALM.matches) {
+  if (landed !== null && landed.flash > 0 && !REDUCED_MOTION.matches) {
     ctx.save();
     ctx.clip();
     ctx.fillStyle = mixColors(color, COLOR.text, FLASH_WHITE * landed.flash);

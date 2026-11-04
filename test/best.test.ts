@@ -99,3 +99,25 @@ describe("a storage the browser refuses", () => {
     expect(() => loadBests()).toThrow(TypeError);
   });
 });
+
+// 코드 리뷰 2026-11-04 낮음: 손상된 저장값과 배열 저장값.
+describe("손상되거나 모양이 다른 저장값", () => {
+  test("저장값이 배열이면 인덱스를 곡 id 로 읽지 않는다", () => {
+    saved.set(KEY, JSON.stringify([{ grade: 1, score: 2 }]));
+    expect(loadBests().size).toBe(0);
+  });
+
+  test("잘린 저장값을 덮어쓰기 전에 원본을 따로 옮겨 둔다", () => {
+    const broken = '{"a":{"grade":90,"score":5},"b":{"grade":80,"score":3}';
+    saved.set(KEY, broken);
+    recordBest("c", { grade: 10, score: 1 });
+    expect(saved.get(`${KEY}.corrupt`)).toBe(broken);
+    expect(JSON.parse(saved.get(KEY) ?? "")).toEqual({ c: { grade: 10, score: 1 } });
+  });
+
+  test("멀쩡한 저장값은 옮겨 두지 않는다", () => {
+    recordBest("a", { grade: 10, score: 1 });
+    recordBest("b", { grade: 10, score: 1 });
+    expect(saved.has(`${KEY}.corrupt`)).toBe(false);
+  });
+});

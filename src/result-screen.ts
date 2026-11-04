@@ -131,7 +131,7 @@ export function drawResult(painter: Painter, frame: ResultFrame, size: Size): vo
     : revealedPath(frame.path, picture, stage.move, traced ? stage.lines : 0);
   const view = fitView(path, rect);
   drawCloth(painter, view, size);
-  drawStitches(painter, path, frame.play.history, view, 1, 1);
+  drawStitches(painter, path, frame.play.history, view, 1, 1, size);
   if (picture !== undefined && !traced && stage.lines > 0) drawPictureLines(painter, picture, view, stage.lines);
 
   const { ctx } = painter;

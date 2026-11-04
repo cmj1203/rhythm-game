@@ -1,8 +1,9 @@
 import { COLOR, type Point } from "./canvas";
 import type { RoadPictureData } from "./chart";
 import type { Stroke } from "./drawing";
+import { boundsOf } from "./geometry";
 import { GUIDE_STEP, type Guide } from "./guide";
-import type { Path, Sweep, Tile } from "./path";
+import { MAX_WEIGHT, MIN_WEIGHT, type Path, type Sweep, type Tile } from "./path";
 import { phraseMatches, type Phrase } from "./road-phrases";
 import { beatsBetween, bpmAt, scaledTempo, type TempoMap, type TempoMark } from "./tempo";
 
@@ -70,12 +71,8 @@ function guideOf(tiles: readonly Tile[], sweeps: readonly Sweep[]): Guide {
     colors: points.map(() => COLOR.thread),
     endIndex: points.length - 1,
     length: Math.max(0, tiles.length - 1),
-    bounds: {
-      minX: Math.min(...points.map(({ x }) => x)),
-      minY: Math.min(...points.map(({ y }) => y)),
-      maxX: Math.max(...points.map(({ x }) => x)),
-      maxY: Math.max(...points.map(({ y }) => y)),
-    },
+    // 마지막 점을 늘 넣으므로 점은 하나 이상이다.
+    bounds: boundsOf(points) ?? { minX: last.x, minY: last.y, maxX: last.x, maxY: last.y },
   };
 }
 
@@ -230,7 +227,7 @@ export function buildRhythmPath(
       ...(laps > 0 ? { laps } : {}),
     });
     tiles.push({ ...step(pivot, heading), time: to });
-    weights.push(Math.min(1.8, Math.max(0.6, Math.sqrt(gap))));
+    weights.push(Math.min(MAX_WEIGHT, Math.max(MIN_WEIGHT, Math.sqrt(gap))));
     factors.push(swept / (Math.PI * gap));
   }
   const last = tiles.at(-1) ?? tiles[0];

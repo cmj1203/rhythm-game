@@ -1,4 +1,4 @@
-import { COLOR, type Painter, type Point } from "./canvas";
+import { COLOR, type Painter, patternCache, type Point, type Size } from "./canvas";
 
 /**
  * Half the thickness of a crayon and how much of it is the point, as shares of its length. The point is cut a little
@@ -26,39 +26,41 @@ export function drawCrayon(painter: Painter, tip: Point, heading: number, length
   ctx.rotate(heading + Math.PI);
 
   const tipHalf = halfWidth * TIP_SHARE;
-  ctx.beginPath();
-  ctx.moveTo(0, -tipHalf);
-  ctx.lineTo(length * POINT, -halfWidth);
-  ctx.lineTo(length, -halfWidth);
-  ctx.lineTo(length, halfWidth);
-  ctx.lineTo(length * POINT, halfWidth);
-  ctx.lineTo(0, tipHalf);
-  ctx.closePath();
   // A dark edge and a dark haze around it keep the crayon apart from the line of its own colour that it lies
   // on, and from the sparkles of a hit around it.
+  sealCrayon(
+    ctx,
+    [[0, -tipHalf], [length * POINT, -halfWidth], [length, -halfWidth], [length, halfWidth], [length * POINT, halfWidth], [0, tipHalf]],
+    { edge: Math.max(3, length * EDGE), haze: length * HAZE, color },
+  );
+  ctx.restore();
+}
+
+/**
+ * 크레용 윤곽(`outline` 꼭짓점)을 어두운 테두리(`edge` 굵기)와 그 밖의 어두운 안개(`haze`)로 두른 뒤 `color` 로 채운다.
+ * 타이틀·그림 길의 크레용과 리듬 길의 걷는 크레용이 함께 쓴다. 윤곽은 현재 경로로 남아 이어서 clip 할 수 있다.
+ */
+export function sealCrayon(
+  ctx: CanvasRenderingContext2D,
+  outline: readonly (readonly [number, number])[],
+  { edge, haze, color }: { readonly edge: number; readonly haze: number; readonly color: string },
+): void {
+  ctx.beginPath();
+  outline.forEach(([x, y], i) => (i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)));
+  ctx.closePath();
   ctx.lineJoin = "round";
-  ctx.lineWidth = Math.max(3, length * EDGE);
+  ctx.lineWidth = edge;
   ctx.strokeStyle = COLOR.background;
   ctx.shadowColor = COLOR.background;
-  ctx.shadowBlur = length * HAZE;
+  ctx.shadowBlur = haze;
   ctx.stroke();
   ctx.shadowBlur = 0;
   ctx.fillStyle = color;
   ctx.fill();
-  ctx.restore();
 }
 
-const grains = new WeakMap<CanvasRenderingContext2D, CanvasPattern>();
-
 /** Specks of the background colour, scattered the same way every time so the texture never flickers. */
-function grainFor(ctx: CanvasRenderingContext2D): CanvasPattern | null {
-  const cached = grains.get(ctx);
-  if (cached !== undefined) return cached;
-  const tile = document.createElement("canvas");
-  tile.width = GRAIN_CELL;
-  tile.height = GRAIN_CELL;
-  const tileCtx = tile.getContext("2d");
-  if (tileCtx === null) return null;
+const grainFor = patternCache(GRAIN_CELL, (tileCtx) => {
   let seed = GRAIN_SEED;
   const random = (): number => {
     seed = (seed * 16807) % 2147483647;
@@ -70,21 +72,20 @@ function grainFor(ctx: CanvasRenderingContext2D): CanvasPattern | null {
     const speck = random() < 0.75 ? 1 : 2;
     tileCtx.fillRect(Math.floor(random() * GRAIN_CELL), Math.floor(random() * GRAIN_CELL), speck, speck);
   }
-  const pattern = ctx.createPattern(tile, "repeat");
-  if (pattern !== null) grains.set(ctx, pattern);
-  return pattern;
-}
+});
 
 /**
  * The tooth of the paper showing through the wax: specks of the background colour over everything drawn so far,
  * so crayon lines look grainy and rough at the edges while the bare background stays as it is. The specks are
  * fixed to the paper at `origin`, turned by `angle`, so they move with the picture instead of across it.
+ * 채우는 넓이는 화면 크기(`size`, CSS 픽셀)다. ctx 에는 이미 devicePixelRatio 배율이 걸려 있어 캔버스의 장치 픽셀
+ * 크기로 채우면 DPR 2 에서 4배 넓이를 칠한다.
  */
-export function drawGrain(painter: Painter, origin: Point, angle: number): void {
+export function drawGrain(painter: Painter, origin: Point, angle: number, { width, height }: Size): void {
   const { ctx } = painter;
   const pattern = grainFor(ctx);
   if (pattern === null) return;
   pattern.setTransform(new DOMMatrix().translate(origin.x, origin.y).rotate((angle * 180) / Math.PI));
   ctx.fillStyle = pattern;
-  ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  ctx.fillRect(0, 0, width, height);
 }

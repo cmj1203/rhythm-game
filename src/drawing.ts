@@ -1,4 +1,5 @@
 import { COLOR, type Point } from "./canvas";
+import { distance } from "./geometry";
 
 /** One line of a picture, in the picture's own units. `part` counts the shapes of the file: which one the line is from. */
 export type Stroke = { readonly points: readonly Point[]; readonly color: string; readonly part: number };
@@ -131,10 +132,6 @@ export async function loadDrawing(id: string): Promise<Drawing> {
   } finally {
     bench.remove();
   }
-}
-
-function distance(a: Point, b: Point): number {
-  return Math.hypot(a.x - b.x, a.y - b.y);
 }
 
 /**

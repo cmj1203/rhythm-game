@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { DIFFICULTIES } from "./chart";
-import { readStored, writeStored } from "./storage";
+import { readStoredJson, writeStored } from "./storage";
 
 /** Every play's numbers, kept in this browser only: a date and counts, nothing that says who or when in the day. */
 const PLAYLOG_KEY = "livecanvas.playlog.v1";
@@ -33,17 +33,9 @@ export function today(now: Date = new Date()): string {
 /** The kept plays, oldest first. A value that is not a list reads as empty; entries that do not read as a play are dropped. */
 export function loadPlaylog(storage?: Pick<Storage, "getItem">): readonly PlayRecord[] {
   // 브라우저가 저장소를 막으면 기록이 없는 것으로 읽는다.
-  const saved = readStored(PLAYLOG_KEY, storage);
-  if (saved === null) return [];
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(saved);
-  } catch (error) {
-    if (error instanceof SyntaxError) return [];
-    throw error;
-  }
-  if (!Array.isArray(parsed)) return [];
-  return parsed.flatMap((entry: unknown) => {
+  const stored = readStoredJson(PLAYLOG_KEY, storage);
+  if (stored.kind !== "value" || !Array.isArray(stored.value)) return [];
+  return stored.value.flatMap((entry: unknown) => {
     const result = playSchema.safeParse(entry);
     return result.success ? [result.data] : [];
   });

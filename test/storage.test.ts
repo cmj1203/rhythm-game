@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { readStored, readStoredNumber, removeStored, writeStored } from "../src/storage";
+import { readStored, readStoredJson, readStoredNumber, removeStored, writeStored } from "../src/storage";
 
 // 코드 리뷰 2026-11-04 높음 3·4: 저장소 접근을 한 곳에서 안전하게 한다.
 const saved = new Map<string, string>();
@@ -54,5 +54,29 @@ describe("readStoredNumber", () => {
     saved.set("bad", "abc");
     expect(readStoredNumber("bad", 1, working)).toBe(1);
     expect(readStoredNumber("n", 1, refusing)).toBe(1);
+  });
+});
+
+// 코드 리뷰 2026-11-04 낮음: 빈 문자열은 0 이 아니라 저장값 없음이다.
+describe("readStoredNumber 의 빈 값", () => {
+  test("빈 문자열이나 공백만 있는 값은 fallback 이다", () => {
+    saved.set("empty", "");
+    expect(readStoredNumber("empty", 1, working)).toBe(1);
+    saved.set("blank", "  ");
+    expect(readStoredNumber("blank", 1, working)).toBe(1);
+    saved.set("zero", "0");
+    expect(readStoredNumber("zero", 1, working)).toBe(0);
+  });
+});
+
+// 코드 리뷰 2026-11-04 중복: best·playlog 의 JSON 읽기를 한 곳으로.
+describe("readStoredJson", () => {
+  test("저장된 JSON 을 읽고, 없거나 깨졌거나 읽기가 거절되면 각각 알려 준다", () => {
+    saved.set("j", '{"a":1}');
+    expect(readStoredJson("j", working)).toEqual({ kind: "value", value: { a: 1 } });
+    expect(readStoredJson("none", working)).toEqual({ kind: "none" });
+    saved.set("broken", "{not json");
+    expect(readStoredJson("broken", working)).toEqual({ kind: "broken", raw: "{not json" });
+    expect(readStoredJson("j", refusing)).toEqual({ kind: "none" });
   });
 });

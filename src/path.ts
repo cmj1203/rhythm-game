@@ -91,8 +91,9 @@ const MAX_CORNER_ANGLE = TAU - Math.PI / 3;
 const OVERLAP_DISTANCE = 0.95;
 /** Only the last few tiles are kept clear of each other; a drawing is free to cross its own earlier lines. */
 const OVERLAP_LOOKBACK = 10;
-const MIN_WEIGHT = 0.6;
-const MAX_WEIGHT = 1.8;
+/** 노트 사이 간격에 따른 바느질 굵기의 범위. 그림 길과 리듬 길이 함께 쓴다. */
+export const MIN_WEIGHT = 0.6;
+export const MAX_WEIGHT = 1.8;
 
 /** Detours for rhythm make the road cover less of the guide than it has tiles; this is the planned share. */
 const GUIDE_SHARE = 0.9;
@@ -405,6 +406,18 @@ export function shareEnding(path: Path): Path {
   };
 }
 
+/** `time` 이하인 마지막 타일(같은 시각이 여럿이면 그 마지막), 첫 타일 전이나 타일이 없으면 0. The clock, not the number of judged notes, chooses which end stands. */
+export function standingAt(tiles: readonly Tile[], time: number): number {
+  let low = 0;
+  let high = tiles.length - 1;
+  while (low < high) {
+    const middle = (low + high + 1) >> 1;
+    if ((tiles[middle]?.time ?? Number.POSITIVE_INFINITY) <= time) low = middle;
+    else high = middle - 1;
+  }
+  return low;
+}
+
 /** Before `startTime` and after `endTime` the ball simply keeps turning at the same speed. */
 export function orbiterAngle(sweep: Sweep, time: number): number {
   if (sweep.tempo !== undefined) {
@@ -457,13 +470,7 @@ function sumsOf(tiles: readonly Tile[]): RoadSums {
  * stands still on it.
  */
 function twiceSummedAt(tiles: readonly Tile[], sums: RoadSums, time: number): Point {
-  let low = 0;
-  let high = tiles.length - 1;
-  while (low < high) {
-    const middle = (low + high + 1) >> 1;
-    if ((tiles[middle]?.time ?? Number.POSITIVE_INFINITY) <= time) low = middle;
-    else high = middle - 1;
-  }
+  const low = standingAt(tiles, time);
   const from = tiles[low];
   if (from === undefined) return { x: 0, y: 0 };
   const to = tiles[low + 1] ?? from;

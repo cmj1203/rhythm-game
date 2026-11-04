@@ -78,3 +78,27 @@ export class Painter {
     ctx.closePath();
   }
 }
+
+/**
+ * 컨텍스트마다 한 번만 만드는 반복 무늬. `cell` 픽셀 정사각형 타일에 `paint` 로 한 번 그린 뒤 그 컨텍스트에서 계속 쓴다.
+ * 타일 캔버스를 만들 수 없으면 null.
+ */
+export function patternCache(
+  cell: number,
+  paint: (tile: CanvasRenderingContext2D) => void,
+): (ctx: CanvasRenderingContext2D) => CanvasPattern | null {
+  const made = new WeakMap<CanvasRenderingContext2D, CanvasPattern>();
+  return (ctx) => {
+    const cached = made.get(ctx);
+    if (cached !== undefined) return cached;
+    const tile = document.createElement("canvas");
+    tile.width = cell;
+    tile.height = cell;
+    const tileCtx = tile.getContext("2d");
+    if (tileCtx === null) return null;
+    paint(tileCtx);
+    const pattern = ctx.createPattern(tile, "repeat");
+    if (pattern !== null) made.set(ctx, pattern);
+    return pattern;
+  };
+}

@@ -1,4 +1,5 @@
 import type { Point } from "./canvas";
+import { boundsOf } from "./geometry";
 import type { Path } from "./path";
 import type { RoadPicture } from "./rhythm-road";
 
@@ -106,12 +107,25 @@ function settledTargets(path: Path, picture: RoadPicture): readonly Point[] {
   return targets;
 }
 
+/** 길마다 마지막으로 계산한 결과. 결과 화면은 연출이 끝나면 매 프레임 같은 인자로 부른다. */
+const lastReveal = new WeakMap<Path, { picture: RoadPicture; move: number; settle: number; result: Path }>();
+
 /**
  * The road `move` of the way into its picture. The strokes that join one piece to the next are left uncoloured, so
  * the result screen does not draw them: the picture is made of the pieces only. The bounds grow with the move to take
  * in the picture's own lines too, so the finished screen shows all of them.
  */
 export function revealedPath(path: Path, picture: RoadPicture, move: number, settle = 0): Path {
+  const known = lastReveal.get(path);
+  if (known !== undefined && known.picture === picture && known.move === move && known.settle === settle) {
+    return known.result;
+  }
+  const result = computeReveal(path, picture, move, settle);
+  lastReveal.set(path, { picture, move, settle, result });
+  return result;
+}
+
+function computeReveal(path: Path, picture: RoadPicture, move: number, settle: number): Path {
   const place = placements(path, picture, move);
   const pieceOf = (tile: number): number => {
     let k = 0;
@@ -120,18 +134,16 @@ export function revealedPath(path: Path, picture: RoadPicture, move: number, set
   };
   const tiles = path.tiles.map((tile, i) => ({ ...tile, ...place[pieceOf(i)]!(tile) }));
   const { anchors, guide } = path;
-  const tileOfPoint = (index: number): number => {
-    let tile = 0;
-    while ((anchors[tile + 1] ?? Infinity) <= index) tile++;
-    return tile;
-  };
   const joins = new Set(picture.pieces.slice(1).map(({ from }) => from - 1));
   const points: Point[] = [];
   const colors: (string | null)[] = [];
+  // 점마다 그 점이 속한 타일이 조각 사이 이음인지. 아래에서 보이는 점을 고를 때 다시 찾지 않는다(전에는 점마다 처음부터 찾았다).
+  const onJoin: boolean[] = [];
   let tile = 0;
   for (const [index, point] of guide.points.entries()) {
     while ((anchors[tile + 1] ?? Infinity) <= index) tile++;
     points.push(place[pieceOf(tile)]!(point));
+    onJoin.push(joins.has(tile));
     colors.push(joins.has(tile) ? null : (guide.colors[index] ?? null));
   }
   if (picture.traced === true && settle > 0) {
@@ -143,14 +155,10 @@ export function revealedPath(path: Path, picture: RoadPicture, move: number, set
       points[index] = { x: point.x + (target.x - point.x) * pull, y: point.y + (target.y - point.y) * pull };
     });
   }
-  const shown = points.filter((_, index) => !joins.has(tileOfPoint(index)));
+  const shown = points.filter((_, index) => !onJoin[index]);
   const lines = picture.strokes.flatMap(({ points: stroke }) => stroke);
-  const road = {
-    minX: Math.min(...shown.map(({ x }) => x)),
-    minY: Math.min(...shown.map(({ y }) => y)),
-    maxX: Math.max(...shown.map(({ x }) => x)),
-    maxY: Math.max(...shown.map(({ y }) => y)),
-  };
+  const road = boundsOf(shown) ?? { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
+  const drawn = boundsOf(lines);
   const toward = (from: number, to: number): number => from + (to - from) * move;
   return {
     ...path,
@@ -160,10 +168,10 @@ export function revealedPath(path: Path, picture: RoadPicture, move: number, set
       points,
       colors,
       bounds: {
-        minX: toward(road.minX, Math.min(road.minX, ...lines.map(({ x }) => x))),
-        minY: toward(road.minY, Math.min(road.minY, ...lines.map(({ y }) => y))),
-        maxX: toward(road.maxX, Math.max(road.maxX, ...lines.map(({ x }) => x))),
-        maxY: toward(road.maxY, Math.max(road.maxY, ...lines.map(({ y }) => y))),
+        minX: toward(road.minX, Math.min(road.minX, drawn?.minX ?? Infinity)),
+        minY: toward(road.minY, Math.min(road.minY, drawn?.minY ?? Infinity)),
+        maxX: toward(road.maxX, Math.max(road.maxX, drawn?.maxX ?? -Infinity)),
+        maxY: toward(road.maxY, Math.max(road.maxY, drawn?.maxY ?? -Infinity)),
       },
     },
   };

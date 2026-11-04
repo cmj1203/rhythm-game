@@ -292,8 +292,11 @@ body {
   display: none;
 }
 
+/* 연타 중에도 손가락이 닿도록 터치 대상을 44px 이상으로 둔다(WCAG 2.5.5 권장 크기). */
 #back .start {
-  padding: 8px 14px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 16px;
   font-size: 14px;
 }
 
@@ -305,7 +308,9 @@ body {
 }
 
 #pause .start {
-  padding: 8px 14px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 16px;
   font-size: 14px;
 }
 
@@ -586,57 +591,6 @@ body {
   color: var(--perfect);
   transform: translateX(-50%);
   opacity: 0;
-}
-
-.marks {
-  display: grid;
-  gap: 12px;
-  padding: 16px;
-  list-style: none;
-  background: var(--surface);
-  border-radius: 14px;
-}
-
-.mark {
-  display: grid;
-  grid-template-columns: 28px 1fr;
-  column-gap: 12px;
-  align-items: center;
-}
-
-.mark-icon {
-  grid-row: 1 / span 2;
-  justify-self: center;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: currentColor;
-  box-shadow:
-    0 0 0 3px var(--surface),
-    0 0 0 5px currentColor;
-}
-
-.mark-slow {
-  color: var(--sky);
-}
-
-.mark-fast {
-  color: var(--pink);
-}
-
-.mark-twirl {
-  color: var(--violet);
-}
-
-.mark-name {
-  grid-column: 2;
-  font-size: 16px;
-}
-
-.mark-meaning {
-  grid-column: 2;
-  font-size: 14px;
-  color: var(--dim);
 }
 
 /* 움직임 줄이기: 타이틀 글자와 결과 버튼이 나타나는 전환을 없앤다. */

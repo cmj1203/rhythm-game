@@ -20,10 +20,23 @@ const COMBO_BONUS_CAP = 100;
 const PRESSED_MISS_STRAIN = 4;
 const UNPRESSED_MISS_STRAIN = 6;
 const OVER_STRAIN = 20;
+/**
+ * 노트보다 이만큼 넘게 이른 누르기는 그 노트를 누른 것으로 치지 않는다. 카운트인 딸깍을 따라 누른 것이
+ * 첫 노트를 '눌렀는데 놓침'으로 만들지 않게 한다.
+ */
+const PRESSED_FOR_S = 0.5;
+
+/**
+ * `offsetS` 가 `withinS` 안인지. 노트 시각을 빼서 생기는 부동소수 오차(1.06 - 1 = 0.06000000000000005)로
+ * 경계가 한쪽으로 기울지 않도록 µs 단위로 반올림해 비교한다.
+ */
+function isWithin(offsetS: number, withinS: number): boolean {
+  return Math.round(Math.abs(offsetS) * 1e6) <= Math.round(withinS * 1e6);
+}
 
 /** The judgement of a press `offsetS` seconds off the beat, or null if that is too far off to count. */
 export function judgementOf(offsetS: number): HitJudgement | null {
-  return HIT_WINDOWS.find((window) => Math.abs(offsetS) <= window.withinS)?.judgement ?? null;
+  return HIT_WINDOWS.find((window) => isWithin(offsetS, window.withinS))?.judgement ?? null;
 }
 
 /** `index` is the note the judgement belongs to. */
@@ -74,10 +87,11 @@ export class PlayState {
 
   press(songTime: number): JudgeEvent | null {
     if (this.overAt !== null) return null;
-    // Any press, even one too far off to count, means the note now due was pressed for, so missing it costs less.
-    this.lastPressAt = songTime;
     const time = this.times[this.nextIndex];
     if (time === undefined) return null;
+    // Any press, even one too far off to count, means the note now due was pressed for, so missing it costs less.
+    // 다만 `PRESSED_FOR_S` 보다 이른 누르기(카운트인 따라 누르기 등)는 그 노트를 노린 것으로 보지 않는다.
+    if (songTime >= time - PRESSED_FOR_S) this.lastPressAt = songTime;
     const offsetS = songTime - time;
     const judgement = judgementOf(offsetS);
     if (judgement === null) return null;
@@ -100,7 +114,7 @@ export class PlayState {
     if (this.overAt !== null) return events;
     for (;;) {
       const time = this.times[this.nextIndex];
-      if (time === undefined || songTime - time <= MAX_WINDOW_S) break;
+      if (time === undefined || songTime <= time || isWithin(songTime - time, MAX_WINDOW_S)) break;
       this.counts.miss += 1;
       this.combo = 0;
       events.push({ judgement: "miss", index: this.nextIndex, offsetMs: 0 });

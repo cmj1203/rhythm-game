@@ -2,6 +2,7 @@ import { COLOR, JUDGEMENT_COLOR, type Painter, type Point, type Size } from "./c
 import { drawCrayon, drawGrain } from "./crayon";
 import { loadDrawing } from "./drawing";
 import type { Rect } from "./embroidery";
+import { type Bounds, boundsOf, distance, lerpPoint } from "./geometry";
 
 /** The title is public/pictures/logo.svg: one shape per syllable, each a few strokes of the crayon. */
 const LOGO_ID = "logo";
@@ -15,7 +16,6 @@ const MIN_LINE_PX = 2.5;
 const PEN_HEADING = (Math.PI * 3) / 4;
 
 type Line = readonly Point[];
-type Bounds = { readonly minX: number; readonly minY: number; readonly maxX: number; readonly maxY: number };
 /** One syllable of the title: its strokes in the order they are written, and how long they are together. */
 type Syllable = { readonly lines: readonly Line[]; readonly length: number };
 type Title = { readonly syllables: readonly Syllable[]; readonly bounds: Bounds };
@@ -29,8 +29,8 @@ export type IntroFrame = {
 };
 
 export type IntroOptions = {
-  /** The player asked for less motion: the title is shown already written. */
-  readonly isCalm: boolean;
+  /** The player asked for less motion: the title is shown already written. 매 프레임 물어 설정이 바뀌면 바로 따른다. */
+  readonly isCalm: () => boolean;
   /** The title is written, so the start button may show. */
   readonly onReady: () => void;
 };
@@ -45,7 +45,7 @@ export class Intro {
     private readonly options: IntroOptions,
     private readonly title: Title,
   ) {
-    this.isWritten = options.isCalm;
+    this.isWritten = options.isCalm();
   }
 
   /** True once the title is written and nothing is left but to start. */
@@ -62,6 +62,7 @@ export class Intro {
 
   /** Moves the intro on to `nowMs` and says what to draw. */
   advance(nowMs: number): IntroFrame {
+    if (this.options.isCalm()) this.skip();
     this.sinceMs ??= nowMs;
     const elapsed = (nowMs - this.sinceMs) / 1000;
     const { syllables } = this.title;
@@ -77,29 +78,12 @@ export class Intro {
   }
 }
 
-function distance(a: Point, b: Point): number {
-  return Math.hypot(a.x - b.x, a.y - b.y);
-}
-
-function between(a: Point, b: Point, t: number): Point {
-  return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
-}
-
 function lengthOf(line: Line): number {
   return line.reduce((length, point, i) => length + distance(line[i - 1] ?? point, point), 0);
 }
 
-function boundsOf(points: Line): Bounds {
-  return points.reduce(
-    (bounds, { x, y }) => ({
-      minX: Math.min(bounds.minX, x),
-      minY: Math.min(bounds.minY, y),
-      maxX: Math.max(bounds.maxX, x),
-      maxY: Math.max(bounds.maxY, y),
-    }),
-    { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity },
-  );
-}
+/** 점이 없을 때의 상자: 예전처럼 비어 있는(무한한) 상자. */
+const NO_BOUNDS: Bounds = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
 
 export async function loadIntro(options: IntroOptions): Promise<Intro> {
   const logo = await loadDrawing(LOGO_ID);
@@ -110,7 +94,7 @@ export async function loadIntro(options: IntroOptions): Promise<Intro> {
       lines,
       length: lines.reduce((length, line) => length + lengthOf(line), 0),
     })),
-    bounds: boundsOf(logo.strokes.flatMap(({ points }) => points)),
+    bounds: boundsOf(logo.strokes.flatMap(({ points }) => points)) ?? NO_BOUNDS,
   });
 }
 
@@ -157,7 +141,7 @@ function drawSyllable(painter: Painter, { lines, length }: Syllable, share: numb
         ctx.moveTo(start.x, start.y);
       } else {
         const span = distance(previous, point);
-        pen = put(place, span > left ? between(previous, point, left / span) : point);
+        pen = put(place, span > left ? lerpPoint(previous, point, left / span) : point);
         ctx.lineTo(pen.x, pen.y);
         left -= span;
         if (left <= 0) break;
@@ -192,7 +176,7 @@ function drawLamp(painter: Painter, isLive: boolean): void {
 export function drawIntro(painter: Painter, frame: IntroFrame, size: Size): void {
   const place = placeIn(frame.title.bounds, titleRect(size));
   const pens = frame.title.syllables.map((syllable, i) => drawSyllable(painter, syllable, frame.written[i] ?? 0, place));
-  drawGrain(painter, { x: 0, y: 0 }, 0);
+  drawGrain(painter, { x: 0, y: 0 }, 0, size);
   for (const pen of pens) if (pen !== null) drawPen(painter, pen, size);
   drawLamp(painter, frame.isLive);
 }

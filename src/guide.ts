@@ -1,12 +1,8 @@
 import type { Point } from "./canvas";
 import type { Route } from "./drawing";
+import { boundsOf, type Bounds } from "./geometry";
 
-export type Bounds = {
-  readonly minX: number;
-  readonly minY: number;
-  readonly maxX: number;
-  readonly maxY: number;
-};
+export type { Bounds } from "./geometry";
 
 /**
  * The picture's line at the size it is sewn, as points a fixed distance apart, in road units.
@@ -40,21 +36,7 @@ const SPARE_POINTS = 32;
 /** A course point is the average of the guide this far to either side of it, in road units. */
 const SMOOTHING_REACH = 2;
 
-function boundsOf(points: readonly Point[]): Bounds {
-  let bounds: Bounds | null = null;
-  for (const { x, y } of points) {
-    bounds =
-      bounds === null
-        ? { minX: x, minY: y, maxX: x, maxY: y }
-        : {
-            minX: Math.min(bounds.minX, x),
-            minY: Math.min(bounds.minY, y),
-            maxX: Math.max(bounds.maxX, x),
-            maxY: Math.max(bounds.maxY, y),
-          };
-  }
-  return bounds ?? { minX: 0, minY: 0, maxX: 0, maxY: 0 };
-}
+const NO_BOUNDS: Bounds = { minX: 0, minY: 0, maxX: 0, maxY: 0 };
 
 /** Resizes a drawing's route so that it is `length` road units long and marks it out in even steps. */
 export function layGuide(route: Route, length: number): Guide {
@@ -80,7 +62,7 @@ export function layGuide(route: Route, length: number): Guide {
 
   const endIndex = Math.max(0, points.length - 1);
   const sewn = points.filter((_, i) => colors[i] !== null);
-  return { points, colors, endIndex, length: endIndex * GUIDE_STEP, bounds: boundsOf(sewn.length > 0 ? sewn : points) };
+  return { points, colors, endIndex, length: endIndex * GUIDE_STEP, bounds: boundsOf(sewn.length > 0 ? sewn : points) ?? NO_BOUNDS };
 }
 
 /** Smooths a guide into the line a road can follow, keeping track of which guide point each part stands for. */

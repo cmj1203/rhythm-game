@@ -2,7 +2,7 @@ import { assertNever } from "./assert";
 import { countIn, decodingShift, LEAD_IN_S, SongPlayer, volumeFor } from "./audio";
 import { bpmAt } from "./tempo";
 import { recordBest } from "./best";
-import { CalibrationScreen } from "./calibration";
+import { CalibrationScreen, clampLag } from "./calibration";
 import { SettingsScreen } from "./settings";
 import {
   type Difficulty,
@@ -13,10 +13,11 @@ import {
   SongLoadError,
   type SongSummary,
 } from "./chart";
-import { element, focusScreen } from "./dom";
+import { element, focusScreen, screenButton } from "./dom";
 import { DrawingLoadError, loadDrawing } from "./drawing";
 import { loadIntro } from "./intro";
 import { missesAtFrame, PlayState, pressAt } from "./judge";
+import { startsSong } from "./keys";
 import { REDUCED_MOTION } from "./motion";
 import { recordPlay, today } from "./playlog";
 import { SongMenu } from "./menu";
@@ -25,8 +26,9 @@ import { type Sewing, sewingFor, sewingOf } from "./pictures";
 import { accentsOf, buildRhythmPath } from "./rhythm-road";
 import { type Frame, Renderer } from "./render";
 import { resultButtonsAt } from "./result-screen";
-import { dyePath, planSections, type Section } from "./sections";
+import { dyePath, planSections } from "./sections";
 import { readStoredNumber, removeStored, writeStored } from "./storage";
+import { type Session, sessionOf } from "./session";
 import { TitleScreen } from "./title";
 import { BURST_S, type Feedback, finaleProgress } from "./track";
 import { TutorialScreen } from "./tutorial";
@@ -37,13 +39,6 @@ const PREVIEW_DELAY_MS = 350;
 /** Every this many in a row, a hit gives the screen a kick. */
 const COMBO_KICK_EVERY = 50;
 
-type Session = {
-  readonly song: SongSummary;
-  readonly difficulty: Difficulty;
-  readonly pictureName: string;
-  readonly sections: readonly Section[];
-  readonly play: PlayState;
-};
 type Screen =
   | { readonly kind: "title" }
   | { readonly kind: "tutorial" }
@@ -132,9 +127,9 @@ function logPlay(songId: string, difficulty: Difficulty, play: PlayState, gameOv
   });
 }
 
-/** The lag the timing check found last time, in seconds; none if it was never kept. */
+/** The lag the timing check found last time, in seconds; none if it was never kept. 범위 밖 저장값은 자른다. */
 function savedLag(): number {
-  return readStoredNumber(LAG_KEY, 0) / 1000;
+  return clampLag(readStoredNumber(LAG_KEY, 0) / 1000);
 }
 
 async function boot(): Promise<void> {
@@ -151,7 +146,7 @@ async function boot(): Promise<void> {
   const picturePins = await loadPicturePins();
   const query = new URLSearchParams(window.location.search);
   const intro = await loadIntro({
-    isCalm: REDUCED_MOTION.matches,
+    isCalm: () => REDUCED_MOTION.matches,
     onReady: () => title.setReady(true),
   });
   let screen: Screen = { kind: "title" };
@@ -228,7 +223,7 @@ async function boot(): Promise<void> {
           return assertNever(chart);
       }
       const { pictureName, path } = sewing;
-      const sections = planSections(times, chart.bpm, chart.offset);
+      const sections = planSections(times, chart.bpm, chart.offset, chart.tempo);
       menu.hide();
       backCorner.hidden = false;
       screen = {
@@ -366,12 +361,7 @@ async function boot(): Promise<void> {
     ]);
     screen = {
       kind: "playing",
-      song: ready.song,
-      difficulty: ready.difficulty,
-      pictureName: ready.pictureName,
-      sections: ready.sections,
-      play: ready.play,
-      path: ready.path,
+      ...sessionOf(ready),
       duration: ready.buffer.duration,
       bursts: [],
       source: ready,
@@ -403,26 +393,17 @@ async function boot(): Promise<void> {
       if (document.hidden && screen === playing) pause(playing);
     });
   };
-  const pauseButton = element("button", "start secondary", "일시정지");
-  pauseButton.type = "button";
-  // A tap anywhere else during play is a press; this one must not be.
-  pauseButton.addEventListener("pointerdown", (event) => event.stopPropagation());
-  pauseButton.addEventListener("click", () => {
+  // A tap anywhere else during play is a press; these must not be.
+  const pauseButton = screenButton("start secondary", "일시정지", () => {
     if (screen.kind === "playing") pause(screen);
-  });
+  }, { overGame: true });
   pauseCorner.append(pauseButton);
-  const playOnButton = element("button", "start", "계속하기");
-  const leaveButton = element("button", "start secondary", "곡 선택");
-  for (const button of [playOnButton, leaveButton]) {
-    button.type = "button";
-    button.addEventListener("pointerdown", (event) => event.stopPropagation());
-  }
-  playOnButton.addEventListener("click", () => {
+  const playOnButton = screenButton("start", "계속하기", () => {
     if (screen.kind === "playing") playOn(screen);
-  });
-  leaveButton.addEventListener("click", () => {
+  }, { overGame: true });
+  const leaveButton = screenButton("start secondary", "곡 선택", () => {
     if (screen.kind === "playing") backToMenu();
-  });
+  }, { overGame: true });
   pausedButtons.append(element("p", "paused-title", "일시정지"), playOnButton, leaveButton);
   // 브라우저가 스스로 오디오를 멈추면(전화 등) 노트만 지나가지 않도록 일시정지한다.
   player.onInterrupt = () => {
@@ -457,22 +438,16 @@ async function boot(): Promise<void> {
   };
   window.addEventListener("resize", placeEndButtons);
 
-  const backButton = element("button", "start secondary", "곡 선택");
-  backButton.type = "button";
   // A tap anywhere else on this screen starts the song; this one must not.
-  backButton.addEventListener("pointerdown", (event) => event.stopPropagation());
-  backButton.addEventListener("click", () => {
+  const backButton = screenButton("start secondary", "곡 선택", () => {
     if (screen.kind === "ready") backToMenu();
-  });
+  }, { overGame: true });
   backCorner.append(backButton);
 
-  const retryButton = element("button", "start", "다시 하기");
-  const listButton = element("button", "start secondary", "곡 선택");
-  for (const button of [retryButton, listButton]) button.type = "button";
-  retryButton.addEventListener("click", () => {
+  const retryButton = screenButton("start", "다시 하기", () => {
     if (screen.kind === "over" || screen.kind === "result") playAgain(screen);
   });
-  listButton.addEventListener("click", () => {
+  const listButton = screenButton("start secondary", "곡 선택", () => {
     if (screen.kind === "over" || screen.kind === "result") backToMenu();
   });
   overButtons.append(retryButton, listButton);
@@ -546,9 +521,8 @@ async function boot(): Promise<void> {
           backToMenu();
           return;
         }
-        if (event.metaKey || event.ctrlKey || event.altKey) return;
         // Tab 은 '곡 선택' 버튼으로 가는 길이고, 포커스된 그 버튼 위의 Enter·Space 는 버튼을 누른다.
-        if (event.code === "Tab" || event.target instanceof HTMLButtonElement) return;
+        if (!startsSong(event) || event.target instanceof HTMLButtonElement) return;
         event.preventDefault();
         startPlaying(screen);
         return;
@@ -619,12 +593,7 @@ async function boot(): Promise<void> {
           logPlay(screen.song.id, screen.difficulty, screen.play, true);
           screen = {
             kind: "over",
-            song: screen.song,
-            difficulty: screen.difficulty,
-            pictureName: screen.pictureName,
-            sections: screen.sections,
-            play: screen.play,
-            path: screen.path,
+            ...sessionOf(screen),
             at: screen.play.overAt,
             source: screen.source,
           };
@@ -640,12 +609,7 @@ async function boot(): Promise<void> {
           const { best, isNew, previous } = recordBest(screen.song.id, screen.play);
           screen = {
             kind: "result",
-            song: screen.song,
-            difficulty: screen.difficulty,
-            pictureName: screen.pictureName,
-            sections: screen.sections,
-            play: screen.play,
-            path: screen.path,
+            ...sessionOf(screen),
             shownAt: performance.now(),
             source: screen.source,
             bestGrade: best.grade,

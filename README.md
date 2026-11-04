@@ -152,6 +152,8 @@ pnpm dev       # 터미널에 나오는 http://localhost:5173 주소를 브라�
 
 곡을 지울 때는 폴더를 지운 뒤 아무 곡이나 채보를 다시 만들면 목록에서 빠진다.
 
+곡을 넣거나 지운 뒤에는 아래 '들어 있는 곡' 표를 `uv run tools/song_table.py` 로 chart.json 에 맞춘다. 새 곡의 곡 칸은 제목, 출처 칸은 `artist` 로 채워지므로 설명과 라이선스는 손으로 고친다. `pytest tools` 가 표와 chart.json 이 맞는지 확인한다.
+
 곡마다 난이도는 하나다. 채보 도구는 곡의 빠르기로 노트를 얼마나 고를지 정하고(105 BPM 미만은 아래 표의 Easy 기준, 125 BPM 이상은 Hard 기준, 그 사이는 Normal 기준), 고른 노트가 얼마나 치기 어려운지로 난이도 탭을 정한다. 1분당 노트 수 × (1 + 엇박 노트 비율) × (1 + 0.5 × 앞 노트와 0.25초 안에 이어지는 노트 비율)이 200 미만이면 Easy, 360 이상이면 Hard, 그 사이는 Normal이다. 직접 정하려면 `--difficulty easy`(또는 `normal`, `hard`)를 붙인다. 그 난이도 기준으로 노트를 고르고 그 탭에 넣는다.
 
 `chart.json`의 `notes`에는 "눌러야 하는 시간(초)" 목록이, `difficulty`에는 난이도가 들어 있다. 마음에 안 들면 직접 고쳐도 된다. 길 모양은 게임이 이 시간들로부터 그때그때 만든다. 노트 자리가 노래와 맞는지는 주소 뒤에 `?tick`을 붙여 귀로 확인한다.
@@ -212,13 +214,13 @@ pnpm dev       # 터미널에 나오는 http://localhost:5173 주소를 브라�
 | `your-call` | Your Call (촘촘함, 엇박 많음) | Normal | 120 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `looking-for-ammunition` | Wandering Around Looking for Ammunition (칩튠) | Normal | 120 BPM | Ragnar Random (OpenGameArt), CC0 |
 | `forever-believe` | Forever Believe (어반 댄스) | Normal | 121 BPM | Jason Shaw (Free Music Archive), CC BY 3.0 |
+| `funky-pop` | Funky Pop (팝, 엇박 많음) | Normal | 121 BPM | HoliznaCC0 (Free Music Archive), CC0 |
 | `tech-live` | Tech Live (전자 타악기, 촘촘함) | Normal | 124 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `wretched-destroyer` | Wretched Destroyer (헤비 메탈) | Normal | 140 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
-| `breach` | Breach (피아노, 리듬 길이 고래 그림이 됨) | Normal | 152 BPM | LiveCanvas, 피아노 샘플 Salamander Grand Piano V3(Alexander Holm) CC BY 3.0 |
+| `breach` | Breach (피아노, 리듬 길이 고래 그림이 됨) | Normal | 152 BPM (구간마다 132~184 BPM) | LiveCanvas, 피아노 샘플 Salamander Grand Piano V3(Alexander Holm) CC BY 3.0 |
 | `eight-arms` | Eight Arms (피아노, 리듬 길이 문어 그림이 됨) | Normal | 176 BPM | LiveCanvas, 피아노 샘플 Salamander Grand Piano V3(Alexander Holm) CC BY 3.0 |
 | `captain-glouglou-contest` | Captain Glouglou contest (게임 음악, 엇박 많음) | Hard | 120 BPM | Komiku (Free Music Archive), CC0 |
 | `jenifer-the-game` | Jenifer The Game (게임 음악, 촘촘함) | Hard | 120 BPM | Komiku (Free Music Archive), CC0 |
-| `funky-pop` | Funky Pop (팝, 엇박 많음) | Normal | 121 BPM | HoliznaCC0 (Free Music Archive), CC0 |
 | `covered-in-oil` | Covered In Oil (펑키한 전자 힙합) | Hard | 124 BPM | Broke For Free (Free Music Archive), CC BY 3.0 |
 | `pookatori-and-friends` | Pookatori and Friends (통통 튀는 신스, 엇박 많음) | Hard | 124 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `special-spotlight` | Special Spotlight (빠른 록) | Hard | 126 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
@@ -236,7 +238,7 @@ pnpm dev       # 터미널에 나오는 http://localhost:5173 주소를 브라�
 | `mutant-club` | Mutant Club (클럽 음악, 엇박 많음) | Hard | 140 BPM | HoliznaCC0 (Free Music Archive), CC0 |
 | `breakdown` | Breakdown (록, 촘촘함) | Hard | 140 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `level-4-first-infiltration-in-unresponsible-tech` | Level 4 : First infiltration in Unresponsible Tech (빠른 아케이드 액션) | Hard | 143 BPM | Komiku (Free Music Archive), CC0 |
-| `last-fortress` | Last Fortress (피아노, 리듬 길이 벌새 그림이 됨) | Hard | 184 BPM | LiveCanvas, 피아노 샘플 Salamander Grand Piano V3(Alexander Holm) CC BY 3.0 |
+| `last-fortress` | Last Fortress (피아노, 리듬 길이 벌새 그림이 됨) | Hard | 184 BPM (구간마다 150~196 BPM) | LiveCanvas, 피아노 샘플 Salamander Grand Piano V3(Alexander Holm) CC BY 3.0 |
 
 Josh Woodward의 곡은 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)으로 공개되어 있다. Free download: https://www.joshwoodward.com/
 
@@ -291,6 +293,7 @@ HoliznaCC0의 곡("Back In The 80s", "Drama", "Funky Pop", "Game BOI 1", "Game T
 | `tools/make_chart.py` | mp3를 분석해 박자를 찾고(Beat This! 모델) 채보(`chart.json`)와 곡 목록(`index.json`)을 쓰는 도구. 하늘 칸이 곡 전체에 고르게 퍼지게 노트를 다듬는다(`spread_waits`) |
 | `tools/check_timing.py` | 박자 검사: 노트가 노래의 타격 소리와 25ms 안에 맞는 비율(80% 이상 통과), 음악이 끝난 뒤의 노트, 음악이 시작하기 전 들리지 않는 노트. 넣기 전 후보 mp3도 검사한다 |
 | `tools/check_variety.py` | 반복 검사: 마디마다 소리를 4마디 앞, 8마디 앞 마디와 비교해 거의 같은(상관 0.95 이상) 마디의 비율(50% 이상이면 FAIL)과 가장 긴 반복 구간 |
+| `tools/song_table.py` | 이 README 의 '들어 있는 곡' 표를 `public/songs/*/chart.json` 의 난이도·BPM(템포 맵이 있으면 그 범위)에 맞춘다. `--check` 는 고치지 않고 다르면 1 로 끝난다. 곡 설명·출처 칸은 손으로 쓴 것을 둔다 |
 | `tools/pick_pictures.ts` | 곡마다 가장 잘 맞는 그림을 골라 `public/songs/pictures.json`에 적는다 (`pnpm dev`가 켜져 있어야 한다) |
 | `tools/check_screen.ts` | 화면 검사: 곡마다 크레파스 빠르기, 그림이 마지막 노트에 끝나는지, 완만한 꺾임 연속, 그림 겹침 (`pnpm dev`가 켜져 있어야 한다) |
 | `tools/sewing-stats.ts` | 위 두 도구가 함께 쓰는 길 재기 |

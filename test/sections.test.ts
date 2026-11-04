@@ -104,3 +104,32 @@ describe("dyePath", () => {
     expect(path.guide.colors[0]).toBe("#000000");
   });
 });
+
+// 코드 리뷰 2026-11-04 낮음: 템포가 바뀌는 차트는 구간을 템포 맵의 박으로 센다.
+describe("planSections 와 템포 맵", () => {
+  test("템포 맵이 있으면 16박을 그 맵의 박으로 센다", () => {
+    // 0~8초는 120BPM(16박 = 8초), 8초부터는 60BPM(16박 = 16초). 노트는 1초마다.
+    const times = run(0, 41, 1);
+    const sections = planSections(times, 120, 0, [[0, 120], [8, 60]]);
+    expect(sections.map((section) => section.startTime)).toEqual([0, 8, 24, 40]);
+  });
+
+  test("템포 맵이 없으면 기본 BPM 으로 센다(지금과 같음)", () => {
+    const times = run(0, 41, 1);
+    expect(planSections(times, 120, 0).map((section) => section.startTime)).toEqual([0, 8, 16, 24, 32, 40]);
+    expect(planSections(times, 120, 0, undefined)).toEqual(planSections(times, 120, 0));
+  });
+
+  test("breach: 템포 구간이 바뀐 뒤에도 각 구간은 새 16박 묶음의 첫 노트에서 시작한다", async () => {
+    const { beatsBetween } = await import("../src/tempo");
+    const chart = await Bun.file(new URL("../public/songs/breach/chart.json", import.meta.url)).json();
+    const sections = planSections(chart.notes, chart.bpm, chart.offset, chart.tempo);
+    const bar = (time: number): number => Math.floor(beatsBetween(chart.tempo, chart.offset, time) / 16 + 1e-9);
+    for (const section of sections.slice(1)) {
+      const before = chart.notes[section.fromNote - 1];
+      expect(bar(section.startTime)).toBeGreaterThan(bar(before));
+    }
+    // 노트가 있는 16박 묶음마다 구간이 하나씩 있다.
+    expect(sections.length).toBe(new Set(chart.notes.map(bar)).size);
+  });
+});

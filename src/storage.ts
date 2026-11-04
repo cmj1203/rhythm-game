@@ -47,10 +47,28 @@ export function removeStored(key: string, storage?: Pick<Storage, "removeItem">)
   }
 }
 
-/** `key` 에 저장된 수, 없거나 수가 아니거나 읽기가 거절되면 `fallback`. */
+/** `key` 에 저장된 수, 없거나 비었거나 수가 아니거나 읽기가 거절되면 `fallback`. `Number("")` 은 0 이라 빈 값은 따로 거른다. */
 export function readStoredNumber(key: string, fallback: number, storage?: Pick<Storage, "getItem">): number {
   const saved = readStored(key, storage);
-  if (saved === null) return fallback;
+  if (saved === null || saved.trim() === "") return fallback;
   const value = Number(saved);
   return Number.isFinite(value) ? value : fallback;
+}
+
+/** 저장된 JSON 을 읽은 결과: 없음(또는 읽기 거절), 읽은 값, 또는 JSON 으로 읽히지 않는 원래 글. */
+export type StoredJson =
+  | { readonly kind: "none" }
+  | { readonly kind: "value"; readonly value: unknown }
+  | { readonly kind: "broken"; readonly raw: string };
+
+/** `key` 에 저장된 JSON. 깨진 글은 덮어쓰기 전에 옮겨 둘 수 있도록 원래 글을 함께 돌려준다. */
+export function readStoredJson(key: string, storage?: Pick<Storage, "getItem">): StoredJson {
+  const saved = readStored(key, storage);
+  if (saved === null) return { kind: "none" };
+  try {
+    return { kind: "value", value: JSON.parse(saved) };
+  } catch (error) {
+    if (error instanceof SyntaxError) return { kind: "broken", raw: saved };
+    throw error;
+  }
 }

@@ -13,13 +13,19 @@ const CLICK_GAP_S = 0.6;
 const CLICKS = 12;
 /** Presses that make a run: the dots on screen, lit one by one in the order the presses come. */
 const COUNTED_CLICKS = 8;
-/** A press further than this from every click is a stray and is left out. */
-const CATCH_S = 0.25;
+/** A press further than this from every click is a stray and is left out. 그래서 잰 값은 이 범위를 넘지 않는다. */
+export const CATCH_S = 0.25;
 const ENOUGH_PRESSES = 6;
 /** First-guess cutoff for a stable run, to be validated on real devices. */
 const MAX_MAD_S = 0.04;
 const LAST_PRESS_WAIT_S = 0.8;
-const MAX_LAG_S = 0.3;
+/** 저장해 두고 쓰는 박자 값의 한계. 손으로 고친 저장값(예: 5000ms)이 모든 판정을 밀지 않게 읽을 때 자른다. */
+export const MAX_LAG_S = 0.3;
+
+/** `lagSeconds` 를 ±`MAX_LAG_S` 안으로 자른 값. */
+export function clampLag(lagSeconds: number): number {
+  return Math.max(-MAX_LAG_S, Math.min(MAX_LAG_S, lagSeconds));
+}
 
 /**
  * The timing check: clicks at a steady beat, pressed along with by ear. The middle of how late (or early) the
@@ -118,7 +124,8 @@ export class CalibrationScreen {
       this.again.hidden = false;
       return;
     }
-    this.found = Math.max(-MAX_LAG_S, Math.min(MAX_LAG_S, middle));
+    // 받는 누르기가 이미 ±CATCH_S 안이라 중앙값도 그 안이다. 따로 자르지 않는다.
+    this.found = middle;
     const ms = Math.round(this.found * 1000);
     this.result.textContent = `${ms > 0 ? "+" : ""}${ms}ms`;
     this.again.hidden = false;

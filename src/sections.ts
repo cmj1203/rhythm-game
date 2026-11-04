@@ -1,7 +1,9 @@
 import { assertNever } from "./assert";
 import { LEAD_IN_S } from "./audio";
 import { COLOR, JUDGEMENT_COLOR } from "./canvas";
+import { easeInOutQuad } from "./easing";
 import type { Path } from "./path";
+import { beatsBetween, type TempoMap } from "./tempo";
 
 /**
  * Where the camera stands: `zoom` 1 is the usual distance, larger is closer; `tilt` turns the screen, in radians;
@@ -36,6 +38,8 @@ const THREADS = [
   JUDGEMENT_COLOR.great,
 ] as const;
 const BEATS_PER_SECTION = 16;
+/** 템포 맵으로 센 박은 부동소수 오차로 16박 경계 바로 아래가 될 수 있어, 이만큼(박) 너그럽게 센다. */
+const BEAT_SLACK = 1e-6;
 const SECTIONS_PER_THREAD = 2;
 /** Besides following how busy the music is, the camera steps closer and back from section to section. */
 const ZOOM_STEPS = [1, 1.1, 0.93] as const;
@@ -62,14 +66,19 @@ const START_POSE: Pose = { zoom: 1, tilt: 0, slide: 0 };
  * Cuts the chart into sections of a few bars. A section with more notes than usual is watched from closer and
  * with the screen turned further; the turn changes side every section, and the thread changes every other one.
  * Through each section the camera makes one move, so the picture on the screen is never still.
+ * 차트에 템포 맵(`tempo`)이 있으면 16박을 그 맵의 박으로 세어, 템포가 바뀐 뒤에도 구간 경계가 마디와 맞는다.
  */
-export function planSections(times: readonly number[], bpm: number, offset: number): Section[] {
+export function planSections(times: readonly number[], bpm: number, offset: number, tempo?: TempoMap): Section[] {
   const beatS = 60 / bpm;
   const span = BEATS_PER_SECTION * beatS;
+  const slotOf = (time: number): number =>
+    tempo === undefined
+      ? Math.floor((time - offset) / span)
+      : Math.floor(beatsBetween(tempo, offset, time) / BEATS_PER_SECTION + BEAT_SLACK);
   const starts: { readonly fromNote: number; readonly startTime: number }[] = [];
   let lastSlot = Number.NEGATIVE_INFINITY;
   for (const [note, time] of times.entries()) {
-    const slot = Math.floor((time - offset) / span);
+    const slot = slotOf(time);
     if (slot <= lastSlot) continue;
     lastSlot = slot;
     starts.push({ fromNote: note, startTime: time });
@@ -96,10 +105,6 @@ export function planSections(times: readonly number[], bpm: number, offset: numb
       move: lift > BUSY_FROM ? "push" : lift < QUIET_BELOW ? "pull" : usualMove,
     };
   });
-}
-
-function easeInOut(t: number): number {
-  return t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
 }
 
 /**
@@ -129,7 +134,7 @@ function poseIn(section: Section, songTime: number): Pose {
 /** How much of its distance the camera has come in by `songTime`, during the lead-in before the song. */
 function openingZoom(songTime: number): number {
   const come = Math.min(1, Math.max(0, (songTime + LEAD_IN_S) / (LEAD_IN_S - OPENING_OVER_S)));
-  return OPENING_ZOOM + (1 - OPENING_ZOOM) * easeInOut(come);
+  return OPENING_ZOOM + (1 - OPENING_ZOOM) * easeInOutQuad(come);
 }
 
 /**
@@ -147,7 +152,7 @@ export function poseAt(sections: readonly Section[], songTime: number, reducedMo
   const from = poseIn(sections[current - 1] ?? section, songTime);
   const to = poseIn(section, songTime);
   const started = section.startTime - POSE_BLEND_S / 2;
-  const t = easeInOut(Math.min(1, Math.max(0, (songTime - started) / POSE_BLEND_S)));
+  const t = easeInOutQuad(Math.min(1, Math.max(0, (songTime - started) / POSE_BLEND_S)));
   return {
     zoom: (from.zoom + (to.zoom - from.zoom) * t) * openingZoom(songTime),
     tilt: from.tilt + (to.tilt - from.tilt) * t,

@@ -1,5 +1,6 @@
-import { COLOR, JUDGEMENT_COLOR, mixColors, type Painter, type Point, type Size } from "./canvas";
+import { COLOR, JUDGEMENT_COLOR, mixColors, type Painter, patternCache, type Point, type Size } from "./canvas";
 import { drawGrain } from "./crayon";
+import { lerp } from "./geometry";
 import type { Guide } from "./guide";
 import type { Judgement } from "./judge";
 import type { Path } from "./path";
@@ -36,7 +37,8 @@ const TRAVELLED_DIM = 0.55;
 const FRESH_STITCHES = 6;
 const WIDE_LAYOUT_RATIO = 1.15;
 /** How visible the thread is where it only passes behind the cloth, while the piece is still being sewn. */
-const BEHIND_ALPHA = 0.3;
+/** 천 뒤로 지나가는 실(그림의 획 사이)의 진하기: --dim 을 이만큼 깔면 배경과 3.28:1 이다(0.3 에서는 1.58:1). */
+export const BEHIND_ALPHA = 0.65;
 
 /** How hard each hit presses the crayon, 0 to 1: a clean hit draws a bold line, a loose one a faint, thinner one. */
 const PRESSURE = { perfect: 1, great: 0.78, good: 0.55 } as const satisfies Record<Exclude<Judgement, "miss">, number>;
@@ -50,10 +52,6 @@ export function toScreen(view: View, spot: Point): Point {
   const cos = Math.cos(view.angle);
   const sin = Math.sin(view.angle);
   return { x: view.anchor.x + dx * cos - dy * sin, y: view.anchor.y + dx * sin + dy * cos };
-}
-
-function lerp(a: number, b: number, t: number): number {
-  return a + (b - a) * t;
 }
 
 export function blendViews(from: View, to: View, t: number): View {
@@ -95,24 +93,12 @@ export function threadAt({ anchors, guide }: Path, tile: number): string {
   return guide.colors[anchors[tile] ?? 0] ?? COLOR.dim;
 }
 
-const weaves = new WeakMap<CanvasRenderingContext2D, CanvasPattern>();
-
-function weaveFor(ctx: CanvasRenderingContext2D): CanvasPattern | null {
-  const cached = weaves.get(ctx);
-  if (cached !== undefined) return cached;
-  const tile = document.createElement("canvas");
-  tile.width = WEAVE_CELL;
-  tile.height = WEAVE_CELL;
-  const tileCtx = tile.getContext("2d");
-  if (tileCtx === null) return null;
+const weaveFor = patternCache(WEAVE_CELL, (tileCtx) => {
   tileCtx.fillStyle = "rgba(255, 255, 255, 0.022)";
   tileCtx.fillRect(0, 0, WEAVE_CELL, 1);
   tileCtx.fillStyle = "rgba(255, 255, 255, 0.014)";
   tileCtx.fillRect(WEAVE_CELL / 2, 0, 1, WEAVE_CELL);
-  const pattern = ctx.createPattern(tile, "repeat");
-  if (pattern !== null) weaves.set(ctx, pattern);
-  return pattern;
-}
+});
 
 /** A faint woven texture that slides with the road, so the screen reads as cloth without drawing attention. */
 export function drawCloth(painter: Painter, view: View, { width, height }: Size): void {
@@ -205,7 +191,7 @@ function strokeLine(ctx: CanvasRenderingContext2D, line: readonly Point[]): void
  * `taut` 1 pulls the thread tight onto the picture's own lines: the detours made for rhythm straighten out,
  * and the thread that only passed behind the cloth between two strokes no longer shows.
  * `past` is how clearly the stitches sewn a while ago show, 0 to 1; the latest few always show in full.
- * Whatever transparency the caller has set applies to all of it.
+ * Whatever transparency the caller has set applies to all of it. `size` 는 화면 크기(CSS 픽셀)로, 종이결을 채우는 넓이다.
  */
 export function drawStitches(
   painter: Painter,
@@ -214,14 +200,15 @@ export function drawStitches(
   view: View,
   taut: number,
   past: number,
+  size: Size,
 ): void {
   const { ctx } = painter;
-  const size = view.tileSize;
+  const tileSize = view.tileSize;
   const opacity = ctx.globalAlpha;
   const behind = BEHIND_ALPHA * (1 - taut);
   const { minX, minY, maxX, maxY } = guide.bounds;
-  const finishedWidth = Math.max(maxX - minX, maxY - minY) * FINISHED_WIDTH_SHARE * size * taut;
-  const width = Math.max(MIN_STITCH_PX, size * STITCH_WIDTH, finishedWidth);
+  const finishedWidth = Math.max(maxX - minX, maxY - minY) * FINISHED_WIDTH_SHARE * tileSize * taut;
+  const width = Math.max(MIN_STITCH_PX, tileSize * STITCH_WIDTH, finishedWidth);
   ctx.save();
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
@@ -254,12 +241,12 @@ export function drawStitches(
       if (thread === null && behind <= 0) return;
       ctx.globalAlpha = thread === null ? opacity * behind * fade : opacity;
       ctx.strokeStyle = thread === null ? COLOR.dim : inkOf(JUDGEMENT_COLOR.miss, 1);
-      drawScribble(painter, spot(0.5), size, note);
+      drawScribble(painter, spot(0.5), tileSize, note);
       return;
     }
 
     if (rhythm !== undefined && taut === 0) {
-      ctx.lineWidth = size * TRAVELLED_WIDTH;
+      ctx.lineWidth = tileSize * TRAVELLED_WIDTH;
       ctx.strokeStyle = mixColors(COLOR.thread, COLOR.background, TRAVELLED_DIM);
       strokeLine(ctx, [spot(0), spot(1)]);
       return;
@@ -294,6 +281,6 @@ export function drawStitches(
     finishLine();
   });
   ctx.globalAlpha = opacity;
-  drawGrain(painter, toScreen(view, { x: 0, y: 0 }), view.angle);
+  drawGrain(painter, toScreen(view, { x: 0, y: 0 }), view.angle, size);
   ctx.restore();
 }

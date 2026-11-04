@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { judgementOf, PlayState } from "../src/judge";
+import { FRAME_MISS_GRACE_S, judgementOf, missesAtFrame, PlayState, pressAt } from "../src/judge";
 
 describe("judgementOf", () => {
   test("hit windows are ±60 / ±100 / ±140 ms, inclusive at the edge", () => {
@@ -153,5 +153,39 @@ describe("PlayState accuracy and grade", () => {
     const play = new PlayState([1, 2]);
     play.press(1);
     expect(play.grade).toBe(50);
+  });
+});
+
+// 코드 리뷰 2026-11-04 높음 1·2: 누르기와 프레임이 서로 다른 시각으로 놓침을 정하던 문제.
+describe("pressAt and missesAtFrame", () => {
+  test("a press first misses the notes whose window closed before it, then judges the next note", () => {
+    // 노트 [1.0, 1.2]. 마지막 프레임은 1.13 에서 놓침을 확인했고, 다음 프레임 전에 1.15 에 눌렀다.
+    const play = new PlayState([1.0, 1.2]);
+    expect(missesAtFrame(play, 1.13)).toEqual([]);
+    const { misses, hit } = pressAt(play, 1.15);
+    expect(misses).toEqual([{ judgement: "miss", index: 0, offsetMs: 0 }]);
+    expect(hit).toEqual({ judgement: "perfect", index: 1, offsetMs: expect.closeTo(-50, 6) });
+    // 노트 0 은 누름이 있었으나 늦게 확인된 것이 아니라, 누르기 전에 이미 창이 닫혀 있었다.
+    expect(play.counts).toEqual({ perfect: 1, great: 0, good: 0, miss: 1 });
+  });
+
+  test("a frame does not miss a note a press delivered after it can still hit", () => {
+    // 노트 [1.0, 1.5]. 프레임이 1.145 에 돌고, 그 뒤에 timeStamp 가 1.135 인 누르기가 배달된다.
+    const play = new PlayState([1.0, 1.5]);
+    expect(missesAtFrame(play, 1.145)).toEqual([]);
+    expect(pressAt(play, 1.135).hit).toEqual({ judgement: "good", index: 0, offsetMs: expect.closeTo(135, 6) });
+  });
+
+  test("the frame still misses a note once its window and the grace after it are over", () => {
+    const play = new PlayState([1.0, 1.5]);
+    expect(missesAtFrame(play, 1.14 + FRAME_MISS_GRACE_S - 0.001)).toEqual([]);
+    expect(missesAtFrame(play, 1.14 + FRAME_MISS_GRACE_S + 0.001)).toEqual([{ judgement: "miss", index: 0, offsetMs: 0 }]);
+  });
+
+  test("a press after a game over neither misses nor hits", () => {
+    const play = new PlayState([1, 2, 3, 4, 5, 6]);
+    missesAtFrame(play, 10);
+    expect(play.overAt).not.toBeNull();
+    expect(pressAt(play, 6)).toEqual({ misses: [], hit: null });
   });
 });

@@ -5,6 +5,11 @@ export type Difficulty = (typeof DIFFICULTIES)[number];
 
 const songIdSchema = z.string().regex(/^[a-z0-9-]+$/);
 const noteTimes = z.array(z.number().nonnegative());
+/** 판정(`PlayState`)과 경로가 노트를 시간 순서로 하나씩 다루므로, 노트는 겹치지 않고 오름차순이어야 한다. */
+const orderedNoteTimes = noteTimes.refine(
+  (times) => times.every((time, i) => i === 0 || time > (times[i - 1] ?? 0)),
+  "notes must be in strictly increasing order",
+);
 
 /**
  * A rhythm road that also draws public/pictures/<name>.svg (tools/picture_road.ts writes it). `flips` are the indices of
@@ -45,7 +50,7 @@ const chartBase = z.object({
   /** Times of a few sharp attacks, for `decodingShift` to find again. */
   anchors: noteTimes,
   difficulty: z.enum(DIFFICULTIES),
-  notes: noteTimes,
+  notes: orderedNoteTimes,
 });
 
 export const chartSchema = z.union([

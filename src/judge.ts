@@ -132,3 +132,23 @@ export class PlayState {
     return Math.floor(this.accuracy * 100);
   }
 }
+
+/**
+ * 프레임은 이만큼 늦게 놓침을 정한다. 키 이벤트는 그 이벤트의 timeStamp 로 판정하는데, 프레임보다 이른 timeStamp 를
+ * 가진 누르기가 프레임 뒤에 배달될 수 있어서, 그 사이에 창 안의 노트를 먼저 놓침으로 정하지 않게 한다.
+ */
+export const FRAME_MISS_GRACE_S = 0.03;
+
+/** 한 프레임에서 정할 놓침: `songTime` 에서 `FRAME_MISS_GRACE_S` 를 뺀 시각까지 창이 닫힌 노트. */
+export function missesAtFrame(play: PlayState, songTime: number): readonly JudgeEvent[] {
+  return play.advance(songTime - FRAME_MISS_GRACE_S);
+}
+
+/**
+ * `songTime` 의 누르기. 그 시각에 이미 창이 닫힌 노트를 먼저 놓침으로 넘긴 뒤 다음 노트로 판정한다. 그래야 프레임
+ * 사이에 들어온 누르기가 지난 노트와 비교돼 버려지지 않는다.
+ */
+export function pressAt(play: PlayState, songTime: number): { readonly misses: readonly JudgeEvent[]; readonly hit: JudgeEvent | null } {
+  const misses = play.advance(songTime);
+  return { misses, hit: play.press(songTime) };
+}

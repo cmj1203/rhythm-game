@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { DIFFICULTIES } from "./chart";
+import { readStored, writeStored } from "./storage";
 
 /** Every play's numbers, kept in this browser only: a date and counts, nothing that says who or when in the day. */
 const PLAYLOG_KEY = "livecanvas.playlog.v1";
@@ -30,8 +31,9 @@ export function today(now: Date = new Date()): string {
 }
 
 /** The kept plays, oldest first. A value that is not a list reads as empty; entries that do not read as a play are dropped. */
-export function loadPlaylog(storage: Pick<Storage, "getItem"> = localStorage): readonly PlayRecord[] {
-  const saved = storage.getItem(PLAYLOG_KEY);
+export function loadPlaylog(storage?: Pick<Storage, "getItem">): readonly PlayRecord[] {
+  // 브라우저가 저장소를 막으면 기록이 없는 것으로 읽는다.
+  const saved = readStored(PLAYLOG_KEY, storage);
   if (saved === null) return [];
   let parsed: unknown;
   try {
@@ -52,7 +54,7 @@ export function loadPlaylog(storage: Pick<Storage, "getItem"> = localStorage): r
  * A save the browser refuses (storage full or blocked) is reported with a warning and not thrown, so a play that
  * cannot be logged never keeps the rest of the play's ending, such as saving the best, from running.
  */
-export function recordPlay(play: PlayRecord, storage: Pick<Storage, "getItem" | "setItem"> = localStorage): void {
+export function recordPlay(play: PlayRecord, storage?: Pick<Storage, "getItem" | "setItem">): void {
   const all = [...loadPlaylog(storage), playSchema.parse(play)];
   const seen = new Map<string, number>();
   const kept = all
@@ -63,10 +65,5 @@ export function recordPlay(play: PlayRecord, storage: Pick<Storage, "getItem" | 
       return n <= MAX_PER_SONG;
     })
     .reverse();
-  try {
-    storage.setItem(PLAYLOG_KEY, JSON.stringify(kept));
-  } catch (error) {
-    if (!(error instanceof DOMException)) throw error;
-    console.warn("플레이 기록을 저장하지 못했습니다:", error.message);
-  }
+  writeStored(PLAYLOG_KEY, JSON.stringify(kept), storage);
 }

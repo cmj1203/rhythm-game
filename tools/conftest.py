@@ -4,7 +4,8 @@ make_chart.py 는 맨 위에서 librosa, beat_this(PyTorch), scipy, numpy, typer
 `uv run --with pytest pytest tools` 처럼 pytest 만 있는 환경에서 그 import 가 실패하지 않게 한다.
 - 설치된 모듈은 건드리지 않는다. 진짜 모듈이 있으면 진짜를 쓴다.
 - 가짜 분석 함수(librosa.load, Audio2Beats 등)는 불리면 바로 실패한다. 시험이 쓰려면 monkeypatch 로 바꿔 끼운다.
-- 가짜 numpy 는 rated_level 과 gap_report 가 쓰는 연산만 1차원 float 목록으로 흉내 낸다.
+- 가짜 numpy 는 rated_level 과 gap_report 가 쓰는 연산만 1차원 float 목록으로 흉내 낸다. make_chart 만 가짜를 쥐고,
+  sys.modules 에는 남기지 않는다(pytest.approx 가 진짜로 여기지 않게).
   진짜 numpy 와 결과가 같은지는 `uv run --with pytest --with numpy pytest tools` 로 따로 확인한다.
 """
 
@@ -149,10 +150,18 @@ def _fake_analysis() -> None:
             _install(name)
 
 
-if _missing("numpy"):
+numpy_is_fake = _missing("numpy")
+if numpy_is_fake:
     _fake_numpy()
 if _missing("typer"):
     _fake_typer()
 if _missing("rich"):
     _fake_rich()
 _fake_analysis()
+
+if numpy_is_fake:
+    # pytest.approx 는 sys.modules 에 numpy 가 있으면 진짜 numpy 로 여기고 np.isscalar 같은 함수를 부른다.
+    # 가짜 numpy 를 쓰는 모듈을 여기서 먼저 불러 가짜를 쥐게 한 뒤 sys.modules 에서 빼, pytest 가 보지 못하게 한다.
+    import make_chart  # noqa: E402, F401
+
+    del sys.modules["numpy"]

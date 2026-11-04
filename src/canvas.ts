@@ -36,6 +36,8 @@ export type TextStyle = {
   readonly color?: string;
   readonly weight?: number;
   readonly align?: CanvasTextAlign;
+  /** 글자 둘레에 두를 색. 무늬 위에서도 글자가 읽히게 한다. */
+  readonly outline?: string;
 };
 
 export class Painter {
@@ -47,6 +49,14 @@ export class Painter {
     ctx.fillStyle = style.color ?? COLOR.text;
     ctx.textAlign = style.align ?? "center";
     ctx.textBaseline = "middle";
+    if (style.outline !== undefined) {
+      ctx.save();
+      ctx.strokeStyle = style.outline;
+      ctx.lineWidth = Math.max(2, style.size * 0.2);
+      ctx.lineJoin = "round";
+      ctx.strokeText(content, at.x, at.y);
+      ctx.restore();
+    }
     ctx.fillText(content, at.x, at.y);
   }
 

@@ -61,4 +61,10 @@ describe("a road laid for a picture", () => {
     expect(revealStage(REVEAL_DELAY_MS + REVEAL_MOVE_MS)).toEqual({ move: 1, lines: 0 });
     expect(revealStage(REVEAL_DELAY_MS + REVEAL_MOVE_MS + REVEAL_LINES_MS)).toEqual({ move: 1, lines: 1 });
   });
+
+  // 접근성 감사 2026-11-04: 움직임 줄이기에서도 조각이 1.8초 옮겨 가던 연출.
+  test("with reduced motion the picture is whole from the first frame", () => {
+    expect(revealStage(0, true)).toEqual({ move: 1, lines: 1 });
+    expect(revealStage(REVEAL_DELAY_MS + REVEAL_MOVE_MS / 2, true)).toEqual({ move: 1, lines: 1 });
+  });
 });

@@ -14,8 +14,6 @@ async function shippedRoad(id: string) {
   return { chart, path: buildRhythmPath(chart.notes, chart.tempo, chart.turnScale, chart.twirls, chart.picture?.flips) };
 }
 
-const lastFortress = () => shippedRoad("last-fortress");
-
 describe("rhythm road view", () => {
   test.each([
     [1, 6],
@@ -54,18 +52,35 @@ describe("rhythm road view", () => {
     const { path } = await shippedRoad(id);
     const marked = path.tiles.map((_, i) =>
       path.sweeps[i]?.isTwirl === true || path.sweeps[i]?.pace === "slow" || path.rhythm.marks[i] != null);
+    // 같은 자리(0.5칸 안)를 앞서 지나는 마지막 칸. 표식은 크레파스가 그 칸에 올라설 때까지 숨는다(laterPasses).
+    const lastEarlierPass = path.tiles.map((tile, i) => {
+      for (let j = i - 1; j >= 1; j--) {
+        const earlier = path.tiles[j];
+        if (earlier !== undefined && Math.hypot(earlier.x - tile.x, earlier.y - tile.y) < 0.5) return j;
+      }
+      return -1;
+    });
     const firstSeen = new Map<number, number>();
-    // When the song clock runs through the song in hundredths.
+    // When the song clock runs through the song in hundredths, and stops on every tile's own time too.
     const last = path.tiles.at(-1)?.time ?? 0;
-    for (let time = path.tiles[0]?.time ?? 0; time <= last; time += 0.01) {
+    const times: number[] = [];
+    for (let time = path.tiles[0]?.time ?? 0; time <= last; time += 0.01) times.push(time);
+    times.push(...path.tiles.map(({ time }) => time));
+    times.sort((a, b) => a - b);
+    for (const time of times) {
       const standing = standingAt(path.tiles, time);
       const end = aheadEnd(path, standing, time);
       const later = laterPasses(path, standing, end);
       for (let i = standing; i <= end; i++) if (marked[i] === true && !later.has(i) && !firstSeen.has(i)) firstSeen.set(i, time);
     }
-    // Then each marker first showed two beats or more before the crayon reached its tile.
-    const late = [...firstSeen].filter(([i, seen]) =>
-      i > 1 && beatsBetween(path.rhythm.tempo, seen, path.tiles[i]?.time ?? 0) < 2);
+    // Then each marker first showed two beats or more before the crayon reached its tile. 그림 길처럼 2박 안에
+    // 같은 자리를 다시 지나면, 크레파스가 앞 통과 칸에 올라서는 순간에 보인다.
+    const beatsTo = (i: number, from: number): number => beatsBetween(path.rhythm.tempo, from, path.tiles[i]?.time ?? 0);
+    const late = [...firstSeen].filter(([i, seen]) => {
+      const earlier = path.tiles[lastEarlierPass[i] ?? -1];
+      const lead = earlier === undefined ? 2 : Math.min(2, beatsTo(i, earlier.time));
+      return i > 1 && beatsTo(i, seen) < lead - 1e-9;
+    });
     expect(late).toEqual([]);
   });
 });

@@ -214,6 +214,8 @@ pnpm dev       # 터미널에 나오는 http://localhost:5173 주소를 브라�
 | `forever-believe` | Forever Believe (어반 댄스) | Normal | 121 BPM | Jason Shaw (Free Music Archive), CC BY 3.0 |
 | `tech-live` | Tech Live (전자 타악기, 촘촘함) | Normal | 124 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `wretched-destroyer` | Wretched Destroyer (헤비 메탈) | Normal | 140 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
+| `breach` | Breach (피아노, 리듬 길이 고래 그림이 됨) | Normal | 152 BPM | LiveCanvas, 피아노 샘플 Salamander Grand Piano V3(Alexander Holm) CC BY 3.0 |
+| `eight-arms` | Eight Arms (피아노, 리듬 길이 문어 그림이 됨) | Normal | 176 BPM | LiveCanvas, 피아노 샘플 Salamander Grand Piano V3(Alexander Holm) CC BY 3.0 |
 | `captain-glouglou-contest` | Captain Glouglou contest (게임 음악, 엇박 많음) | Hard | 120 BPM | Komiku (Free Music Archive), CC0 |
 | `jenifer-the-game` | Jenifer The Game (게임 음악, 촘촘함) | Hard | 120 BPM | Komiku (Free Music Archive), CC0 |
 | `funky-pop` | Funky Pop (팝, 엇박 많음) | Normal | 121 BPM | HoliznaCC0 (Free Music Archive), CC0 |
@@ -234,6 +236,7 @@ pnpm dev       # 터미널에 나오는 http://localhost:5173 주소를 브라�
 | `mutant-club` | Mutant Club (클럽 음악, 엇박 많음) | Hard | 140 BPM | HoliznaCC0 (Free Music Archive), CC0 |
 | `breakdown` | Breakdown (록, 촘촘함) | Hard | 140 BPM | Kevin MacLeod (incompetech.com), CC BY 4.0 |
 | `level-4-first-infiltration-in-unresponsible-tech` | Level 4 : First infiltration in Unresponsible Tech (빠른 아케이드 액션) | Hard | 143 BPM | Komiku (Free Music Archive), CC0 |
+| `last-fortress` | Last Fortress (피아노, 리듬 길이 벌새 그림이 됨) | Hard | 184 BPM | LiveCanvas, 피아노 샘플 Salamander Grand Piano V3(Alexander Holm) CC BY 3.0 |
 
 Josh Woodward의 곡은 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)으로 공개되어 있다. Free download: https://www.joshwoodward.com/
 

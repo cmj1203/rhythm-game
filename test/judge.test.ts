@@ -2,17 +2,17 @@ import { describe, expect, test } from "bun:test";
 import { judgementOf, PlayState } from "../src/judge";
 
 describe("judgementOf", () => {
-  test("hit windows are ±40 / ±80 / ±120 ms, inclusive at the edge", () => {
+  test("hit windows are ±60 / ±100 / ±140 ms, inclusive at the edge", () => {
     expect(judgementOf(0)).toBe("perfect");
-    expect(judgementOf(0.04)).toBe("perfect");
-    expect(judgementOf(-0.04)).toBe("perfect");
-    expect(judgementOf(0.041)).toBe("great");
-    expect(judgementOf(-0.08)).toBe("great");
-    expect(judgementOf(0.081)).toBe("good");
-    expect(judgementOf(0.12)).toBe("good");
-    expect(judgementOf(-0.12)).toBe("good");
-    expect(judgementOf(0.121)).toBeNull();
-    expect(judgementOf(-0.121)).toBeNull();
+    expect(judgementOf(0.06)).toBe("perfect");
+    expect(judgementOf(-0.06)).toBe("perfect");
+    expect(judgementOf(0.061)).toBe("great");
+    expect(judgementOf(-0.1)).toBe("great");
+    expect(judgementOf(0.101)).toBe("good");
+    expect(judgementOf(0.14)).toBe("good");
+    expect(judgementOf(-0.14)).toBe("good");
+    expect(judgementOf(0.141)).toBeNull();
+    expect(judgementOf(-0.141)).toBeNull();
   });
 });
 
@@ -21,7 +21,7 @@ describe("PlayState.press", () => {
     const play = new PlayState([1, 2]);
     expect(play.press(1.03)).toEqual({ judgement: "perfect", index: 0, offsetMs: expect.closeTo(30, 6) });
     expect(play.score).toBe(1000 + 10);
-    expect(play.press(1.9)).toEqual({ judgement: "good", index: 1, offsetMs: expect.closeTo(-100, 6) });
+    expect(play.press(1.88)).toEqual({ judgement: "good", index: 1, offsetMs: expect.closeTo(-120, 6) });
     expect(play.score).toBe(1010 + 300 + 20);
     expect(play.counts).toEqual({ perfect: 1, great: 0, good: 1, miss: 0 });
     expect(play.combo).toBe(2);
@@ -55,10 +55,10 @@ describe("PlayState.press", () => {
 });
 
 describe("PlayState.advance", () => {
-  test("a note is missed only once more than 120 ms have passed", () => {
+  test("a note is missed only once more than 140 ms have passed", () => {
     const play = new PlayState([1, 2]);
-    expect(play.advance(1.119)).toEqual([]);
-    expect(play.advance(1.13)).toEqual([{ judgement: "miss", index: 0, offsetMs: 0 }]);
+    expect(play.advance(1.139)).toEqual([]);
+    expect(play.advance(1.15)).toEqual([{ judgement: "miss", index: 0, offsetMs: 0 }]);
     expect(play.counts.miss).toBe(1);
     expect(play.history).toEqual(["miss"]);
     expect(play.resolvedCount).toBe(1);
@@ -114,7 +114,7 @@ describe("PlayState.advance", () => {
     expect(play.overAt).toBeNull();
     play.press(4.5);
     play.advance(5.5);
-    expect(play.overAt).toBeCloseTo(5.12);
+    expect(play.overAt).toBeCloseTo(5.14);
     expect(play.danger).toBe(1);
     expect(play.press(6)).toBeNull();
     expect(play.advance(10)).toEqual([]);
@@ -125,7 +125,7 @@ describe("PlayState.advance", () => {
     const play = new PlayState([1, 2, 3, 4, 5, 6]);
     const events = play.advance(100);
     expect(events).toHaveLength(4);
-    expect(play.overAt).toBeCloseTo(4.12);
+    expect(play.overAt).toBeCloseTo(4.14);
     expect(play.counts.miss).toBe(4);
   });
 });
@@ -134,8 +134,8 @@ describe("PlayState accuracy and grade", () => {
   test("accuracy weighs perfect 1, great 0.7, good 0.4, miss 0 over all notes; the grade is rounded down", () => {
     const play = new PlayState([1, 2, 3, 4]);
     play.press(1);
-    play.press(2.06);
-    play.press(3.1);
+    play.press(2.08);
+    play.press(3.12);
     play.advance(5);
     expect(play.accuracy).toBeCloseTo(2.1 / 4);
     expect(play.grade).toBe(52);

@@ -16,7 +16,7 @@ describe("planSections", () => {
   test("cuts the chart every 16 beats from the offset, each section starting at its first note", () => {
     expect(sections.map((section) => section.fromNote)).toEqual([0, 16, 32, 64, 68]);
     expect(sections.map((section) => section.startTime)).toEqual([1, 9, 17, 25, 33]);
-    expect(sections.map((section) => section.endTime)).toEqual([9, 17, 25, 33, times[times.length - 1]]);
+    expect(sections.map((section) => section.endTime)).toEqual([9, 17, 25, 33, times.at(-1) ?? Number.NaN]);
   });
 
   test("the first section is watched straight on; then the screen turns to alternate sides", () => {

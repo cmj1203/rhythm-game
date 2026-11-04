@@ -12,23 +12,21 @@ function buffer(channels: readonly Float32Array[], sampleRate = 48000): AudioBuf
 }
 
 describe("countIn", () => {
-  test("clicks on the notes' beat up to just before the first note, from the lead-in", () => {
+  test("four clicks one beat apart, the last one beat before the first note", () => {
     const notes = Array.from({ length: 40 }, (_, i) => 1 + i * 0.5);
-    expect(countIn(120, notes)).toEqual([-2.5, -2, -1.5, -1, -0.5, 0, 0.5]);
+    expect(countIn(120, notes)).toEqual([-1, -0.5, 0, 0.5]);
   });
 
-  test("never more than eight clicks, the last eight before the first note", () => {
+  test("always four clicks, whatever the opening rhythm", () => {
     const notes = Array.from({ length: 40 }, (_, i) => 5 + i * 0.25);
-    const clicks = countIn(120, notes);
-    expect(clicks).toHaveLength(8);
-    expect(clicks[clicks.length - 1]).toBe(4.75);
-    expect(clicks[0]).toBe(3);
+    expect(countIn(120, notes)).toEqual([3, 3.5, 4, 4.5]);
+    expect(countIn(120, [5, 9, 13])).toEqual([3, 3.5, 4, 4.5]);
   });
 
-  test("a sparse opening clicks slowly", () => {
-    const notes = Array.from({ length: 10 }, (_, i) => 2 + i * 1);
-    const clicks = countIn(120, notes);
-    expect(clicks).toEqual([-2, -1, 0, 1]);
+  test("a beat too slow to fit after the start key is halved until the clicks fit", () => {
+    // At 60 BPM four beats before a note at 0.5 would start at -3.5, before 0.3 s after the start key (-2.7).
+    const clicks = countIn(60, [0.5]);
+    expect(clicks).toEqual([-1.5, -1, -0.5, 0]);
     expect(clicks[0] ?? 0).toBeGreaterThanOrEqual(0.3 - LEAD_IN_S);
   });
 

@@ -13,10 +13,11 @@ import {
   SongLoadError,
   type SongSummary,
 } from "./chart";
-import { element } from "./dom";
+import { element, focusScreen } from "./dom";
 import { DrawingLoadError, loadDrawing } from "./drawing";
 import { loadIntro } from "./intro";
 import { missesAtFrame, PlayState, pressAt } from "./judge";
+import { REDUCED_MOTION } from "./motion";
 import { recordPlay, today } from "./playlog";
 import { SongMenu } from "./menu";
 import type { Path } from "./path";
@@ -150,7 +151,7 @@ async function boot(): Promise<void> {
   const picturePins = await loadPicturePins();
   const query = new URLSearchParams(window.location.search);
   const intro = await loadIntro({
-    isCalm: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    isCalm: REDUCED_MOTION.matches,
     onReady: () => title.setReady(true),
   });
   let screen: Screen = { kind: "title" };
@@ -385,6 +386,8 @@ async function boot(): Promise<void> {
     player.pause();
     pauseCorner.hidden = true;
     pausedButtons.hidden = false;
+    // 누른 버튼이 숨어 사라진 포커스를 일시정지 묶음으로 옮긴다. 버튼에 주지 않는 것은 Space 가 바로 누르지 않게 하려는 것.
+    focusScreen(pausedButtons);
   };
   const playOn = (playing: PlayingScreen): void => {
     if (!playing.paused) return;
@@ -508,6 +511,8 @@ async function boot(): Promise<void> {
           return;
         }
         if (event.metaKey || event.ctrlKey || event.altKey) return;
+        // Space on a focused button presses that button, not the demo.
+        if (event.code === "Space" && event.target instanceof HTMLButtonElement) return;
         tutorial.press(event.timeStamp);
         return;
       case "menu":
@@ -529,6 +534,8 @@ async function boot(): Promise<void> {
           return;
         }
         if (event.metaKey || event.ctrlKey || event.altKey || event.target instanceof HTMLButtonElement) return;
+        // Tab 은 누름이 아니라 버튼(다시·확인)으로 가는 길이다.
+        if (event.code === "Tab") return;
         event.preventDefault();
         calibration.press(event.timeStamp);
         return;
@@ -540,6 +547,8 @@ async function boot(): Promise<void> {
           return;
         }
         if (event.metaKey || event.ctrlKey || event.altKey) return;
+        // Tab 은 '곡 선택' 버튼으로 가는 길이고, 포커스된 그 버튼 위의 Enter·Space 는 버튼을 누른다.
+        if (event.code === "Tab" || event.target instanceof HTMLButtonElement) return;
         event.preventDefault();
         startPlaying(screen);
         return;
@@ -621,6 +630,7 @@ async function boot(): Promise<void> {
           };
           placeEndButtons();
           overButtons.hidden = false;
+          focusScreen(overButtons);
           pauseCorner.hidden = true;
           return nextFrame();
         }
@@ -644,6 +654,7 @@ async function boot(): Promise<void> {
           };
           placeEndButtons();
           overButtons.hidden = false;
+          focusScreen(overButtons);
           pauseCorner.hidden = true;
           return nextFrame();
         }

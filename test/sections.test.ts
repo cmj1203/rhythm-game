@@ -57,10 +57,12 @@ describe("planSections", () => {
 describe("poseAt", () => {
   const sections = planSections([...run(1, 9, BEAT), ...run(9, 17, BEAT), ...run(17, 21, BEAT)], 120, 1);
 
-  test("with reduced motion the camera holds each section's own pose", () => {
+  // 접근성 감사 2026-11-04: 구간마다 기울기·줌이 경계에서 한 번에 바뀌던 것을 없앤다.
+  test("with reduced motion the camera holds the starting pose through every section", () => {
     const second = sections[1] as Section;
+    expect(second.tilt).not.toBe(0);
     expect(poseAt(sections, 0, true)).toEqual({ zoom: 1, tilt: 0, slide: 0 });
-    expect(poseAt(sections, 9, true)).toEqual({ zoom: second.zoom, tilt: second.tilt, slide: 0 });
+    expect(poseAt(sections, 9, true)).toEqual({ zoom: 1, tilt: 0, slide: 0 });
     expect(poseAt([], 5, true)).toEqual({ zoom: 1, tilt: 0, slide: 0 });
   });
 

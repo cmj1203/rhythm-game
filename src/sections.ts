@@ -137,12 +137,8 @@ function openingZoom(songTime: number): number {
  * section before around the section's first note.
  */
 export function poseAt(sections: readonly Section[], songTime: number, reducedMotion: boolean): Pose {
-  if (reducedMotion) {
-    let current = 0;
-    while ((sections[current + 1]?.startTime ?? Number.POSITIVE_INFINITY) <= songTime) current++;
-    const section = sections[current];
-    return section === undefined ? START_POSE : { zoom: section.zoom, tilt: section.tilt, slide: 0 };
-  }
+  // 움직임 줄이기: 구간 경계에서 화면이 한 번에 기울거나 다가가지 않도록 카메라는 처음 자세 그대로 있는다.
+  if (reducedMotion) return START_POSE;
 
   let current = 0;
   while ((sections[current + 1]?.startTime ?? Number.POSITIVE_INFINITY) - POSE_BLEND_S / 2 <= songTime) current++;

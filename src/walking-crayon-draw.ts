@@ -1,3 +1,4 @@
+import { REDUCED_MOTION } from "./motion";
 import { COLOR, mixColors, type Painter } from "./canvas";
 import { toScreen, type View } from "./embroidery";
 import type { Pace, Path } from "./path";
@@ -24,12 +25,12 @@ const TRAIL_S = 0.22;
 const TRAIL_STEPS = 14;
 const TRAIL_OPACITY = 0.8;
 const TRAIL_WIDTH = 0.16;
-const PACE_RING = { normal: COLOR.separator, fast: COLOR.pink, slow: COLOR.sky } as const satisfies Record<Pace, string>;
+const PACE_RING = { normal: COLOR.dim, fast: COLOR.pink, slow: COLOR.sky } as const satisfies Record<Pace, string>;
 /** The crayon is one colour, but while a note it stepped on has changed its speed it takes that note's colour. */
 const PACE_COLOR = { normal: COLOR.thread, fast: COLOR.pink, slow: COLOR.sky } as const satisfies Record<Pace, string>;
 const TEMPO_COLOR = { faster: COLOR.pink, slower: COLOR.sky } as const;
 const PACE_WIDTH = { normal: 1, fast: 2, slow: 2 } as const satisfies Record<Pace, number>;
-const CALM = window.matchMedia("(prefers-reduced-motion: reduce)");
+const CALM = REDUCED_MOTION;
 
 type ClockedRoad = { readonly path: Path; readonly songTime: number };
 
@@ -126,7 +127,8 @@ export function drawWalkingCrayon(
   ctx.shadowBlur = 0;
   ctx.fillStyle = color;
   ctx.fill();
-  if (landed !== null && landed.flash > 0) {
+  // 움직임 줄이기에서는 끝을 부풀리지 않듯 흰 번쩍임도 그리지 않는다.
+  if (landed !== null && landed.flash > 0 && !CALM.matches) {
     ctx.save();
     ctx.clip();
     ctx.fillStyle = mixColors(color, COLOR.text, FLASH_WHITE * landed.flash);

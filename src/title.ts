@@ -1,4 +1,4 @@
-import { element } from "./dom";
+import { element, focusScreen } from "./dom";
 
 export type TitleOptions = {
   readonly root: HTMLElement;
@@ -10,6 +10,7 @@ const GAME_NAME = "라이브캔버스";
 /** The words under the title. The title itself is drawn on the canvas behind them. */
 export class TitleScreen {
   private readonly startButton: HTMLButtonElement;
+  private readonly heading = element("h1", "title-name", GAME_NAME);
 
   constructor(private readonly options: TitleOptions) {
     const start = element("button", "start", "시작");
@@ -17,7 +18,7 @@ export class TitleScreen {
     start.addEventListener("click", () => this.start());
     this.startButton = start;
     options.root.append(
-      element("h1", "title-name", GAME_NAME),
+      this.heading,
       element("p", "title-tagline", "키 하나로 그리는 리듬게임"),
       start,
 
@@ -36,6 +37,7 @@ export class TitleScreen {
 
   show(): void {
     this.options.root.hidden = false;
+    focusScreen(this.heading);
   }
 
   hide(): void {

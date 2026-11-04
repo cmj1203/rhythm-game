@@ -1,4 +1,4 @@
-import { element } from "./dom";
+import { element, focusScreen } from "./dom";
 import { loadPlaylog } from "./playlog";
 
 /**
@@ -22,6 +22,7 @@ export type SettingsOptions = {
 export class SettingsScreen {
   private readonly lag = element("span", "settings-value");
   private readonly resetLag = element("button", "start secondary", "박자 초기화");
+  private readonly heading = element("h1", "menu-title", "설정");
 
   constructor(private readonly options: SettingsOptions) {
     const calibrate = element("button", "start secondary settings-calibrate");
@@ -43,7 +44,7 @@ export class SettingsScreen {
     this.setLag(options.lagMs);
 
     options.root.append(
-      element("h1", "menu-title", "설정"),
+      this.heading,
       volumeSlider(options.volume, options.onVolume),
       calibrate,
       this.resetLag,
@@ -59,6 +60,7 @@ export class SettingsScreen {
 
   show(): void {
     this.options.root.hidden = false;
+    focusScreen(this.heading);
   }
 
   hide(): void {

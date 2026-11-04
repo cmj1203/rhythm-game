@@ -15,8 +15,12 @@ export const SETTLE_SHARE = 0.65;
 const SETTLE_BACK_TILES = 0.5;
 const SETTLE_AHEAD_TILES = 3;
 
-/** How far the pieces have moved (0 to 1, eased) and how clearly the picture's lines show, `elapsedMs` in. */
-export function revealStage(elapsedMs: number): RevealStage {
+/**
+ * How far the pieces have moved (0 to 1, eased) and how clearly the picture's lines show, `elapsedMs` in.
+ * 움직임 줄이기(`reducedMotion`)에서는 조각이 옮겨 가는 연출 없이 처음부터 다 맞춘 그림이다.
+ */
+export function revealStage(elapsedMs: number, reducedMotion = false): RevealStage {
+  if (reducedMotion) return { move: 1, lines: 1 };
   const move = Math.min(1, Math.max(0, (elapsedMs - REVEAL_DELAY_MS) / REVEAL_MOVE_MS));
   const lines = Math.min(1, Math.max(0, (elapsedMs - REVEAL_DELAY_MS - REVEAL_MOVE_MS) / REVEAL_LINES_MS));
   return { move: move * move * (3 - 2 * move), lines };

@@ -1,5 +1,6 @@
 import { COLOR, JUDGEMENT_COLOR, Painter } from "./canvas";
-import { element } from "./dom";
+import { element, focusScreen } from "./dom";
+import { REDUCED_MOTION } from "./motion";
 import { PracticeRoad } from "./practice-road";
 import { BURST_S, drawRoadOnly, EARLY_LATE_MIN_MS } from "./track";
 
@@ -16,12 +17,12 @@ const JUDGEMENT_SHOWN_MS = 1200;
 const NOW_SHOWN_S = 0.18;
 /** The still picture shown instead of the moving one to someone who asked for less motion. */
 const STILL_AT_S = 0.6;
-const REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 export class TutorialScreen {
   private readonly canvas = element("canvas", "demo-road");
   private readonly now = element("span", "demo-now", "지금!");
   private readonly judged = element("p", "tutorial-judgement");
+  private readonly heading = element("h1", "menu-title", "플레이 방법");
   private practice = new PracticeRoad(BURST_S);
   private startMs = 0;
   private frame = 0;
@@ -38,8 +39,14 @@ export class TutorialScreen {
     figure.setAttribute("aria-hidden", "true");
     figure.append(this.canvas, this.now);
     this.judged.setAttribute("aria-live", "polite");
+    // 움직임 줄이기를 끄면 멈춰 있던 데모를 다시 움직이고, 켜면 다음 프레임에서 멈춘 그림이 된다.
+    REDUCED_MOTION.addEventListener("change", () => {
+      if (options.root.hidden) return;
+      cancelAnimationFrame(this.frame);
+      this.frame = requestAnimationFrame(this.loop);
+    });
     options.root.append(
-      element("h1", "menu-title", "플레이 방법"),
+      this.heading,
       figure,
       this.judged,
       done,
@@ -99,6 +106,7 @@ export class TutorialScreen {
 
   show(): void {
     this.options.root.hidden = false;
+    focusScreen(this.heading);
     this.practice = new PracticeRoad(BURST_S);
     this.startMs = performance.now();
     cancelAnimationFrame(this.frame);

@@ -1,5 +1,5 @@
 import type { SongPlayer } from "./audio";
-import { element } from "./dom";
+import { element, focusScreen } from "./dom";
 
 export type CalibrationOptions = {
   readonly root: HTMLElement;
@@ -31,6 +31,7 @@ export class CalibrationScreen {
   private readonly result = element("p", "calibration-result");
   private readonly again = element("button", "start secondary", "다시");
   private readonly keep = element("button", "start", "확인");
+  private readonly heading = element("h1", "menu-title", "박자 맞추기");
   /** How late each click was pressed, by click; a click pressed twice keeps the first press. */
   private readonly presses = new Map<number, number>();
   private found: number | null = null;
@@ -53,7 +54,7 @@ export class CalibrationScreen {
 
     this.result.setAttribute("aria-live", "polite");
     options.root.append(
-      element("h1", "menu-title", "박자 맞추기"),
+      this.heading,
       element("p", "tutorial-rule", "소리에 맞춰 누르세요"),
       row,
       this.result,
@@ -64,6 +65,7 @@ export class CalibrationScreen {
   /** Shows the screen and starts the clicks. Must be called from a user gesture, so that audio may start. */
   show(): void {
     this.options.root.hidden = false;
+    focusScreen(this.heading);
     this.run();
   }
 

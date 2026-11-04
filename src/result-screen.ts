@@ -2,6 +2,7 @@ import { COLOR, JUDGEMENT_COLOR, type Painter, type Size } from "./canvas";
 import { clothRect, drawCloth, drawStitches, fitView, isWideLayout, toScreen, type View } from "./embroidery";
 import { JUDGEMENTS, type PlayState } from "./judge";
 import type { Path } from "./path";
+import { REDUCED_MOTION } from "./motion";
 import { revealedPath, revealStage } from "./picture-reveal";
 import type { RoadPicture } from "./rhythm-road";
 
@@ -123,7 +124,7 @@ function drawPictureLines(painter: Painter, picture: RoadPicture, view: View, al
 export function drawResult(painter: Painter, frame: ResultFrame, size: Size): void {
   const rect = clothRect(size);
   const picture = frame.path.rhythm?.picture;
-  const stage = revealStage(frame.elapsedMs);
+  const stage = revealStage(frame.elapsedMs, REDUCED_MOTION.matches);
   const traced = picture?.traced === true;
   const path = picture === undefined || stage.move === 0
     ? frame.path

@@ -12,6 +12,7 @@ import {
   type View,
 } from "./embroidery";
 import type { JudgeEvent, PlayState } from "./judge";
+import { REDUCED_MOTION } from "./motion";
 import { cameraAt, orbiterAngle, type Pace, type Path } from "./path";
 import { poseAt, type Section } from "./sections";
 import { aheadClarity, aheadEnd, laterPasses } from "./road-view";
@@ -48,7 +49,9 @@ const COUNTDOWN_SIZE = 64;
 const COUNTDOWN_POP = 0.25;
 const COUNTDOWN_FADE = 0.6;
 /** How far the frozen road is darkened behind the game over notice. */
-const GAME_OVER_SHADE = 0.6;
+const GAME_OVER_SHADE = 0.85;
+/** 진행 막대의 전체 길이: 배경과 3.28:1. */
+const PROGRESS_TRACK = mixColors(COLOR.background, COLOR.dim, 0.65);
 /** Near a game over the screen's edges glow miss red, at most this strongly, fading out this share of its shorter side in. */
 const DANGER_OPACITY = 0.55;
 const DANGER_REACH = 0.2;
@@ -113,7 +116,6 @@ const MARKERS = {
   picture: { dot: 0.11, markedDot: 0.07, ring: 0.18, width: 0.05, minWidth: 2 },
   rhythm: { dot: 0.07, markedDot: 0.055, ring: 0.14, width: 0.035, minWidth: 1.5 },
 } as const;
-const REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)");
 /**
  * Hit effects spring: they start `amount` past their size, swing back a little past it the other way, and settle,
  * within `SPRING_S`. `springAt` is that swing, 1 at the hit.
@@ -156,7 +158,7 @@ const DUST_BY_JUDGEMENT = { perfect: 14, great: 8, good: 3, miss: 0 } as const;
 const DUST_S = 0.3;
 const DUST_REACH = 0.75;
 const DUST_SIZE = 0.07;
-const MISS_DIM = 0.55;
+const MISS_DIM = 0.65;
 
 /**
  * After the last note the camera pulls back until the whole embroidery fits where the result screen shows it.
@@ -535,7 +537,7 @@ function drawCircling(painter: Painter, frame: PlayingFrame, view: View): void {
   // While the crayon turns fast or slowly, its circle is drawn in the colour of the tile it set out from.
   const isPaced = sweep.pace !== "normal";
   painter.circle(center, size);
-  ctx.strokeStyle = isPaced ? PACE_COLOR[sweep.pace] : COLOR.separator;
+  ctx.strokeStyle = isPaced ? PACE_COLOR[sweep.pace] : COLOR.dim;
   ctx.lineWidth = isPaced ? 2 : 1;
   ctx.stroke();
 
@@ -692,9 +694,10 @@ function drawHud(painter: Painter, frame: PlayingFrame, { width, height }: Size)
   const { ctx } = painter;
   const { play, feedback, songTime } = frame;
 
-  ctx.fillStyle = COLOR.separator;
+  // 막대 전체 길이가 배경과 3:1 이상, 채운 부분이 그 막대와 3:1 이상이 되는 색.
+  ctx.fillStyle = PROGRESS_TRACK;
   ctx.fillRect(0, 0, width, 4);
-  ctx.fillStyle = COLOR.dim;
+  ctx.fillStyle = COLOR.text;
   ctx.fillRect(0, 0, width * Math.min(1, Math.max(0, songTime / frame.duration)), 4);
   painter.text(play.score.toLocaleString("en-US"), { x: 24, y: 36 }, { size: 24, weight: 700, align: "left" });
 
@@ -708,7 +711,8 @@ function drawHud(painter: Painter, frame: PlayingFrame, { width, height }: Size)
     painter.text("COMBO", { x, y: height * 0.16 + 40 }, { size: 13, weight: 600, color: COLOR.dim });
   }
   if (frame.phase === "ready") {
-    painter.text("누르면 시작", { x, y: height * 0.2 }, { size: 28, weight: 800 });
+    // 길 위에 겹쳐도 읽히도록 어두운 외곽선을 두른다.
+    painter.text("누르면 시작", { x, y: height * 0.2 }, { size: 28, weight: 800, outline: COLOR.background });
   }
   if (frame.phase === "playing") drawCountdown(painter, frame.countdown ?? [], songTime, { x, y: height * 0.2 });
   drawFeedback(painter, feedback, songTime, { x, y: height * 0.76 });

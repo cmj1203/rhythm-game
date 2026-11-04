@@ -1,6 +1,6 @@
 import { loadBests } from "./best";
 import { DIFFICULTIES, type Difficulty, type SongSummary } from "./chart";
-import { element } from "./dom";
+import { element, focusScreen } from "./dom";
 
 export type MenuOptions = {
   readonly root: HTMLElement;
@@ -38,6 +38,8 @@ export class SongMenu {
   private readonly tabs: ReadonlyMap<Shelf, HTMLButtonElement>;
   private readonly credit = element("p", "credit");
   private readonly status = element("p", "status");
+  private readonly heading = element("h1", "menu-title", "곡 선택");
+  private readonly list = element("ul", "songs");
 
   constructor(private readonly options: MenuOptions) {
     const { root, songs, initialSongId } = options;
@@ -64,9 +66,11 @@ export class SongMenu {
       }),
     );
 
-    const list = element("ul", "songs");
+    const list = this.list;
     list.setAttribute("role", "listbox");
     list.setAttribute("aria-label", "곡 목록");
+    // 선택은 화살표 키가 옮기고, 목록에 포커스가 있을 때 보조기술은 aria-activedescendant 로 선택된 곡을 안다.
+    list.tabIndex = 0;
     const bestLabels: HTMLElement[] = [];
     this.rows = songs.map((song, index) => {
       const row = element("li", "song");
@@ -76,6 +80,7 @@ export class SongMenu {
       const meta = element("span", "song-meta", `${Math.round(song.bpm)} BPM · ${formatDuration(song.duration)}`);
       meta.append(best);
       row.setAttribute("role", "option");
+      row.id = `song-option-${index}`;
       row.append(
         element("span", "song-title", song.title),
         element("span", "song-artist", song.artist === undefined ? noteCount : `${song.artist} · ${noteCount}`),
@@ -97,7 +102,7 @@ export class SongMenu {
     this.status.setAttribute("aria-live", "polite");
 
     root.append(
-      element("h1", "menu-title", "곡 선택"),
+      this.heading,
       tabs,
       songs.length === 0 ? element("p", "empty", "곡이 없습니다. README의 곡 추가 방법을 따라 넣어 주세요.") : list,
       startButton,
@@ -111,6 +116,7 @@ export class SongMenu {
 
   show(): void {
     this.options.root.hidden = false;
+    focusScreen(this.heading);
     this.setStatus("");
     this.showBests();
   }
@@ -210,8 +216,14 @@ export class SongMenu {
       row.setAttribute("aria-selected", String(index === this.songIndex));
     });
     this.rows[this.songIndex]?.scrollIntoView({ block: "nearest" });
+    const row = this.rows[this.songIndex];
+    if (row === undefined) this.list.removeAttribute("aria-activedescendant");
+    else this.list.setAttribute("aria-activedescendant", row.id);
     for (const [shelf, tab] of this.tabs) {
-      tab.setAttribute("aria-checked", String(shelf === shelfOf(song)));
+      const checked = shelf === shelfOf(song);
+      tab.setAttribute("aria-checked", String(checked));
+      // radio 묶음은 Tab 정지점이 하나다: 선택된 탭만 Tab 으로 닿고, 다른 탭은 화살표 키(왼쪽·오른쪽)로 옮긴다.
+      tab.tabIndex = checked ? 0 : -1;
     }
     this.credit.textContent = song?.credit ?? "";
   }

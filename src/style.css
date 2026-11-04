@@ -292,8 +292,11 @@ body {
   display: none;
 }
 
+/* 연타 중에도 손가락이 닿도록 터치 대상을 44px 이상으로 둔다(WCAG 2.5.5 권장 크기). */
 #back .start {
-  padding: 8px 14px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 16px;
   font-size: 14px;
 }
 
@@ -305,7 +308,9 @@ body {
 }
 
 #pause .start {
-  padding: 8px 14px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 16px;
   font-size: 14px;
 }
 

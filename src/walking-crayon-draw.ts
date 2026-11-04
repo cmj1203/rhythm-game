@@ -34,6 +34,10 @@ const PACE_RING = { normal: COLOR.dim, fast: COLOR.pink, slow: COLOR.sky } as co
 const CRAYON_PACE_COLOR = { normal: COLOR.thread, fast: COLOR.pink, slow: COLOR.sky } as const satisfies Record<Pace, string>;
 const TEMPO_COLOR = { faster: COLOR.pink, slower: COLOR.sky } as const;
 const PACE_WIDTH = { normal: 1, fast: 2, slow: 2 } as const satisfies Record<Pace, number>;
+/**
+ * 빠름(pink)과 느림(sky)은 서로 1.57:1 이라 색만으로는 가리기 어렵다. 느림 원은 점선으로 그려 모양으로도 구분한다(px).
+ */
+export const PACE_DASH = { normal: [], fast: [], slow: [6, 5] } as const satisfies Record<Pace, readonly number[]>;
 
 type ClockedRoad = { readonly path: Path; readonly songTime: number };
 
@@ -77,7 +81,9 @@ export function drawWalkingCrayon(
     painter.circle(center, size);
     ctx.strokeStyle = PACE_RING[sweep.pace];
     ctx.lineWidth = PACE_WIDTH[sweep.pace];
+    ctx.setLineDash(PACE_DASH[sweep.pace]);
     ctx.stroke();
+    ctx.setLineDash([]);
   }
 
   if (!REDUCED_MOTION.matches) {

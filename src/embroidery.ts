@@ -37,7 +37,8 @@ const TRAVELLED_DIM = 0.55;
 const FRESH_STITCHES = 6;
 const WIDE_LAYOUT_RATIO = 1.15;
 /** How visible the thread is where it only passes behind the cloth, while the piece is still being sewn. */
-const BEHIND_ALPHA = 0.3;
+/** 천 뒤로 지나가는 실(그림의 획 사이)의 진하기: --dim 을 이만큼 깔면 배경과 3.28:1 이다(0.3 에서는 1.58:1). */
+export const BEHIND_ALPHA = 0.65;
 
 /** How hard each hit presses the crayon, 0 to 1: a clean hit draws a bold line, a loose one a faint, thinner one. */
 const PRESSURE = { perfect: 1, great: 0.78, good: 0.55 } as const satisfies Record<Exclude<Judgement, "miss">, number>;

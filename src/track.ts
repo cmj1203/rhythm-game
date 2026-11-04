@@ -20,7 +20,7 @@ import { aheadClarity, aheadEnd, laterPasses } from "./road-view";
 import type { TempoMark } from "./tempo";
 import { drawTempoMark } from "./tempo-mark";
 import { standingAt } from "./walking-crayon";
-import { drawWalkingCrayon, type HitOnCrayon } from "./walking-crayon-draw";
+import { drawWalkingCrayon, type HitOnCrayon, PACE_DASH } from "./walking-crayon-draw";
 
 /** `accent`: a big moment of the song, whose hit gives the screen a kick. */
 export type Feedback = JudgeEvent & { readonly at: number; readonly accent: boolean };
@@ -50,9 +50,9 @@ const COUNTDOWN_SIZE = 64;
 const COUNTDOWN_POP = 0.25;
 const COUNTDOWN_FADE = 0.6;
 /** How far the frozen road is darkened behind the game over notice. */
-const GAME_OVER_SHADE = 0.85;
+export const GAME_OVER_SHADE = 0.85;
 /** 진행 막대의 전체 길이: 배경과 3.28:1. */
-const PROGRESS_TRACK = mixColors(COLOR.background, COLOR.dim, 0.65);
+export const PROGRESS_TRACK = mixColors(COLOR.background, COLOR.dim, 0.65);
 /** Near a game over the screen's edges glow miss red, at most this strongly, fading out this share of its shorter side in. */
 const DANGER_OPACITY = 0.55;
 const DANGER_REACH = 0.2;
@@ -160,7 +160,7 @@ const DUST_BY_JUDGEMENT = { perfect: 14, great: 8, good: 3, miss: 0 } as const;
 const DUST_S = 0.3;
 const DUST_REACH = 0.75;
 const DUST_SIZE = 0.07;
-const MISS_DIM = 0.65;
+export const MISS_DIM = 0.65;
 
 /**
  * After the last note the camera pulls back until the whole embroidery fits where the result screen shows it.
@@ -522,7 +522,9 @@ function drawCircling(painter: Painter, frame: PlayingFrame, view: View): void {
   painter.circle(center, size);
   ctx.strokeStyle = isPaced ? PACE_SIGN_COLOR[sweep.pace] : COLOR.dim;
   ctx.lineWidth = isPaced ? 2 : 1;
+  ctx.setLineDash(PACE_DASH[sweep.pace]);
   ctx.stroke();
+  ctx.setLineDash([]);
 
   painter.circle(center, size * 0.08);
   ctx.fillStyle = thread;

@@ -115,6 +115,19 @@ export class SongPlayer {
    * again after that, the paired stamp still dates from before the pause and would put the song ahead by the pause.
    */
   private resumedAt = 0;
+  /**
+   * 곡을 치는 동안 `pause()` 없이 브라우저가 오디오를 멈추면(전화, 다른 앱의 소리, 자동 suspend) 불린다. 소리는 멈췄는데
+   * 노트만 지나가지 않도록, 부르는 쪽이 플레이를 일시정지한다.
+   */
+  onInterrupt: () => void = () => {};
+  /** 지금 곡(`start`)을 치는 중인지. 미리 듣기와 박자 맞추기 클릭은 멈춰도 알리지 않는다. */
+  private playingSong = false;
+
+  constructor() {
+    this.context.addEventListener("statechange", () => {
+      if (this.context.state !== "running" && this.playingSong && this.pausedAt === null) this.onInterrupt();
+    });
+  }
 
   /** Stops the song where it is, clicks and all: the audio clock itself stops, so song time stands still. */
   pause(): void {
@@ -165,6 +178,7 @@ export class SongPlayer {
     source.start(playAt);
     this.startAt = playAt + shift;
     this.source = source;
+    this.playingSong = true;
     if (ticks.length === 0) return;
 
     this.playClicks(ticks, TICK_LOUDNESS);
@@ -225,6 +239,7 @@ export class SongPlayer {
     this.source?.stop();
     this.source?.disconnect();
     this.source = null;
+    this.playingSong = false;
     this.ticks?.disconnect();
     this.ticks = null;
   }

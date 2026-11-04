@@ -26,3 +26,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
       - run: bun test
+      - uses: astral-sh/setup-uv@v7
+      # tools/ 의 채보 도구 시험. 큰 분석 의존성(numpy, librosa 등)은 tools/conftest.py 가 가짜로 채우므로 pytest 만 받는다.
+      - name: pytest tools
+        run: uv run --no-project --python 3.13 --with pytest==9.2.0 pytest tools

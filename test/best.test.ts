@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { loadBests, recordBest } from "../src/best";
 
 const KEY = "livecanvas.best";
@@ -55,5 +55,47 @@ describe("loadBests", () => {
   test("entries that do not read as a best are left out", () => {
     saved.set(KEY, JSON.stringify({ ok: { grade: 50, score: 10 }, noScore: { grade: 50 }, text: { grade: "50", score: 1 }, bare: 3 }));
     expect([...loadBests().keys()]).toEqual(["ok"]);
+  });
+});
+
+// 코드 리뷰 2026-11-04 높음 3·4: 브라우저가 저장소를 막거나 가득 찼을 때 예외가 화면을 멈추던 문제.
+describe("a storage the browser refuses", () => {
+  const working = globalThis.localStorage;
+  afterEach(() => {
+    globalThis.localStorage = working;
+  });
+  const refusing = (name: "QuotaExceededError" | "SecurityError", what: "getItem" | "setItem"): Storage =>
+    ({
+      getItem: (key: string) => {
+        if (what === "getItem") throw new DOMException("refused", name);
+        return saved.get(key) ?? null;
+      },
+      setItem: () => {
+        throw new DOMException("refused", name);
+      },
+    }) as unknown as Storage;
+
+  test("a full storage does not stop a finished play from giving its best", () => {
+    globalThis.localStorage = refusing("QuotaExceededError", "setItem");
+    expect(recordBest("a", { grade: 70, score: 5000 })).toEqual({
+      best: { grade: 70, score: 5000 },
+      isNew: true,
+      previous: null,
+    });
+  });
+
+  test("a blocked storage reads as no bests, and a play on it still gives its best", () => {
+    globalThis.localStorage = refusing("SecurityError", "getItem");
+    expect(loadBests().size).toBe(0);
+    expect(recordBest("a", { grade: 70, score: 5000 }).isNew).toBe(true);
+  });
+
+  test("an error that is not the browser refusing still comes through", () => {
+    globalThis.localStorage = {
+      getItem: () => {
+        throw new TypeError("bug");
+      },
+    } as unknown as Storage;
+    expect(() => loadBests()).toThrow(TypeError);
   });
 });

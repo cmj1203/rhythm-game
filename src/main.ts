@@ -16,7 +16,7 @@ import {
 import { element } from "./dom";
 import { DrawingLoadError, loadDrawing } from "./drawing";
 import { loadIntro } from "./intro";
-import { PlayState } from "./judge";
+import { missesAtFrame, PlayState, pressAt } from "./judge";
 import { recordPlay, today } from "./playlog";
 import { SongMenu } from "./menu";
 import type { Path } from "./path";
@@ -25,6 +25,7 @@ import { accentsOf, buildRhythmPath } from "./rhythm-road";
 import { type Frame, Renderer } from "./render";
 import { resultButtonsAt } from "./result-screen";
 import { dyePath, planSections, type Section } from "./sections";
+import { readStoredNumber, removeStored, writeStored } from "./storage";
 import { TitleScreen } from "./title";
 import { BURST_S, type Feedback, finaleProgress } from "./track";
 import { TutorialScreen } from "./tutorial";
@@ -107,8 +108,7 @@ const VOLUME_KEY = "livecanvas.volume";
 
 /** The volume the player chose last time, as a share of full volume; full volume if none was saved. */
 function savedVolume(): number {
-  const saved = Number(localStorage.getItem(VOLUME_KEY) ?? "1");
-  return Number.isFinite(saved) ? Math.min(1, Math.max(0, saved)) : 1;
+  return Math.min(1, Math.max(0, readStoredNumber(VOLUME_KEY, 1)));
 }
 
 const LAG_KEY = "livecanvas.lagMs";
@@ -133,8 +133,7 @@ function logPlay(songId: string, difficulty: Difficulty, play: PlayState, gameOv
 
 /** The lag the timing check found last time, in seconds; none if it was never kept. */
 function savedLag(): number {
-  const saved = Number(localStorage.getItem(LAG_KEY) ?? "0");
-  return Number.isFinite(saved) ? saved / 1000 : 0;
+  return readStoredNumber(LAG_KEY, 0) / 1000;
 }
 
 async function boot(): Promise<void> {
@@ -275,7 +274,7 @@ async function boot(): Promise<void> {
     volume,
     onVolume: (share) => {
       player.setVolume(share);
-      localStorage.setItem(VOLUME_KEY, String(share));
+      writeStored(VOLUME_KEY, String(share));
     },
     lagMs: Math.round(savedLag() * 1000),
     onCalibrate: () => {
@@ -285,7 +284,7 @@ async function boot(): Promise<void> {
     },
     onResetLag: () => {
       player.setLag(0);
-      localStorage.removeItem(LAG_KEY);
+      removeStored(LAG_KEY);
       settings.setLag(0);
     },
     onClose: () => closeSettings(),
@@ -316,7 +315,7 @@ async function boot(): Promise<void> {
       if (lag !== null) {
         const ms = Math.round(lag * 1000);
         player.setLag(lag);
-        localStorage.setItem(LAG_KEY, String(ms));
+        writeStored(LAG_KEY, String(ms));
         settings.setLag(ms);
       }
       settings.show();
@@ -422,6 +421,10 @@ async function boot(): Promise<void> {
     if (screen.kind === "playing") backToMenu();
   });
   pausedButtons.append(element("p", "paused-title", "일시정지"), playOnButton, leaveButton);
+  // 브라우저가 스스로 오디오를 멈추면(전화 등) 노트만 지나가지 않도록 일시정지한다.
+  player.onInterrupt = () => {
+    if (screen.kind === "playing") pause(screen);
+  };
   // Switching away from the game mid-song pauses it, so the song does not run on unheard and unplayed.
   document.addEventListener("visibilitychange", () => {
     if (document.hidden && screen.kind === "playing") pause(screen);
@@ -474,7 +477,9 @@ async function boot(): Promise<void> {
   const press = (playing: PlayingScreen, performanceMs: number): void => {
     const songTime = player.songTime(performanceMs);
     const { play, source } = playing;
-    const hit = play.press(songTime);
+    // 프레임 사이에 창이 닫힌 노트는 이 누르기보다 먼저 놓침으로 넘겨야, 누르기가 다음 노트로 판정된다.
+    const { misses, hit } = pressAt(play, songTime);
+    for (const event of misses) record(playing, { ...event, at: songTime, accent: false });
     if (hit === null) return;
     const accent = (source.accents[hit.index] ?? false) || play.combo % COMBO_KICK_EVERY === 0;
     record(playing, { ...hit, at: songTime, accent });
@@ -598,7 +603,7 @@ async function boot(): Promise<void> {
         };
       case "playing": {
         const songTime = player.songTime(performance.now());
-        for (const event of screen.play.advance(songTime)) record(screen, { ...event, at: songTime, accent: false });
+        for (const event of missesAtFrame(screen.play, songTime)) record(screen, { ...event, at: songTime, accent: false });
         while (screen.bursts[0] !== undefined && songTime - screen.bursts[0].at > BURST_S) screen.bursts.shift();
         if (screen.play.overAt !== null) {
           player.stop();
@@ -687,8 +692,9 @@ async function boot(): Promise<void> {
   };
 
   const tick = (): void => {
-    renderer.draw(nextFrame());
+    // 먼저 다음 프레임을 예약한다. 이 프레임에서 예외가 나도 화면이 멈추지 않는다.
     requestAnimationFrame(tick);
+    renderer.draw(nextFrame());
   };
   tick();
 }
